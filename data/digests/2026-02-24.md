@@ -1,6 +1,6 @@
 # RootFetch Daily Digest — 2026-02-24
 
-- Run ID: 50036d86-f623-4045-8cde-b12987a7c31d
+- Run ID: 28cabf73-d6e1-4190-a8fb-15e67d23a16d
 - Approved TLDs observed: 824
 
 ## Top Movers (Absolute)
@@ -18,7 +18,8 @@ _No data._
 ## Sector Snapshot
 | sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |
 | --- | --- | --- | --- | --- |
-| other | 95 |  |  | 4 |
+| ai_tech | 1680858 |  |  | 2 |
+| other | 8051714 |  |  | 5 |
 
 ## Data Quality Notes
 - Failed TLD jobs: 0

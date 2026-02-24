@@ -34,10 +34,12 @@ pip install -e ".[dev]"
 Set local environment variables (or use a local `.env`, never committed):
 
 ```bash
-export CZDS_USERNAME="..."
-export CZDS_PASSWORD="..."
+read -r -p "CZDS username: " CZDS_USERNAME
+read -rs -p "CZDS password: " CZDS_PASSWORD; echo
+export CZDS_USERNAME CZDS_PASSWORD
 # Optional only if your ICANN account uses TOTP MFA:
-export CZDS_TOTP_SECRET="..."
+read -rs -p "CZDS TOTP secret: " CZDS_TOTP_SECRET; echo
+export CZDS_TOTP_SECRET
 ```
 
 Optional runtime variables:
