@@ -56,7 +56,13 @@ jobs:
 
       - name: Deploy project
         if: steps.vercel_config.outputs.ready == 'true'
-        run: npx vercel@latest deploy --yes --prod --token "${{ secrets.VERCEL_TOKEN }}"
+        run: |
+          npx vercel@latest deploy \
+            --yes \
+            --prod \
+            --token "${{ secrets.VERCEL_TOKEN }}" \
+            --env ROOTFETCH_MCP_TOKEN="${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
+            --env ROOTFETCH_MCP_ALLOWED_ORIGINS="${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS }}"
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
