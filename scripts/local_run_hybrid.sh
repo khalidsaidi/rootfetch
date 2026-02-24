@@ -19,9 +19,16 @@ rootfetch discover
 echo "[rootfetch] baseline-status ${TODAY}"
 STATUS_JSON="$(rootfetch baseline-status --date "${TODAY}")"
 echo "${STATUS_JSON}"
-BASELINE_COMPLETE="$(
+BASELINE_MARKER="$(
   printf '%s' "${STATUS_JSON}" | python3 -c 'import json,sys; print("1" if json.load(sys.stdin).get("baseline_complete") else "0")'
 )"
+MISSING_EVER="$(
+  printf '%s' "${STATUS_JSON}" | python3 -c 'import json,sys; print(int(json.load(sys.stdin).get("missing_ever_count") or 0))'
+)"
+BASELINE_COMPLETE="0"
+if [[ "${BASELINE_MARKER}" == "1" && "${MISSING_EVER}" -eq 0 ]]; then
+  BASELINE_COMPLETE="1"
+fi
 
 RUN_RESULT_JSON=""
 RUN_DATE="${TODAY}"
@@ -46,7 +53,7 @@ else
 
     STATUS_JSON="$(rootfetch baseline-status --date "${RUN_DATE}")"
     echo "${STATUS_JSON}"
-    BASELINE_COMPLETE="$(
+    BASELINE_MARKER="$(
       printf '%s' "${STATUS_JSON}" | python3 -c 'import json,sys; print("1" if json.load(sys.stdin).get("baseline_complete") else "0")'
     )"
     COUNTED_EVER="$(
@@ -55,6 +62,10 @@ else
     MISSING_EVER="$(
       printf '%s' "${STATUS_JSON}" | python3 -c 'import json,sys; print(int(json.load(sys.stdin).get("missing_ever_count") or 0))'
     )"
+    BASELINE_COMPLETE="0"
+    if [[ "${BASELINE_MARKER}" == "1" && "${MISSING_EVER}" -eq 0 ]]; then
+      BASELINE_COMPLETE="1"
+    fi
     echo "[rootfetch] baseline progress processed_ok=${COUNTED_EVER} remaining=${MISSING_EVER}"
 
     if [[ "${BASELINE_COMPLETE}" == "1" ]]; then
