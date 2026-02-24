@@ -1,9 +1,9 @@
 # RootFetch Daily Digest — 2026-02-24
 
-- Run ID: dc301a12-dc58-4574-a648-e746700deb71
+- Run ID: f1a0dbdd-7886-4e8e-babf-6b90014560d5
 - Mode: hybrid
-- Approved TLDs observed: 827
-- Counted today: 827 (core=3, rolling=45)
+- Approved TLDs observed: 838
+- Counted today: 838 (core=3, rolling=45)
 
 ## Core Daily Movers (Absolute)
 _No data._
@@ -26,9 +26,9 @@ _No data._
 | ai_tech | 2907992 |  |  | 6 |
 | commerce | 2124928 |  |  | 4 |
 | finance | 60936 |  |  | 3 |
-| geo_local | 53223 |  |  | 2 |
+| geo_local | 96542 |  |  | 3 |
 | media_social | 1009377 |  |  | 4 |
-| other | 47236577 |  |  | 808 |
+| other | 47318217 |  |  | 818 |
 
 ## Data Quality Notes
 - Failed TLD jobs: 0
