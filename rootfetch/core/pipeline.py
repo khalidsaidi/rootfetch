@@ -400,13 +400,19 @@ def run_daily(
                 processed_rows.append(_as_daily_row(date_utc, metric))
                 logger.info("processed tld=%s status=%s", item["tld"], metric["status"])
 
-    processed_rows = [row for row in processed_rows if row.get("tld") in set(selected_tlds)]
-    processed_rows.sort(key=lambda row: row["tld"])
-    _write_daily_rows(daily_path, processed_rows)
+    selected_set = set(selected_tlds)
+    merged_rows: dict[str, dict[str, Any]] = {
+        row["tld"]: row for row in existing_rows if row.get("tld")
+    }
+    for row in processed_rows:
+        merged_rows[row["tld"]] = row
+
+    rows_for_write = sorted(merged_rows.values(), key=lambda row: row["tld"])
+    _write_daily_rows(daily_path, rows_for_write)
 
     growth_path = _update_growth_trends(
         date_utc,
-        processed_rows,
+        [row for row in processed_rows if row.get("tld") in selected_set],
         set(discovery_meta["newly_approved"]),
         run_id,
         settings,
