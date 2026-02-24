@@ -1,0 +1,38 @@
+# Secrets
+.env
+**/.env
+*.key
+*.pem
+
+# Agent workspace (safe docs allowed separately)
+.ai/token.json
+.ai/logs/
+.ai/tmp/
+.ai/zonefiles/
+.ai/rag/
+.ai/*approved_snapshot*.json
+.ai/*links*.json
+.ai/notes_auth.md
+
+# Raw zone data
+*.zone
+*.zone.gz
+*.txt.gz
+*.gz
+
+# Python artifacts
+__pycache__/
+.pytest_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# RAG/index artifacts
+*.sqlite
+*.sqlite3
+*.db
+
+# Keep committed planning docs
+!.ai/execution_plan.md
+!.ai/README.md
