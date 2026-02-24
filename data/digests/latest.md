@@ -1,6 +1,6 @@
 # RootFetch Daily Digest — 2026-02-24
 
-- Run ID: e27dcf01-84c7-4f05-8c7b-4bb400aaf3ad
+- Run ID: 77f62571-4884-4221-a29c-ad4e6265ac14
 - Approved TLDs observed: 824
 
 ## Top Movers (Absolute)
