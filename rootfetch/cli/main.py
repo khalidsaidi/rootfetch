@@ -7,9 +7,10 @@ from pathlib import Path
 from rootfetch.config import get_settings
 from rootfetch.core.auth import get_access_token
 from rootfetch.core.io_utils import utc_now_iso, utc_today_str
-from rootfetch.core.pipeline import run_daily, run_discovery_only
+from rootfetch.core.pipeline import run_daily, run_discovery_only, run_hybrid
 from rootfetch.signals.compute import compute_signals_for_date
 from rootfetch.signals.digest import write_daily_digest
+from rootfetch.rag.static_build import build_static_rag
 
 
 def _add_common_flags(parser: argparse.ArgumentParser) -> None:
@@ -53,6 +54,31 @@ def _cmd_run_daily(args: argparse.Namespace) -> int:
                 "processed_tlds": len(result.processed_tlds),
                 "failed_tlds": result.failed_tlds,
                 "outputs": result.outputs,
+                "summary": result.summary,
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def _cmd_run_hybrid(args: argparse.Namespace) -> int:
+    result = run_hybrid(
+        date_utc=args.date,
+        dry_run=args.dry_run,
+        verbose=args.verbose,
+        skip_discovery=args.skip_discovery,
+    )
+    print(
+        json.dumps(
+            {
+                "date_utc": result.date_utc,
+                "run_id": result.run_id,
+                "selected_tlds": len(result.selected_tlds),
+                "processed_tlds": len(result.processed_tlds),
+                "failed_tlds": result.failed_tlds,
+                "outputs": result.outputs,
+                "summary": result.summary,
             },
             indent=2,
         )
@@ -71,6 +97,8 @@ def _cmd_compute_signals(args: argparse.Namespace) -> int:
             {
                 "date_utc": args.date,
                 "top_movers": str(signal_meta["top_movers_path"]),
+                "core_top_movers": str(signal_meta["core_top_movers_path"]),
+                "rolling_updates": str(signal_meta["rolling_updates_path"]),
                 "volatility": str(signal_meta["volatility_path"]),
                 "anomalies": str(signal_meta["anomalies_path"]),
                 "sector_snapshot": str(signal_meta["sector_snapshot_path"]),
@@ -89,6 +117,12 @@ def _cmd_rag_build(args: argparse.Namespace) -> int:
 
     index = RAGIndex.from_settings()
     stats = index.build()
+    print(json.dumps(stats, indent=2))
+    return 0
+
+
+def _cmd_rag_build_static(args: argparse.Namespace) -> int:
+    stats = build_static_rag()
     print(json.dumps(stats, indent=2))
     return 0
 
@@ -126,6 +160,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_daily_cmd.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
     run_daily_cmd.set_defaults(func=_cmd_run_daily)
 
+    run_hybrid_cmd = subparsers.add_parser("run-hybrid", help="Run deterministic hybrid ingestion (core + rolling)")
+    _add_common_flags(run_hybrid_cmd)
+    run_hybrid_cmd.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
+    run_hybrid_cmd.add_argument("--skip-discovery", action="store_true", help="Reuse internal approved links snapshot")
+    run_hybrid_cmd.set_defaults(func=_cmd_run_hybrid)
+
     compute_signals = subparsers.add_parser("compute-signals", help="Recompute signals from aggregate outputs")
     _add_common_flags(compute_signals)
     compute_signals.add_argument("--date", required=True, help="UTC date YYYY-MM-DD")
@@ -135,6 +175,8 @@ def build_parser() -> argparse.ArgumentParser:
     rag_sub = rag.add_subparsers(dest="rag_command", required=True)
     rag_build = rag_sub.add_parser("build", help="Build or refresh the RAG index")
     rag_build.set_defaults(func=_cmd_rag_build)
+    rag_build_static = rag_sub.add_parser("build-static", help="Build committed static RAG artifacts under data/rag/")
+    rag_build_static.set_defaults(func=_cmd_rag_build_static)
     rag_search = rag_sub.add_parser("search", help="Search the RAG index")
     rag_search.add_argument("query")
     rag_search.add_argument("--k", type=int, default=8)

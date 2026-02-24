@@ -39,6 +39,10 @@ def temp_settings(tmp_path: Path):
         latest_signals_path=data / "signals" / "latest.json",
         sector_map_path=sector_map_path,
         execution_plan_path=ai / "execution_plan.md",
+        hybrid_plan_path=base / "rootfetch" / "resources" / "hybrid_plan.yml",
+        static_rag_dir=data / "rag",
+        static_rag_chunks_path=data / "rag" / "rag_chunks.json",
+        static_rag_meta_path=data / "rag" / "rag_meta.json",
     )
 
     for path in [
@@ -52,6 +56,7 @@ def temp_settings(tmp_path: Path):
         updated.logs_dir,
         updated.snapshots_dir,
         updated.rag_dir,
+        updated.static_rag_dir,
     ]:
         path.mkdir(parents=True, exist_ok=True)
 

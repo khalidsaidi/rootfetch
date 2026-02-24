@@ -47,13 +47,15 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
         if isinstance(payload, dict):
             latest_payload = payload
 
-    movers_path = settings.signals_dir / f"{date_utc}_top_movers.csv"
+    movers_path = settings.signals_dir / f"{date_utc}_core_top_movers.csv"
     anomalies_path = settings.signals_dir / f"{date_utc}_anomalies.csv"
+    rolling_updates_path = settings.signals_dir / f"{date_utc}_rolling_updates.csv"
     sector_snapshot_path = settings.signals_dir / f"{date_utc}_sector_snapshot.csv"
     daily_counts_path = settings.daily_counts_dir / f"{date_utc}.csv"
 
     movers_df = _safe_read_csv(movers_path)
     anomalies_df = _safe_read_csv(anomalies_path)
+    rolling_df = _safe_read_csv(rolling_updates_path)
     sectors_df = _safe_read_csv(sector_snapshot_path)
     daily_df = _safe_read_csv(daily_counts_path)
 
@@ -72,13 +74,16 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
         "",
         f"- Run ID: {run_id or latest_payload.get('run_id', 'unknown')}",
         f"- Approved TLDs observed: {latest_payload.get('approved_tlds_count', 'n/a')}",
+        f"- Counted today: {latest_payload.get('counted_today_count', 'n/a')} (core={latest_payload.get('counted_today_core_count', 'n/a')}, rolling={latest_payload.get('counted_today_rolling_count', 'n/a')})",
         "",
-        "## Top Movers (Absolute)",
+        "## Core Daily Movers (Absolute)",
         _render_table(abs_growers, ["tld", "count", "delta_abs", "delta_pct", "data_quality"]),
-        "## Top Movers (Percentage)",
+        "## Core Daily Movers (Percentage)",
         _render_table(pct_growers, ["tld", "count", "delta_abs", "delta_pct", "data_quality"]),
-        "## Biggest Decliners",
+        "## Core Daily Decliners",
         _render_table(decliners, ["tld", "count", "delta_abs", "delta_pct", "data_quality"]),
+        "## Rolling Updates (Since Last Seen)",
+        _render_table(rolling_df, ["tld", "count", "prev_date_utc", "days_since_prev", "delta_abs", "delta_pct"]),
         "## Notable Anomalies",
         _render_table(anomalies_df, ["tld", "reason", "delta_pct", "z", "robust_z", "data_quality"]),
         "## Sector Snapshot",

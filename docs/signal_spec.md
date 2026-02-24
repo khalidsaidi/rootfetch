@@ -1,94 +1,89 @@
 # RootFetch Signal Spec
 
-RootFetch signal outputs are derived from daily `count_ns_sld` trend data unless
-stated otherwise.
+RootFetch signals are hybrid-aware.
 
-## Daily Top Movers
+## Hybrid Inputs
 
-Output: `data/signals/<YYYY-MM-DD>_top_movers.csv`
+- Core cadence rows: `cadence=core`, expected `days_since_prev=1`
+- Rolling cadence rows: `cadence=rolling`, `days_since_prev` may be >1
+
+All signal computations use `count_ns_sld` as the primary count.
+
+## Core Daily Movers
+
+Output: `data/signals/<YYYY-MM-DD>_core_top_movers.csv`
 
 Leaderboards (top 20 each):
 
-1. Absolute growers: `delta_abs` descending
-2. Percentage growers: `delta_pct` descending with `count_yesterday >= ROOTFETCH_MIN_BASE_FOR_PCT`
-3. Absolute decliners: `delta_abs` ascending
+1. `top_abs_growers`
+2. `top_pct_growers` (requires previous base >= `ROOTFETCH_MIN_BASE_FOR_PCT`)
+3. `top_abs_decliners`
+
+Filters:
+
+- `status=ok`
+- `cadence=core`
+- `days_since_prev=1`
 
 Columns:
 
-- `date_utc`, `tld`, `count`, `delta_abs`, `delta_pct`, `accel_abs`,
-  `is_estimate`, `data_quality`, `leaderboard`
+- `date_utc, tld, count, delta_abs, delta_pct, accel_abs, is_estimate, data_quality, leaderboard`
+
+Compatibility file:
+
+- `data/signals/<YYYY-MM-DD>_top_movers.csv` mirrors core movers.
+
+## Rolling Updates
+
+Output: `data/signals/<YYYY-MM-DD>_rolling_updates.csv`
+
+Shows rolling TLD updates compared to the last observed date.
+
+Columns:
+
+- `date_utc, tld, count, prev_date_utc, days_since_prev, delta_abs, delta_pct, is_estimate, data_quality`
 
 ## Volatility
 
 Output: `data/signals/<YYYY-MM-DD>_volatility.csv`
 
-Definitions:
-
-- `vol7 = stddev(delta_pct over trailing 7 valid days)`
-- `vol30 = stddev(delta_pct over trailing 30 valid days)`
-- `valid_days_30 = number of valid days in trailing window`
+- `vol7 = stddev(delta_pct over trailing 7 valid points)`
+- `vol30 = stddev(delta_pct over trailing 30 valid points)`
 
 Columns:
 
-- `date_utc`, `tld`, `vol7`, `vol30`, `valid_days_30`, `is_estimate`,
-  `data_quality`
+- `date_utc, tld, vol7, vol30, valid_days_30, is_estimate, data_quality`
 
-## Sector Indices
-
-Map file: `rootfetch/resources/tld_sectors.yml`
-
-Rules:
-
-- TLD can belong to multiple sectors.
-- Unmapped TLDs fall back to `other` (wildcard sector if present).
-
-Daily calculations:
-
-- `sector_count = sum(count_ns_sld where status=ok for sector members)`
-- `sector_delta_abs = sector_count_today - sector_count_yesterday`
-- `sector_delta_pct = sector_delta_abs / sector_count_yesterday` (blank when unavailable)
-
-Outputs:
-
-- Append-only: `data/signals/sector_indices.csv`
-- Daily snapshot: `data/signals/<YYYY-MM-DD>_sector_snapshot.csv`
-
-## Anomaly Scoring
+## Anomalies
 
 Output: `data/signals/<YYYY-MM-DD>_anomalies.csv`
 
-Baseline window:
+Flags by any condition:
 
-- trailing 30 days (min 14 valid days)
-
-Scores:
-
-- `z = (delta_pct_today - mean(delta_pct_baseline)) / std(delta_pct_baseline)`
-- `robust_z = 0.6745 * (delta_pct_today - median) / MAD`
-
-Flag conditions:
-
-- `abs(z) >= 3.0` with baseline >= 14 days
-- or `abs(robust_z) >= 3.5` with baseline >= 14 days
-- or `data_quality == suspicious`
-- optional recovery flag when prior status was missing/failed and current is ok
-
-Reason codes:
-
-- `zscore`, `robust_z`, `suspicious_jump`, `missing_data_recovery`
+- `abs(z) >= 3.0` with baseline >= 14
+- `abs(robust_z) >= 3.5` with baseline >= 14
+- `data_quality == suspicious`
+- prior recovery after missing/failed
 
 Columns:
 
-- `date_utc`, `tld`, `count`, `delta_pct`, `z`, `robust_z`, `baseline_days`,
-  `reason`, `is_estimate`, `data_quality`
+- `date_utc, tld, count, delta_pct, z, robust_z, baseline_days, reason, is_estimate, data_quality`
 
-## Latest Product Snapshot
+## Sector Indices
 
-Output: `data/signals/latest.json` (overwritten daily)
+Outputs:
 
-Contains:
+- `data/signals/sector_indices.csv` (append-only)
+- `data/signals/<YYYY-MM-DD>_sector_snapshot.csv`
 
-- run metadata (`date_utc`, `run_id`, `approved_tlds_count`)
-- top movers (`top_movers_abs`, `top_movers_pct`, `top_decliners_abs`)
-- anomalies
-- sector snapshot
+## Latest Snapshot
+
+Output: `data/signals/latest.json`
+
+Includes:
+
+- coverage fields (`approved_tlds_count`, `counted_today_count`, `counted_today_core_count`, `counted_today_rolling_count`, `coverage_pct_today`)
+- core mover arrays (`core_movers_abs`, `core_movers_pct`)
+- rolling updates (`rolling_updates`)
+- compatibility mover arrays (`top_movers_abs`, `top_movers_pct`, `top_decliners_abs`)
+- anomalies and sector snapshot

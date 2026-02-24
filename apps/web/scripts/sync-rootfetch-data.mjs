@@ -25,6 +25,14 @@ const requiredCopies = [
     source: path.join(repoRoot, "data", "signals", "coverage_latest.json"),
     dest: path.join(appRoot, "public", "rootfetch", "coverage_latest.json"),
   },
+  {
+    source: path.join(repoRoot, "data", "rag", "rag_chunks.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "rag_chunks.json"),
+  },
+  {
+    source: path.join(repoRoot, "data", "rag", "rag_meta.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "rag_meta.json"),
+  },
 ];
 
 const optionalCopies = [

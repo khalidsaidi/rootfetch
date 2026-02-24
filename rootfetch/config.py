@@ -51,6 +51,10 @@ class Settings:
     latest_signals_path: Path
     sector_map_path: Path
     execution_plan_path: Path
+    hybrid_plan_path: Path
+    static_rag_dir: Path
+    static_rag_chunks_path: Path
+    static_rag_meta_path: Path
 
     username: str | None
     password: str | None
@@ -76,6 +80,7 @@ def get_settings() -> Settings:
     daily_counts_dir = data_dir / "daily_counts"
     signals_dir = data_dir / "signals"
     digests_dir = data_dir / "digests"
+    static_rag_dir = data_dir / "rag"
     rag_dir = ai_dir / "rag"
     allowlist = _parse_csv_set(os.getenv("ROOTFETCH_TLD_ALLOWLIST"))
     env_blocklist = _parse_csv_set(os.getenv("ROOTFETCH_TLD_BLOCKLIST"))
@@ -109,6 +114,10 @@ def get_settings() -> Settings:
         latest_signals_path=signals_dir / "latest.json",
         sector_map_path=sector_map_path,
         execution_plan_path=ai_dir / "execution_plan.md",
+        hybrid_plan_path=repo_root / "rootfetch" / "resources" / "hybrid_plan.yml",
+        static_rag_dir=static_rag_dir,
+        static_rag_chunks_path=static_rag_dir / "rag_chunks.json",
+        static_rag_meta_path=static_rag_dir / "rag_meta.json",
         username=os.getenv("CZDS_USERNAME"),
         password=os.getenv("CZDS_PASSWORD"),
         totp_secret=os.getenv("CZDS_TOTP_SECRET"),

@@ -10,6 +10,15 @@ type Mover = {
   count?: number;
 };
 
+type RollingUpdate = {
+  tld?: string;
+  count?: number;
+  prev_date_utc?: string;
+  days_since_prev?: number;
+  delta_abs?: number;
+  delta_pct?: number;
+};
+
 type Anomaly = {
   tld?: string;
   reason?: string;
@@ -28,6 +37,9 @@ type LatestSignals = {
   date_utc: string;
   run_id: string;
   approved_tlds_count: number;
+  counted_today_count?: number;
+  counted_today_core_count?: number;
+  counted_today_rolling_count?: number;
   processed_tlds_count_today?: number;
   coverage_pct_today?: number;
   note_if_partial?: string;
@@ -35,6 +47,9 @@ type LatestSignals = {
   top_movers_abs: Mover[];
   top_movers_pct: Mover[];
   top_decliners_abs: Mover[];
+  core_movers_abs?: Mover[];
+  core_movers_pct?: Mover[];
+  rolling_updates?: RollingUpdate[];
   anomalies: Anomaly[];
   sector_snapshot: Sector[];
 };
@@ -45,6 +60,8 @@ type CoverageLatest = {
   approved_tlds: string[];
   counted_today_tlds: string[];
   counted_today_count: number;
+  counted_today_core_count?: number;
+  counted_today_rolling_count?: number;
   counted_ever_tlds: string[];
   counted_ever_count: number;
   missing_ever_tlds: string[];
@@ -55,6 +72,9 @@ const EMPTY_SIGNALS: LatestSignals = {
   date_utc: "n/a",
   run_id: "n/a",
   approved_tlds_count: 0,
+  counted_today_count: 0,
+  counted_today_core_count: 0,
+  counted_today_rolling_count: 0,
   processed_tlds_count_today: 0,
   coverage_pct_today: 0,
   note_if_partial: "",
@@ -62,6 +82,9 @@ const EMPTY_SIGNALS: LatestSignals = {
   top_movers_abs: [],
   top_movers_pct: [],
   top_decliners_abs: [],
+  core_movers_abs: [],
+  core_movers_pct: [],
+  rolling_updates: [],
   anomalies: [],
   sector_snapshot: [],
 };
@@ -72,6 +95,8 @@ const EMPTY_COVERAGE: CoverageLatest = {
   approved_tlds: [],
   counted_today_tlds: [],
   counted_today_count: 0,
+  counted_today_core_count: 0,
+  counted_today_rolling_count: 0,
   counted_ever_tlds: [],
   counted_ever_count: 0,
   missing_ever_tlds: [],
@@ -103,6 +128,9 @@ async function loadLatestSignals(): Promise<LatestSignals> {
       top_movers_abs: parsed.top_movers_abs ?? [],
       top_movers_pct: parsed.top_movers_pct ?? [],
       top_decliners_abs: parsed.top_decliners_abs ?? [],
+      core_movers_abs: parsed.core_movers_abs ?? parsed.top_movers_abs ?? [],
+      core_movers_pct: parsed.core_movers_pct ?? parsed.top_movers_pct ?? [],
+      rolling_updates: parsed.rolling_updates ?? [],
       anomalies: parsed.anomalies ?? [],
       sector_snapshot: parsed.sector_snapshot ?? [],
     };
@@ -135,11 +163,11 @@ async function loadDigestSnippet(): Promise<string> {
     const raw = await fs.readFile(digestPath, "utf-8");
     return raw
       .split("\n")
-      .slice(0, 16)
+      .slice(0, 20)
       .join("\n")
       .trim();
   } catch {
-    return "Latest digest is unavailable. Run `rootfetch run-daily` first.";
+    return "Latest digest is unavailable. Run `rootfetch run-hybrid` first.";
   }
 }
 
@@ -165,6 +193,28 @@ function MoverList({ title, items }: { title: string; items: Mover[] }) {
   );
 }
 
+function RollingList({ items }: { items: RollingUpdate[] }) {
+  return (
+    <section className={styles.panel}>
+      <h2>Rolling Updates (Since Last Seen)</h2>
+      {items.length === 0 ? (
+        <p className={styles.empty}>No rolling updates for this run.</p>
+      ) : (
+        <ul className={styles.rankList}>
+          {items.slice(0, 8).map((item) => (
+            <li key={`${item.tld}-${item.prev_date_utc}-${item.delta_abs}`}>
+              <span className={styles.tld}>{item.tld ?? "unknown"}</span>
+              <span>{item.prev_date_utc ?? "n/a"}</span>
+              <span>{typeof item.days_since_prev === "number" ? `${item.days_since_prev}d` : "n/a"}</span>
+              <span>{fmtInt(item.delta_abs)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export default async function Home() {
   const [latest, coverage, digestSnippet] = await Promise.all([
     loadLatestSignals(),
@@ -173,13 +223,19 @@ export default async function Home() {
   ]);
 
   const approvedCount = coverage.approved_tlds_count || latest.approved_tlds_count;
-  const countedToday = coverage.counted_today_count || latest.processed_tlds_count_today || 0;
+  const countedToday = latest.counted_today_count ?? coverage.counted_today_count ?? latest.processed_tlds_count_today ?? 0;
+  const countedCore = latest.counted_today_core_count ?? coverage.counted_today_core_count ?? 0;
+  const countedRolling = latest.counted_today_rolling_count ?? coverage.counted_today_rolling_count ?? 0;
   const coveragePct =
     typeof latest.coverage_pct_today === "number"
       ? latest.coverage_pct_today
       : approvedCount > 0
         ? countedToday / approvedCount
         : 0;
+
+  const coreAbs = latest.core_movers_abs ?? latest.top_movers_abs;
+  const corePct = latest.core_movers_pct ?? latest.top_movers_pct;
+  const rollingUpdates = latest.rolling_updates ?? [];
 
   const mcpSnippet = `{
   "mcpServers": {
@@ -191,9 +247,9 @@ export default async function Home() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <p className={styles.kicker}>RootFetch Daily Dashboard</p>
-        <h1>Delegation trend signals from CZDS aggregate outputs</h1>
+        <h1>Hybrid delegation signals from committed aggregates</h1>
         <p className={styles.subtitle}>
-          Live from committed artifacts only. No secrets, no raw zones, no direct CZDS calls.
+          Ingestion runs on your local machine (core daily + rolling long tail). Vercel serves read-only artifacts.
         </p>
 
         <div className={styles.metaGrid}>
@@ -208,6 +264,14 @@ export default async function Home() {
           <article>
             <p>Counted today</p>
             <strong>{fmtInt(countedToday)}</strong>
+          </article>
+          <article>
+            <p>Core counted today</p>
+            <strong>{fmtInt(countedCore)}</strong>
+          </article>
+          <article>
+            <p>Rolling counted today</p>
+            <strong>{fmtInt(countedRolling)}</strong>
           </article>
           <article>
             <p>Coverage today</p>
@@ -234,15 +298,17 @@ export default async function Home() {
         </div>
 
         <div className={styles.mcpBox}>
-          <p>MCP endpoint: <code>/api/mcp</code></p>
+          <p>
+            MCP endpoint: <code>/api/mcp</code>
+          </p>
           <pre className={styles.codeBlock}>{mcpSnippet}</pre>
         </div>
       </section>
 
       <section className={styles.grid3}>
-        <MoverList title="Top movers (abs)" items={latest.top_movers_abs} />
-        <MoverList title="Top movers (pct)" items={latest.top_movers_pct} />
-        <MoverList title="Top decliners" items={latest.top_decliners_abs} />
+        <MoverList title="Core Daily Movers (abs)" items={coreAbs} />
+        <MoverList title="Core Daily Movers (pct)" items={corePct} />
+        <RollingList items={rollingUpdates} />
       </section>
 
       <section className={styles.grid2}>

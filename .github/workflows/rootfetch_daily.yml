@@ -7,7 +7,7 @@ on:
 
 jobs:
   run-daily:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: write
     env:
@@ -35,8 +35,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Run RootFetch Daily
-        run: rootfetch run-daily
+      - name: Run RootFetch Hybrid
+        run: rootfetch run-hybrid
+
+      - name: Build Static RAG Artifacts
+        run: rootfetch rag build-static
 
       - name: Commit safe outputs
         run: |
@@ -50,6 +53,7 @@ jobs:
           git add "data/digests/${TODAY}.md" data/digests/latest.md || true
           git add data/growth_trends.csv || true
           git add data/signals/*.csv data/signals/latest.json data/signals/coverage_latest.json || true
+          git add data/rag/*.json || true
 
           if git diff --cached --quiet; then
             echo "No output changes to commit."

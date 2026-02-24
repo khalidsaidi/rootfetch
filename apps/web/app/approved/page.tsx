@@ -14,6 +14,7 @@ type CoverageLatest = {
   counted_ever_count: number;
   missing_ever_tlds: string[];
   missing_ever_count: number;
+  last_seen_by_tld?: Record<string, string>;
 };
 
 const EMPTY_COVERAGE: CoverageLatest = {
@@ -26,6 +27,7 @@ const EMPTY_COVERAGE: CoverageLatest = {
   counted_ever_count: 0,
   missing_ever_tlds: [],
   missing_ever_count: 0,
+  last_seen_by_tld: {},
 };
 
 function fmtInt(value: number): string {
@@ -55,6 +57,7 @@ export default function ApprovedPage() {
           counted_today_tlds: payload.counted_today_tlds ?? [],
           counted_ever_tlds: payload.counted_ever_tlds ?? [],
           missing_ever_tlds: payload.missing_ever_tlds ?? [],
+          last_seen_by_tld: payload.last_seen_by_tld ?? {},
         });
       })
       .catch(() => {
@@ -78,15 +81,16 @@ export default function ApprovedPage() {
   const rows = useMemo(
     () =>
       filtered.map((tld) => {
+        const lastSeen = coverage.last_seen_by_tld?.[tld] ?? "";
         if (countedToday.has(tld)) {
-          return { tld, status: "counted today" };
+          return { tld, status: "counted today", lastSeen };
         }
         if (countedEver.has(tld)) {
-          return { tld, status: "counted before" };
+          return { tld, status: "counted before", lastSeen };
         }
-        return { tld, status: "not counted yet" };
+        return { tld, status: "not counted yet", lastSeen: "" };
       }),
-    [filtered, countedEver, countedToday]
+    [filtered, countedEver, countedToday, coverage.last_seen_by_tld]
   );
 
   const copyText = async (text: string, label: string) => {
@@ -146,6 +150,7 @@ export default function ApprovedPage() {
             <tr>
               <th>TLD</th>
               <th>Status</th>
+              <th>Last seen (UTC)</th>
             </tr>
           </thead>
           <tbody>
@@ -165,6 +170,7 @@ export default function ApprovedPage() {
                     {row.status}
                   </span>
                 </td>
+                <td>{row.lastSeen || "n/a"}</td>
               </tr>
             ))}
           </tbody>

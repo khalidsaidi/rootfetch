@@ -1,0 +1,157 @@
+{
+  "chunks": [
+    {
+      "id": "52aa85e22cc830b573e18611ecd3947c45794cd1",
+      "source_path": "README.md",
+      "source_type": "readme",
+      "date_utc": null,
+      "title": "RootFetch",
+      "text": "# RootFetch\n\nRootFetch is a CZDS trend engine that measures DNS-visible delegated domain activity\nfrom zone snapshots and publishes safe aggregate artifacts for product surfaces.\n\n## Operating Model\n\n- Ingestion runs on your machine (local runner), not on Vercel.\n- Vercel serves read-only precomputed artifacts from the repo.\n- Hybrid cadence:\n  - Core set processed daily\n  - Long tail processed on deterministic rolling shards\n\n## Primary Metric\n\n- `count_ns_sld`: unique second-level owners with at least one `NS` record.\n\nThis is a delegation footprint proxy, not total registrations.\n\n## Safety\n\n- Never commit credentials/tokens/MFA seeds.\n- Never commit `.env` files.\n- Never commit raw zone files (`*.gz`, `*.zone`, `*.txt.gz`).\n- Commit only safe aggregates under `data/` and code/docs.\n\n## Setup\n\n```bash\npython -m venv .venv\nsource .venv/bin/activate\npip install -e \".[dev]\"\n```\n\nSet local env vars (or use local `.env`):\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- optional `CZDS_TOTP_SECRET`\n\n## CLI\n\n```bash\nrootfetch auth-check\nrootfetch discover\nrootfetch run-hybrid\nrootfetch run-hybrid",
+      "resource_uri": "rootfetch://docs/readme"
+    },
+    {
+      "id": "c879171788c796fb23c06cfb7dc7053ffd5f16ae",
+      "source_path": "README.md",
+      "source_type": "readme",
+      "date_utc": null,
+      "title": "Setup",
+      "text": "DS_USERNAME`\n- `CZDS_PASSWORD`\n- optional `CZDS_TOTP_SECRET`\n\n## CLI\n\n```bash\nrootfetch auth-check\nrootfetch discover\nrootfetch run-hybrid\nrootfetch run-hybrid --dry-run\nrootfetch compute-signals --date YYYY-MM-DD\nrootfetch rag build\nrootfetch rag build-static\nrootfetch rag search \"count_ns_sld\"\nrootfetch mcp serve --transport stdio\n```\n\n## Local Automation\n\nPrimary daily entrypoint:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nSee scheduler setups in [docs/local_runner.md](docs/local_runner.md).\n\n## Outputs\n\n- `data/approved_tlds/latest.json`\n- `data/daily_counts/<YYYY-MM-DD>.csv`\n- `data/growth_trends.csv`\n- `data/signals/*`\n- `data/digests/*`\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n\n## Docs\n\n- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs on `self-hosted` only.\n- `.github/workflows/release.ym",
+      "resource_uri": "rootfetch://docs/readme"
+    },
+    {
+      "id": "f399567b2bcf2f661f8657c3cd920b8023c65d4c",
+      "source_path": "README.md",
+      "source_type": "readme",
+      "date_utc": null,
+      "title": "Docs",
+      "text": "local_runner.md](docs/local_runner.md)\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs on `self-hosted` only.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/vercel_deploy.yml` deploys dashboard on safe artifact/code changes.",
+      "resource_uri": "rootfetch://docs/readme"
+    },
+    {
+      "id": "eb075b5febcb65aeb602271f14362872a8b351e8",
+      "source_path": "docs/dashboard.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Dashboard (Vercel)",
+      "text": "# RootFetch Dashboard (Vercel)\n\nRootFetch includes a Next.js dashboard at `apps/web` that visualizes committed\naggregate artifacts.\n\n## Data flow\n\n1. RootFetch daily run updates:\n   - `data/signals/latest.json`\n   - `data/digests/latest.md`\n2. `apps/web/scripts/sync-rootfetch-data.mjs` copies those files into\n   `apps/web/public/rootfetch/` during `npm run build`.\n3. The dashboard renders from copied static files and exposes `/api/latest`.\n\n## Local run\n\n```bash\ncd apps/web\nnpm ci\nnpm run sync-data\nnpm run dev\n```\n\n## Vercel deployment options\n\n## Option A: Git integration\n\n- Connect `khalidsaidi/rootfetch` in Vercel.\n- Set Root Directory to `apps/web`.\n- Set production branch to `main`.\n\n## Option B: GitHub Actions + Vercel CLI\n\nUse `.github/workflows/vercel_deploy.yml` and add repository secrets:\n\n- `VERCEL_TOKEN`\n- `VERCEL_ORG_ID`\n- `VERCEL_PROJECT_ID`\n\nThe workflow triggers on pushes that affect `apps/web/**` or `data/**`.\n\n## Notes\n\n- The dashboard never reads CZDS credentials.\n- Only safe aggregates and markdown digest are displayed.",
+      "resource_uri": "rootfetch://docs/dashboard"
+    },
+    {
+      "id": "a0019b817e7c1ee6f5a0c369414ff98cecf2d430",
+      "source_path": "docs/local_runner.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Local Runner",
+      "text": "# RootFetch Local Runner\n\nRootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted runners.\n\n## Required Local Environment\n\nCreate a local `.env` (never committed):\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)\n\nOptional hybrid overrides:\n\n- `ROOTFETCH_ROLLING_PERIOD_DAYS`\n- `ROOTFETCH_ROLLING_MIN_PER_DAY`\n- `ROOTFETCH_ROLLING_MAX_PER_DAY`\n- `ROOTFETCH_MAX_WORKERS`\n- `ROOTFETCH_HTTP_TIMEOUT`\n- `ROOTFETCH_RETRY_MAX`\n\n## Daily Local Command\n\nRun:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nThe script does:\n\n1. `rootfetch discover`\n2. `rootfetch run-hybrid`\n3. `rootfetch compute-signals --date <today>`\n4. `rootfetch rag build-static`\n5. commit/push safe artifacts only under `data/`\n\n## Scheduling\n\n### Option 1: cron\n\n```bash\nCRON_TZ=UTC\n30 2 * * * /bin/bash -lc \"cd /path/to/rootfetch && ./scripts/local_run_hybrid.sh >> .ai/logs/cron.log 2>&1\"\n```\n\n### Option 2: systemd timer (recommended)\n\nService (`/etc/systemd/system/rootfetch-hybrid.service`):\n\n```ini\n[Unit]\nDescription=RootFetch Hybrid Daily Run\n\n[Service]\nType",
+      "resource_uri": "rootfetch://docs/local_runner"
+    },
+    {
+      "id": "aab9180068b34762285b80cf6b0506687cb85267",
+      "source_path": "docs/local_runner.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Option 2: systemd timer (recommended)",
+      "text": "2: systemd timer (recommended)\n\nService (`/etc/systemd/system/rootfetch-hybrid.service`):\n\n```ini\n[Unit]\nDescription=RootFetch Hybrid Daily Run\n\n[Service]\nType=oneshot\nWorkingDirectory=/path/to/rootfetch\nExecStart=/bin/bash -lc './scripts/local_run_hybrid.sh'\n```\n\nTimer (`/etc/systemd/system/rootfetch-hybrid.timer`):\n\n```ini\n[Unit]\nDescription=Run RootFetch Hybrid Daily at 02:30 UTC\n\n[Timer]\nOnCalendar=*-*-* 02:30:00 UTC\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n```\n\nEnable:\n\n```bash\nsudo systemctl daemon-reload\nsudo systemctl enable --now rootfetch-hybrid.timer\n```",
+      "resource_uri": "rootfetch://docs/local_runner"
+    },
+    {
+      "id": "6a262ec0d3cb1936aca2332d4c51e313a820d35f",
+      "source_path": "docs/mcp_server.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch MCP Server",
+      "text": "# RootFetch MCP Server\n\nRootFetch exposes read-only MCP surfaces from committed artifacts.\n\n## Deployment Modes\n\n1. Python MCP server (`rootfetch mcp serve`) for local workflows.\n2. Vercel MCP route at `/api/mcp` for hosted read-only access.\n\nNo mode performs CZDS auth or zone downloads.\n\n## Vercel MCP (Pattern 1)\n\nPattern in use: static artifact sync into web `public/rootfetch/*` at build time.\n\nSynced artifacts include:\n\n- `latest.json`\n- `coverage_latest.json`\n- `approved_latest.json`\n- `rag_chunks.json`\n- `rag_meta.json`\n\n## Security\n\nVercel `/api/mcp` requires:\n\n- `Authorization: Bearer <ROOTFETCH_MCP_TOKEN>`\n- origin allowlist via `ROOTFETCH_MCP_ALLOWED_ORIGINS`\n\n## Vercel MCP Tools\n\n- `rootfetch_get_approved_tlds`\n- `rootfetch_get_coverage`\n- `rootfetch_search_approved`\n- `rootfetch_health`\n- `rag_search`\n- `rag_get_chunk`\n\nTool payloads are returned as JSON text content.\n\n## Python MCP Resources/Tools\n\nResources:\n\n- `rootfetch://signals/latest`\n- `rootfetch://growth_trends`\n- `rootfetch://daily_counts/{date}`\n- `rootfetch://approved_tlds/{date}`\n- `rootfetch://digest/{date}`",
+      "resource_uri": "rootfetch://docs/mcp_server"
+    },
+    {
+      "id": "82a1412dc847b56f0e2ed7e43e31b2fe175b68fa",
+      "source_path": "docs/mcp_server.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Python MCP Resources/Tools",
+      "text": "ootfetch://signals/latest`\n- `rootfetch://growth_trends`\n- `rootfetch://daily_counts/{date}`\n- `rootfetch://approved_tlds/{date}`\n- `rootfetch://digest/{date}` and `rootfetch://digest/latest`\n- `rootfetch://docs/{doc_name}`\n\nTools:\n\n- `rootfetch_health`, `rootfetch_get_latest`, `rootfetch_get_tld_timeseries`\n- `rootfetch_top_movers`, `rootfetch_anomalies`\n- `rag_search`, `rag_get_chunk`\n\n## Local Run\n\nSTDIO:\n\n```bash\nrootfetch mcp serve --transport stdio\n```\n\nStreamable HTTP:\n\n```bash\nrootfetch mcp serve --transport streamable-http --port 8000\n```\n\nWhen using STDIO transport, logs must stay off stdout.",
+      "resource_uri": "rootfetch://docs/mcp_server"
+    },
+    {
+      "id": "42458c02b555120d68a1b1646a63538f6aba3054",
+      "source_path": "docs/metrics_spec.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Metrics Spec",
+      "text": "# RootFetch Metrics Spec\n\nRootFetch reports zone-derived delegation metrics, not total registration counts.\n\n## Primary Metric\n\n### `count_ns_sld`\n\nDefinition:\n\n- For TLD `tld` on date `D`, count unique second-level owner names with at least one `NS` record.\n- Include only SLD depth (`example.tld`).\n- Exclude apex (`tld`) and deeper labels (`a.example.tld`).\n\nInterpretation:\n\n- Proxy for DNS-visible active delegated domains.\n\n## Secondary Metrics\n\n### `count_ds_sld`\n\n- Unique SLD owners with at least one `DS` record.\n\n### `count_glue_hosts`\n\n- Unique owner hostnames under the TLD with `A`/`AAAA` records.\n\n### `count_ns_rr`\n\n- Raw NS RR line count (not unique owner count).\n\n### Operational\n\n- `bytes_downloaded`\n- `fetch_seconds`\n- `status`\n- `error`\n\n## Hybrid Trend Fields\n\nIn `data/growth_trends.csv`, each row now includes:\n\n- `prev_date_utc`: previous observed date for that TLD\n- `days_since_prev`: difference between `date_utc` and `prev_date_utc`\n- `cadence`: `core` or `rolling` (or legacy `daily`)\n\nDeltas are computed against `prev_date_utc`:\n\n- `delta_abs = count - prev_count`\n-",
+      "resource_uri": "rootfetch://docs/metrics_spec"
+    },
+    {
+      "id": "d1f4c333f2b9e36e823f2b13f7517a35e0067e7e",
+      "source_path": "docs/metrics_spec.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Hybrid Trend Fields",
+      "text": "c` and `prev_date_utc`\n- `cadence`: `core` or `rolling` (or legacy `daily`)\n\nDeltas are computed against `prev_date_utc`:\n\n- `delta_abs = count - prev_count`\n- `delta_pct = delta_abs / prev_count` (blank if previous missing/0)\n\nThis prevents misleading day-over-day comparisons for rolling rows.\n\n## Data Quality\n\nFlags:\n\n- `ok`\n- `missing`\n- `failed`\n- `estimate`\n- `suspicious`\n\nSuspicious rule:\n\n- `abs(delta_pct) > 0.20`\n- prior base > 10,000\n- not newly approved",
+      "resource_uri": "rootfetch://docs/metrics_spec"
+    },
+    {
+      "id": "45adfd0a4fb8845dffce69548e731d9774991835",
+      "source_path": "docs/rag.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch RAG",
+      "text": "# RootFetch RAG\n\nRootFetch supports two RAG forms:\n\n1. Local SQLite FTS index under `.ai/rag/` (developer tooling)\n2. Committed static chunks under `data/rag/` (Vercel MCP runtime)\n\n## Indexed Sources\n\n- `README.md`\n- `docs/*.md`\n- `data/digests/*.md` (capped)\n\n## Chunking\n\nStatic build defaults:\n\n- chunk size: 1100 chars\n- overlap: 160 chars\n- digest cap: last 60\n- hard chunk cap: 2000\n\nIf chunk cap is exceeded, oldest digest chunks are dropped first.\n\n## Static Build Command\n\n```bash\nrootfetch rag build-static\n```\n\nOutputs:\n\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n\nThese files are committed and served to Vercel MCP.\n\n## Local SQLite Build (optional)\n\n```bash\nrootfetch rag build\nrootfetch rag search \"count_ns_sld\"\n```\n\nSQLite index path:\n\n- `.ai/rag/rootfetch_rag.sqlite` (gitignored)\n\n## MCP Integration\n\nVercel `rag_search` and `rag_get_chunk` read static `rag_chunks.json`.\nSearch uses lexical scoring (token overlap + phrase boost) for fast, cheap retrieval.",
+      "resource_uri": "rootfetch://docs/rag"
+    },
+    {
+      "id": "15bfbd87ab6d082a9645c7070fa687ecc1f42015",
+      "source_path": "docs/signal_spec.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Signal Spec",
+      "text": "# RootFetch Signal Spec\n\nRootFetch signals are hybrid-aware.\n\n## Hybrid Inputs\n\n- Core cadence rows: `cadence=core`, expected `days_since_prev=1`\n- Rolling cadence rows: `cadence=rolling`, `days_since_prev` may be >1\n\nAll signal computations use `count_ns_sld` as the primary count.\n\n## Core Daily Movers\n\nOutput: `data/signals/<YYYY-MM-DD>_core_top_movers.csv`\n\nLeaderboards (top 20 each):\n\n1. `top_abs_growers`\n2. `top_pct_growers` (requires previous base >= `ROOTFETCH_MIN_BASE_FOR_PCT`)\n3. `top_abs_decliners`\n\nFilters:\n\n- `status=ok`\n- `cadence=core`\n- `days_since_prev=1`\n\nColumns:\n\n- `date_utc, tld, count, delta_abs, delta_pct, accel_abs, is_estimate, data_quality, leaderboard`\n\nCompatibility file:\n\n- `data/signals/<YYYY-MM-DD>_top_movers.csv` mirrors core movers.\n\n## Rolling Updates\n\nOutput: `data/signals/<YYYY-MM-DD>_rolling_updates.csv`\n\nShows rolling TLD updates compared to the last observed date.\n\nColumns:\n\n- `date_utc, tld, count, prev_date_utc, days_since_prev, delta_abs, delta_pct, is_estimate, data_quality`\n\n## Volatility\n\nOutput: `data/signals/<YYYY-MM-DD>_volatility.csv`",
+      "resource_uri": "rootfetch://docs/signal_spec"
+    },
+    {
+      "id": "9eadabc75883d14dccaa1bd469a26d80a365a91b",
+      "source_path": "docs/signal_spec.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Rolling Updates",
+      "text": "ld, count, prev_date_utc, days_since_prev, delta_abs, delta_pct, is_estimate, data_quality`\n\n## Volatility\n\nOutput: `data/signals/<YYYY-MM-DD>_volatility.csv`\n\n- `vol7 = stddev(delta_pct over trailing 7 valid points)`\n- `vol30 = stddev(delta_pct over trailing 30 valid points)`\n\nColumns:\n\n- `date_utc, tld, vol7, vol30, valid_days_30, is_estimate, data_quality`\n\n## Anomalies\n\nOutput: `data/signals/<YYYY-MM-DD>_anomalies.csv`\n\nFlags by any condition:\n\n- `abs(z) >= 3.0` with baseline >= 14\n- `abs(robust_z) >= 3.5` with baseline >= 14\n- `data_quality == suspicious`\n- prior recovery after missing/failed\n\nColumns:\n\n- `date_utc, tld, count, delta_pct, z, robust_z, baseline_days, reason, is_estimate, data_quality`\n\n## Sector Indices\n\nOutputs:\n\n- `data/signals/sector_indices.csv` (append-only)\n- `data/signals/<YYYY-MM-DD>_sector_snapshot.csv`\n\n## Latest Snapshot\n\nOutput: `data/signals/latest.json`\n\nIncludes:\n\n- coverage fields (`approved_tlds_count`, `counted_today_count`, `counted_today_core_count`, `counted_today_rolling_count`, `coverage_pct_today`)\n- core mover arrays (`core_movers_abs`, `",
+      "resource_uri": "rootfetch://docs/signal_spec"
+    },
+    {
+      "id": "a5874ea47e66a2444b4453cf43c074804a2c1f6a",
+      "source_path": "docs/signal_spec.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Latest Snapshot",
+      "text": "d_tlds_count`, `counted_today_count`, `counted_today_core_count`, `counted_today_rolling_count`, `coverage_pct_today`)\n- core mover arrays (`core_movers_abs`, `core_movers_pct`)\n- rolling updates (`rolling_updates`)\n- compatibility mover arrays (`top_movers_abs`, `top_movers_pct`, `top_decliners_abs`)\n- anomalies and sector snapshot",
+      "resource_uri": "rootfetch://docs/signal_spec"
+    },
+    {
+      "id": "50c8bc48ddb0435d0d879bbfeabbedd2bb2076d6",
+      "source_path": "docs/work_plan.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Work Plan",
+      "text": "# RootFetch Work Plan\n\nDate: 2026-02-24 (UTC)\n\nThis repository is intentionally in planning mode. No production code has been\nimplemented in this step.\n\n## Objective\n\nShip a monorepo that includes:\n\n1. RootFetch daily CZDS aggregate pipeline\n2. Read-only RootFetch MCP server over committed artifacts\n3. RAG subsystem for docs + digest retrieval\n\n## Phased Execution\n\n## Phase 1: Bootstrap + Safety\n\n- Finalize repository structure.\n- Enforce `.gitignore` policy for credentials, tokens, raw zones, and internal\n  `.ai/` runtime artifacts.\n- Add user-facing specs and internal execution plan.\n\n## Phase 2: Auth + Discovery\n\n- Implement ICANN Account API token acquisition + safe cache.\n- Add approved download link discovery from CZDS API.\n- Store full link snapshots only in `.ai/` and sanitized TLD-only snapshots in\n  `data/approved_tlds/`.\n\n## Phase 3: Counting Pipeline\n\n- Implement streaming zone fetch + parse.\n- Compute primary metric (`count_ns_sld`) and secondary metrics\n  (`count_ds_sld`, `count_glue_hosts`, `count_ns_rr`).\n- Write daily count outputs and append growth trends.\n\n## Phase",
+      "resource_uri": "rootfetch://docs/work_plan"
+    },
+    {
+      "id": "d841fcb1b9c904e7ab9548b76ac0c7ce46a2cf78",
+      "source_path": "docs/work_plan.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Phase 3: Counting Pipeline",
+      "text": "ic (`count_ns_sld`) and secondary metrics\n  (`count_ds_sld`, `count_glue_hosts`, `count_ns_rr`).\n- Write daily count outputs and append growth trends.\n\n## Phase 4: Product Signals\n\n- Generate top movers, volatility, anomalies, sector snapshots, and\n  `latest.json`.\n- Produce deterministic daily markdown digest for human-readable summaries.\n\n## Phase 5: MCP + RAG\n\n- Add read-only MCP resources, tools, and prompts.\n- Implement RAG index with SQLite FTS5 baseline.\n- Add optional embeddings backend behind environment flag.\n\n## Phase 6: Automation + Validation\n\n- Add daily GitHub Actions run and manual trigger.\n- Add smoke tests and unit tests for metrics, signals, MCP, and RAG.\n- Confirm commit policy excludes secrets and raw zone artifacts.\n\n## Definition of Done\n\n- Pipeline produces committed aggregate outputs only.\n- MCP server is read-only and serves resources/tools/prompts from safe data.\n- RAG search returns relevant results from docs and digests.\n- CI/workflow automation runs daily and commits only safe files.",
+      "resource_uri": "rootfetch://docs/work_plan"
+    },
+    {
+      "id": "a64cc3a8c477280bd46462c595c46d23474053dc",
+      "source_path": "data/digests/2026-02-24.md",
+      "source_type": "digest",
+      "date_utc": "2026-02-24",
+      "title": "RootFetch Daily Digest \u2014 2026-02-24",
+      "text": "# RootFetch Daily Digest \u2014 2026-02-24\n\n- Run ID: 599a303c-0ed6-4310-8a9e-d5ae5831ccbe\n- Approved TLDs observed: 824\n- Counted today: 52 (core=3, rolling=45)\n\n## Core Daily Movers (Absolute)\n_No data._\n\n## Core Daily Movers (Percentage)\n_No data._\n\n## Core Daily Decliners\n_No data._\n\n## Rolling Updates (Since Last Seen)\n_No data._\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 1680858 |  |  | 2 |\n| other | 21895167 |  |  | 50 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "resource_uri": "rootfetch://digest/2026-02-24"
+    }
+  ]
+}

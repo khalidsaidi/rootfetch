@@ -8,7 +8,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -17,7 +17,8 @@ import requests
 from rootfetch.config import Settings, get_settings
 from rootfetch.core.auth import get_access_token
 from rootfetch.core.discovery import fetch_approved_links, write_discovery_artifacts
-from rootfetch.core.io_utils import ensure_dir, utc_now_iso, utc_today_str
+from rootfetch.core.hybrid_select import select_hybrid_tlds
+from rootfetch.core.io_utils import ensure_dir, read_json, utc_now_iso, utc_today_str
 from rootfetch.core.logging_utils import setup_logger
 from rootfetch.core.zone_count import parse_zone_metrics
 from rootfetch.signals.compute import compute_signals_for_date
@@ -40,6 +41,7 @@ DAILY_COUNTS_COLUMNS = [
     "fetch_seconds",
     "status",
     "error",
+    "cadence",
 ]
 
 GROWTH_COLUMNS = [
@@ -54,6 +56,9 @@ GROWTH_COLUMNS = [
     "fetched_at_utc",
     "count_mode",
     "status",
+    "prev_date_utc",
+    "days_since_prev",
+    "cadence",
 ]
 
 
@@ -69,6 +74,7 @@ class RunResult:
     processed_tlds: list[str]
     failed_tlds: list[str]
     outputs: dict[str, str]
+    summary: dict[str, Any]
 
 
 class _CountingReader:
@@ -235,7 +241,7 @@ def _download_and_count(url: str, tld: str, token: str, settings: Settings) -> d
     }
 
 
-def _as_daily_row(date_utc: str, metric: dict[str, Any]) -> dict[str, Any]:
+def _as_daily_row(date_utc: str, metric: dict[str, Any], cadence: str = "") -> dict[str, Any]:
     return {
         "date_utc": date_utc,
         "tld": metric["tld"],
@@ -252,6 +258,7 @@ def _as_daily_row(date_utc: str, metric: dict[str, Any]) -> dict[str, Any]:
         "fetch_seconds": metric["fetch_seconds"],
         "status": metric["status"],
         "error": metric["error"],
+        "cadence": cadence,
     }
 
 
@@ -271,7 +278,7 @@ def _load_growth_rows(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(fh))
 
 
-def _last_known_counts(growth_rows: Iterable[dict[str, str]]) -> dict[str, float]:
+def _last_known_by_tld(growth_rows: Iterable[dict[str, str]]) -> dict[str, tuple[str, float]]:
     latest: dict[str, tuple[str, float]] = {}
     for row in growth_rows:
         if row.get("status") != "ok":
@@ -284,7 +291,18 @@ def _last_known_counts(growth_rows: Iterable[dict[str, str]]) -> dict[str, float
         old = latest.get(tld)
         if old is None or date_utc >= old[0]:
             latest[tld] = (date_utc, count)
-    return {tld: pair[1] for tld, pair in latest.items()}
+    return latest
+
+
+def _days_between(prev_date_utc: str | None, current_date_utc: str) -> int | None:
+    if not prev_date_utc:
+        return None
+    try:
+        prev = date.fromisoformat(prev_date_utc)
+        curr = date.fromisoformat(current_date_utc)
+    except ValueError:
+        return None
+    return (curr - prev).days
 
 
 def _write_growth_rows(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -304,22 +322,28 @@ def _update_growth_trends(
     settings: Settings,
 ) -> Path:
     existing_rows = _load_growth_rows(settings.growth_trends_path)
+    target_tlds = {r["tld"] for r in daily_rows}
     existing_rows = [
-        row for row in existing_rows if not (row.get("date_utc") == date_utc and row.get("tld") in {r["tld"] for r in daily_rows})
+        row for row in existing_rows if not (row.get("date_utc") == date_utc and row.get("tld") in target_tlds)
     ]
-    last_counts = _last_known_counts(existing_rows)
+    last_by_tld = _last_known_by_tld(existing_rows)
 
     new_rows: list[dict[str, Any]] = []
     for row in sorted(daily_rows, key=lambda item: item["tld"]):
         tld = row["tld"]
         count = _safe_float(row.get("count"))
-        prev = last_counts.get(tld)
+        previous = last_by_tld.get(tld)
+        prev_date_utc = previous[0] if previous else ""
+        prev_count = previous[1] if previous else None
+
+        days_since_prev = _days_between(prev_date_utc if prev_date_utc else None, date_utc)
+
         delta_abs = None
         delta_pct = None
-        if row.get("status") == "ok" and count is not None and prev is not None:
-            delta_abs = count - prev
-            if prev != 0:
-                delta_pct = delta_abs / prev
+        if row.get("status") == "ok" and count is not None and prev_count is not None:
+            delta_abs = count - prev_count
+            if prev_count != 0:
+                delta_pct = delta_abs / prev_count
 
         growth_row = {
             "date_utc": date_utc,
@@ -333,15 +357,136 @@ def _update_growth_trends(
             "fetched_at_utc": row.get("fetched_at_utc", ""),
             "count_mode": row.get("count_mode", settings.count_mode),
             "status": row.get("status", ""),
+            "prev_date_utc": prev_date_utc,
+            "days_since_prev": "" if days_since_prev is None else days_since_prev,
+            "cadence": row.get("cadence", ""),
         }
         new_rows.append(growth_row)
         if row.get("status") == "ok" and count is not None:
-            last_counts[tld] = count
+            last_by_tld[tld] = (date_utc, count)
 
     combined = existing_rows + new_rows
     combined.sort(key=lambda r: (r.get("date_utc", ""), r.get("tld", "")))
     _write_growth_rows(settings.growth_trends_path, combined)
     return settings.growth_trends_path
+
+
+def _load_links_from_internal_snapshot(settings: Settings) -> list[dict[str, str]]:
+    if not settings.approved_snapshot_path.exists():
+        return []
+    payload = read_json(settings.approved_snapshot_path)
+    if not isinstance(payload, dict):
+        return []
+    links = payload.get("links", [])
+    out: list[dict[str, str]] = []
+    if isinstance(links, list):
+        for item in links:
+            if not isinstance(item, dict):
+                continue
+            tld = str(item.get("tld", "")).strip().lower()
+            url = str(item.get("url", "")).strip()
+            if tld and url:
+                out.append({"tld": tld, "url": url})
+    out.sort(key=lambda item: item["tld"])
+    return out
+
+
+def _load_approved_tlds_latest(settings: Settings) -> list[str]:
+    latest_path = settings.approved_dir / "latest.json"
+    if not latest_path.exists():
+        return []
+    payload = read_json(latest_path)
+    if not isinstance(payload, dict):
+        return []
+    tlds = payload.get("tlds", [])
+    if not isinstance(tlds, list):
+        return []
+    return sorted({str(tld).strip().lower() for tld in tlds if str(tld).strip()})
+
+
+def _prepare_daily_rows_for_targets(
+    *,
+    date_utc: str,
+    target_links: list[dict[str, str]],
+    cadence_map: dict[str, str],
+    token: str,
+    settings: Settings,
+    logger: Any,
+) -> tuple[Path, list[dict[str, Any]], list[dict[str, Any]]]:
+    daily_path = _daily_counts_path(settings, date_utc)
+    existing_rows = _read_daily_rows(daily_path)
+    existing_by_tld = {row["tld"]: row for row in existing_rows if row.get("tld")}
+
+    pending_links: list[dict[str, str]] = []
+    processed_rows: list[dict[str, Any]] = []
+    for item in target_links:
+        tld = item["tld"]
+        cadence = cadence_map.get(tld, "")
+        existing = existing_by_tld.get(tld)
+        if existing and existing.get("status") == "ok":
+            existing = dict(existing)
+            existing["cadence"] = cadence
+            processed_rows.append(existing)
+            continue
+        pending_links.append(item)
+
+    if pending_links:
+        with ThreadPoolExecutor(max_workers=settings.max_workers) as executor:
+            future_map = {
+                executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
+                for item in pending_links
+            }
+            for future in as_completed(future_map):
+                item = future_map[future]
+                metric = future.result()
+                processed_rows.append(
+                    _as_daily_row(date_utc, metric, cadence=cadence_map.get(item["tld"], ""))
+                )
+                logger.info("processed tld=%s status=%s cadence=%s", item["tld"], metric["status"], cadence_map.get(item["tld"], ""))
+
+    merged_rows: dict[str, dict[str, Any]] = {row["tld"]: row for row in existing_rows if row.get("tld")}
+    for row in processed_rows:
+        merged_rows[row["tld"]] = row
+
+    rows_for_write = sorted(merged_rows.values(), key=lambda row: row["tld"])
+    _write_daily_rows(daily_path, rows_for_write)
+    return daily_path, rows_for_write, processed_rows
+
+
+def _build_outputs(
+    *,
+    date_utc: str,
+    run_id: str,
+    selected_tlds: list[str],
+    processed_rows: list[dict[str, Any]],
+    daily_path: Path,
+    growth_path: Path,
+    signal_meta: dict[str, Any],
+    digest_meta: dict[str, Any],
+    summary: dict[str, Any],
+) -> RunResult:
+    failed_tlds = [row["tld"] for row in processed_rows if row.get("status") == "failed"]
+    return RunResult(
+        date_utc=date_utc,
+        run_id=run_id,
+        selected_tlds=selected_tlds,
+        processed_tlds=[row["tld"] for row in processed_rows],
+        failed_tlds=failed_tlds,
+        outputs={
+            "daily_counts": str(daily_path),
+            "growth_trends": str(growth_path),
+            "top_movers": str(signal_meta.get("top_movers_path", "")),
+            "core_top_movers": str(signal_meta.get("core_top_movers_path", "")),
+            "rolling_updates": str(signal_meta.get("rolling_updates_path", "")),
+            "volatility": str(signal_meta.get("volatility_path", "")),
+            "anomalies": str(signal_meta.get("anomalies_path", "")),
+            "sector_indices": str(signal_meta.get("sector_indices_path", "")),
+            "latest": str(signal_meta.get("latest_path", "")),
+            "coverage": str(signal_meta.get("coverage_path", "")),
+            "digest": str(digest_meta.get("dated_digest_path", "")),
+        },
+        summary=summary,
+    )
 
 
 def run_daily(
@@ -371,48 +516,35 @@ def run_daily(
     selected_tlds = [item["tld"] for item in selected_links]
     logger.info("selected %s tlds after filters", len(selected_tlds))
 
-    daily_path = _daily_counts_path(settings, date_utc)
-    existing_rows = _read_daily_rows(daily_path)
-    existing_by_tld = {row["tld"]: row for row in existing_rows if row.get("tld")}
-    pending_links = []
-    preserved_rows: list[dict[str, Any]] = []
-    for item in selected_links:
-        tld = item["tld"]
-        existing = existing_by_tld.get(tld)
-        if not existing:
-            pending_links.append(item)
-            continue
-        if existing.get("status") != "ok":
-            pending_links.append(item)
-            continue
-        preserved_rows.append(existing)
+    if dry_run:
+        summary = {
+            "mode": "daily",
+            "approved_count": len(discovery_meta.get("tlds", [])),
+            "selected_count": len(selected_tlds),
+        }
+        return RunResult(
+            date_utc=date_utc,
+            run_id=run_id,
+            selected_tlds=selected_tlds,
+            processed_tlds=[],
+            failed_tlds=[],
+            outputs={},
+            summary=summary,
+        )
 
-    processed_rows: list[dict[str, Any]] = list(preserved_rows)
-    if pending_links:
-        with ThreadPoolExecutor(max_workers=settings.max_workers) as executor:
-            future_map = {
-                executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
-                for item in pending_links
-            }
-            for future in as_completed(future_map):
-                item = future_map[future]
-                metric = future.result()
-                processed_rows.append(_as_daily_row(date_utc, metric))
-                logger.info("processed tld=%s status=%s", item["tld"], metric["status"])
-
-    selected_set = set(selected_tlds)
-    merged_rows: dict[str, dict[str, Any]] = {
-        row["tld"]: row for row in existing_rows if row.get("tld")
-    }
-    for row in processed_rows:
-        merged_rows[row["tld"]] = row
-
-    rows_for_write = sorted(merged_rows.values(), key=lambda row: row["tld"])
-    _write_daily_rows(daily_path, rows_for_write)
+    cadence_map = {tld: "daily" for tld in selected_tlds}
+    daily_path, _, processed_rows = _prepare_daily_rows_for_targets(
+        date_utc=date_utc,
+        target_links=selected_links,
+        cadence_map=cadence_map,
+        token=token,
+        settings=settings,
+        logger=logger,
+    )
 
     growth_path = _update_growth_trends(
         date_utc,
-        [row for row in processed_rows if row.get("tld") in selected_set],
+        [row for row in processed_rows if row.get("tld") in set(selected_tlds)],
         set(discovery_meta["newly_approved"]),
         run_id,
         settings,
@@ -421,24 +553,152 @@ def run_daily(
     signal_meta = compute_signals_for_date(date_utc, run_id=run_id, settings=settings)
     digest_meta = write_daily_digest(date_utc, run_id=run_id, settings=settings)
 
-    failed_tlds = [row["tld"] for row in processed_rows if row.get("status") == "failed"]
-    return RunResult(
+    processed_ok = sum(1 for row in processed_rows if row.get("status") == "ok")
+    summary = {
+        "mode": "daily",
+        "approved_count": len(discovery_meta.get("tlds", [])),
+        "selected_count": len(selected_tlds),
+        "processed_ok": processed_ok,
+        "failed": sum(1 for row in processed_rows if row.get("status") == "failed"),
+        "daily_counts": str(daily_path),
+    }
+
+    return _build_outputs(
         date_utc=date_utc,
         run_id=run_id,
         selected_tlds=selected_tlds,
-        processed_tlds=[row["tld"] for row in processed_rows],
-        failed_tlds=failed_tlds,
-        outputs={
+        processed_rows=processed_rows,
+        daily_path=daily_path,
+        growth_path=growth_path,
+        signal_meta=signal_meta,
+        digest_meta=digest_meta,
+        summary=summary,
+    )
+
+
+def run_hybrid(
+    date_utc: str | None = None,
+    *,
+    dry_run: bool = False,
+    verbose: bool = False,
+    skip_discovery: bool = False,
+    settings: Settings | None = None,
+) -> RunResult:
+    settings = settings or get_settings()
+    date_utc = date_utc or utc_today_str()
+    run_id = str(uuid.uuid4())
+    log_path = settings.logs_dir / f"run_hybrid_{date_utc}.log"
+    logger = setup_logger("rootfetch.pipeline.hybrid", log_path=log_path, verbose=verbose)
+
+    ensure_dir(settings.daily_counts_dir)
+    ensure_dir(settings.approved_dir)
+    ensure_dir(settings.signals_dir)
+    ensure_dir(settings.logs_dir)
+    ensure_dir(settings.snapshots_dir)
+
+    approved_links: list[dict[str, str]] = []
+    discovery_meta: dict[str, Any] = {
+        "newly_approved": [],
+        "tlds": [],
+        "sanitized_path": settings.approved_dir / f"{date_utc}.json",
+        "latest_path": settings.approved_dir / "latest.json",
+    }
+
+    if dry_run:
+        approved_tlds = _load_approved_tlds_latest(settings)
+    else:
+        token = get_access_token(settings=settings, dry_run=False)
+        if skip_discovery:
+            approved_links = _load_links_from_internal_snapshot(settings)
+            if not approved_links:
+                raise RuntimeError("Missing .ai/approved_snapshot.json links; run discover first or remove --skip-discovery.")
+            approved_tlds = sorted({item["tld"] for item in approved_links})
+        else:
+            approved_links = fetch_approved_links(token, settings=settings, dry_run=False)
+            discovery_meta = write_discovery_artifacts(approved_links, date_utc=date_utc, settings=settings)
+            approved_tlds = discovery_meta.get("tlds", [])
+
+    selection = select_hybrid_tlds(approved_tlds=approved_tlds, date_utc=date_utc, settings=settings)
+    target_tlds = selection["target_today"]
+    cadence_map: dict[str, str] = selection["cadence_map"]
+
+    summary = {
+        "mode": "hybrid",
+        "approved_count": selection["approved_count"],
+        "core_today_count": len(selection["core_today"]),
+        "rolling_today_count": len(selection["rolling_today"]),
+        "total_target_count": len(target_tlds),
+        "rolling_first_10": selection["rolling_first_10"],
+    }
+
+    if dry_run:
+        return RunResult(
+            date_utc=date_utc,
+            run_id=run_id,
+            selected_tlds=target_tlds,
+            processed_tlds=[],
+            failed_tlds=[],
+            outputs={},
+            summary=summary,
+        )
+
+    assert approved_links
+    token = get_access_token(settings=settings, dry_run=False)
+    target_set = set(target_tlds)
+    target_links = [item for item in approved_links if item["tld"] in target_set]
+    target_links.sort(key=lambda item: item["tld"])
+
+    daily_path, _, processed_rows = _prepare_daily_rows_for_targets(
+        date_utc=date_utc,
+        target_links=target_links,
+        cadence_map=cadence_map,
+        token=token,
+        settings=settings,
+        logger=logger,
+    )
+
+    selected_set = set(target_tlds)
+    growth_path = _update_growth_trends(
+        date_utc,
+        [row for row in processed_rows if row.get("tld") in selected_set],
+        set(discovery_meta.get("newly_approved", [])),
+        run_id,
+        settings,
+    )
+
+    signal_meta = compute_signals_for_date(date_utc, run_id=run_id, settings=settings)
+    digest_meta = write_daily_digest(date_utc, run_id=run_id, settings=settings)
+
+    processed_selected_rows = [row for row in processed_rows if row.get("tld") in selected_set]
+    processed_ok = [row for row in processed_selected_rows if row.get("status") == "ok"]
+    failed_rows = [row for row in processed_selected_rows if row.get("status") == "failed"]
+    total_counted_sum = int(
+        sum(_safe_float(row.get("count")) or 0 for row in processed_ok)
+    )
+    missing_today = max(0, selection["approved_count"] - len(processed_ok))
+
+    summary.update(
+        {
+            "processed_ok": len(processed_ok),
+            "failed": len(failed_rows),
+            "missing_today": missing_today,
+            "total_counted_sum": total_counted_sum,
             "daily_counts": str(daily_path),
-            "growth_trends": str(growth_path),
-            "top_movers": str(signal_meta["top_movers_path"]),
-            "volatility": str(signal_meta["volatility_path"]),
-            "anomalies": str(signal_meta["anomalies_path"]),
-            "sector_indices": str(signal_meta["sector_indices_path"]),
-            "latest": str(signal_meta["latest_path"]),
-            "coverage": str(signal_meta["coverage_path"]),
-            "digest": str(digest_meta["dated_digest_path"]),
-        },
+            "core_today": selection["core_today"],
+            "rolling_today": selection["rolling_today"],
+        }
+    )
+
+    return _build_outputs(
+        date_utc=date_utc,
+        run_id=run_id,
+        selected_tlds=target_tlds,
+        processed_rows=processed_rows,
+        daily_path=daily_path,
+        growth_path=growth_path,
+        signal_meta=signal_meta,
+        digest_meta=digest_meta,
+        summary=summary,
     )
 
 

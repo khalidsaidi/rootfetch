@@ -1,63 +1,73 @@
 # RootFetch MCP Server
 
-RootFetch includes a read-only MCP server exposing committed artifacts from
-`data/` and `docs/`.
+RootFetch exposes read-only MCP surfaces from committed artifacts.
 
-## Guarantees
+## Deployment Modes
 
-- Read-only surface (no CZDS auth, no zone downloads, no writes to product data)
-- No secrets exposed
-- Serves only local aggregate artifacts and docs
+1. Python MCP server (`rootfetch mcp serve`) for local workflows.
+2. Vercel MCP route at `/api/mcp` for hosted read-only access.
 
-## Run Locally (STDIO)
+No mode performs CZDS auth or zone downloads.
 
-```bash
-rootfetch mcp serve --transport stdio
-```
+## Vercel MCP (Pattern 1)
 
-Important: when using STDIO transport, logs must go to stderr only. RootFetch
-MCP server is configured accordingly to avoid JSON-RPC corruption.
+Pattern in use: static artifact sync into web `public/rootfetch/*` at build time.
 
-## Run Over Streamable HTTP
+Synced artifacts include:
 
-```bash
-rootfetch mcp serve --transport streamable-http --port 8000
-```
+- `latest.json`
+- `coverage_latest.json`
+- `approved_latest.json`
+- `rag_chunks.json`
+- `rag_meta.json`
 
-## Inspect with MCP Inspector
+## Security
 
-```bash
-npx -y @modelcontextprotocol/inspector
-```
+Vercel `/api/mcp` requires:
 
-Then connect to the RootFetch server command above.
+- `Authorization: Bearer <ROOTFETCH_MCP_TOKEN>`
+- origin allowlist via `ROOTFETCH_MCP_ALLOWED_ORIGINS`
 
-## Resource URIs
+## Vercel MCP Tools
+
+- `rootfetch_get_approved_tlds`
+- `rootfetch_get_coverage`
+- `rootfetch_search_approved`
+- `rootfetch_health`
+- `rag_search`
+- `rag_get_chunk`
+
+Tool payloads are returned as JSON text content.
+
+## Python MCP Resources/Tools
+
+Resources:
 
 - `rootfetch://signals/latest`
 - `rootfetch://growth_trends`
 - `rootfetch://daily_counts/{date}`
 - `rootfetch://approved_tlds/{date}`
-- `rootfetch://digest/latest`
-- `rootfetch://digest/{date}`
-- `rootfetch://docs/metrics_spec`
-- `rootfetch://docs/signal_spec`
-- `rootfetch://docs/{doc_name}` (for other markdown docs, including `readme`)
-- `rootfetch://signals/top_movers/{date}`
-- `rootfetch://signals/anomalies/{date}`
-- `rootfetch://signals/sector_snapshot/{date}`
+- `rootfetch://digest/{date}` and `rootfetch://digest/latest`
+- `rootfetch://docs/{doc_name}`
 
-## Tools
+Tools:
 
-- `rootfetch_health()`
-- `rootfetch_get_latest()`
-- `rootfetch_get_tld_timeseries(tld, days=30)`
-- `rootfetch_top_movers(date, by="abs"|"pct", limit=20)`
-- `rootfetch_anomalies(date, limit=50)`
-- `rag_search(query, k=8, filters=None)`
-- `rag_get_chunk(id)`
+- `rootfetch_health`, `rootfetch_get_latest`, `rootfetch_get_tld_timeseries`
+- `rootfetch_top_movers`, `rootfetch_anomalies`
+- `rag_search`, `rag_get_chunk`
 
-## Prompts
+## Local Run
 
-- `rootfetch_daily_brief(date="latest")`
-- `rootfetch_investigate_tld(tld, days=30)`
+STDIO:
+
+```bash
+rootfetch mcp serve --transport stdio
+```
+
+Streamable HTTP:
+
+```bash
+rootfetch mcp serve --transport streamable-http --port 8000
+```
+
+When using STDIO transport, logs must stay off stdout.

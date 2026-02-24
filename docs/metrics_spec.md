@@ -1,93 +1,69 @@
 # RootFetch Metrics Spec
 
-This document defines RootFetch metric semantics for CZDS-derived daily aggregates.
-
-## Scope
-
-RootFetch does not publish registration counts. It publishes zone-derived proxies
-for active DNS delegations.
+RootFetch reports zone-derived delegation metrics, not total registration counts.
 
 ## Primary Metric
 
-### `count_ns_sld` (RootFetch primary metric)
+### `count_ns_sld`
 
 Definition:
 
-- For TLD `tld` on date `D`, count unique second-level owner names with at least
-  one `NS` record in the zone.
-- Count only SLD depth (`example.tld`):
-  - include owners with exactly 2 labels for single-label TLDs
-  - exclude apex `tld`
-  - exclude deeper labels like `a.example.tld`
+- For TLD `tld` on date `D`, count unique second-level owner names with at least one `NS` record.
+- Include only SLD depth (`example.tld`).
+- Exclude apex (`tld`) and deeper labels (`a.example.tld`).
 
 Interpretation:
 
-- Proxy for active delegated domains in the zone.
-
-Caveat:
-
-- Not equal to total registered domains.
+- Proxy for DNS-visible active delegated domains.
 
 ## Secondary Metrics
 
-### `count_ds_sld` (DNSSEC delegation proxy)
+### `count_ds_sld`
 
-Definition:
+- Unique SLD owners with at least one `DS` record.
 
-- Number of unique SLD owners (`example.tld`) with at least one `DS` record.
+### `count_glue_hosts`
 
-Use:
+- Unique owner hostnames under the TLD with `A`/`AAAA` records.
 
-- Track DNSSEC delegation adoption at SLD level.
+### `count_ns_rr`
 
-### `count_glue_hosts` (in-zone glue host footprint)
+- Raw NS RR line count (not unique owner count).
 
-Definition:
+### Operational
 
-- Number of unique hostnames under the TLD that appear as owner names of `A` or
-  `AAAA` records.
+- `bytes_downloaded`
+- `fetch_seconds`
+- `status`
+- `error`
 
-Use:
+## Hybrid Trend Fields
 
-- Rough indicator of infrastructure footprint/self-hosted nameserver hosts.
+In `data/growth_trends.csv`, each row now includes:
 
-### `count_ns_rr` (raw NS RR lines)
+- `prev_date_utc`: previous observed date for that TLD
+- `days_since_prev`: difference between `date_utc` and `prev_date_utc`
+- `cadence`: `core` or `rolling` (or legacy `daily`)
 
-Definition:
+Deltas are computed against `prev_date_utc`:
 
-- Count of `NS` RR lines in the zone (not unique owners).
+- `delta_abs = count - prev_count`
+- `delta_pct = delta_abs / prev_count` (blank if previous missing/0)
 
-Use:
+This prevents misleading day-over-day comparisons for rolling rows.
 
-- Detect delegation pattern shifts; not a domain count.
+## Data Quality
 
-### Operational Metrics
+Flags:
 
-- `bytes_downloaded`: compressed transfer bytes consumed in stream.
-- `fetch_seconds`: fetch + parse runtime per TLD.
-- `status`: `ok` or `failed`.
-- `error`: short failure reason if `status=failed`.
+- `ok`
+- `missing`
+- `failed`
+- `estimate`
+- `suspicious`
 
-## Derived Daily Metrics
+Suspicious rule:
 
-Per TLD/day:
-
-- `delta_abs = count_today - count_yesterday`
-- `delta_pct = delta_abs / count_yesterday` (blank when missing or denominator 0)
-- `ma7_delta_abs`, `ma7_delta_pct`
-- `ma30_delta_abs`, `ma30_delta_pct`
-- `accel_abs = delta_abs_today - delta_abs_yesterday`
-- `accel_pct = delta_pct_today - delta_pct_yesterday`
-
-## Data Quality Flags
-
-- `ok`: valid daily result.
-- `missing`: no usable count for day.
-- `failed`: fetch/parse failure.
-- `estimate`: HLL mode used.
-- `suspicious`: large discontinuity rule triggered.
-
-Suspicious discontinuity rule:
-
-- If `abs(delta_pct) > 0.20` and `count_yesterday > 10,000` and not newly
-  approved, mark as `suspicious`.
+- `abs(delta_pct) > 0.20`
+- prior base > 10,000
+- not newly approved

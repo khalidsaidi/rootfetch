@@ -56,6 +56,10 @@ def _build_temp_settings(base: Path):
         latest_signals_path=data / "signals" / "latest.json",
         sector_map_path=base / "rootfetch" / "resources" / "tld_sectors.yml",
         execution_plan_path=ai / "execution_plan.md",
+        hybrid_plan_path=base / "rootfetch" / "resources" / "hybrid_plan.yml",
+        static_rag_dir=data / "rag",
+        static_rag_chunks_path=data / "rag" / "rag_chunks.json",
+        static_rag_meta_path=data / "rag" / "rag_meta.json",
     )
 
 

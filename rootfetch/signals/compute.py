@@ -9,7 +9,7 @@ import pandas as pd
 import yaml
 
 from rootfetch.config import Settings, get_settings
-from rootfetch.core.io_utils import read_json, write_json
+from rootfetch.core.io_utils import write_json
 from rootfetch.signals.coverage import compute_coverage_latest
 
 
@@ -23,6 +23,18 @@ TOP_MOVERS_COLUMNS = [
     "is_estimate",
     "data_quality",
     "leaderboard",
+]
+
+ROLLING_UPDATES_COLUMNS = [
+    "date_utc",
+    "tld",
+    "count",
+    "prev_date_utc",
+    "days_since_prev",
+    "delta_abs",
+    "delta_pct",
+    "is_estimate",
+    "data_quality",
 ]
 
 VOLATILITY_COLUMNS = [
@@ -82,13 +94,21 @@ def _load_growth_df(settings: Settings) -> pd.DataFrame:
                 "fetched_at_utc",
                 "count_mode",
                 "status",
+                "prev_date_utc",
+                "days_since_prev",
+                "cadence",
             ]
         )
     df = pd.read_csv(settings.growth_trends_path, dtype=str)
-    for col in ("count", "delta_abs", "delta_pct"):
-        df[f"{col}_num"] = pd.to_numeric(df[col], errors="coerce")
-    df["is_estimate_bool"] = df["is_estimate"].map(_to_bool)
-    df["approved_today_bool"] = df["approved_today"].map(_to_bool)
+    for col in ("count", "delta_abs", "delta_pct", "days_since_prev"):
+        if col in df.columns:
+            df[f"{col}_num"] = pd.to_numeric(df[col], errors="coerce")
+        else:
+            df[f"{col}_num"] = pd.Series(dtype=float)
+    df["is_estimate_bool"] = df.get("is_estimate", "false").map(_to_bool)
+    df["approved_today_bool"] = df.get("approved_today", "false").map(_to_bool)
+    if "cadence" not in df.columns:
+        df["cadence"] = ""
     return df
 
 
@@ -102,6 +122,8 @@ def _load_daily_df(settings: Settings, date_utc: str) -> pd.DataFrame:
             df[f"{col}_num"] = pd.to_numeric(df[col], errors="coerce")
     if "is_estimate" in df.columns:
         df["is_estimate_bool"] = df["is_estimate"].map(_to_bool)
+    if "cadence" not in df.columns:
+        df["cadence"] = ""
     return df
 
 
@@ -131,13 +153,16 @@ def _with_quality_flags(day_df: pd.DataFrame) -> pd.DataFrame:
     return day_df
 
 
-def _compute_top_movers(day_df: pd.DataFrame, date_utc: str, settings: Settings) -> pd.DataFrame:
+def _compute_core_top_movers(day_df: pd.DataFrame, date_utc: str, settings: Settings) -> pd.DataFrame:
     if day_df.empty:
         return pd.DataFrame(columns=TOP_MOVERS_COLUMNS)
-    valid = day_df[
-        (day_df["status"] == "ok")
-        & (day_df["count_num"].notna())
-        & (day_df["delta_abs_num"].notna())
+
+    cadence_series = day_df.get("cadence", "").astype(str).str.lower()
+    core = day_df[(cadence_series == "core") & (day_df["days_since_prev_num"] == 1)].copy()
+    valid = core[
+        (core["status"] == "ok")
+        & (core["count_num"].notna())
+        & (core["delta_abs_num"].notna())
     ].copy()
     if valid.empty:
         return pd.DataFrame(columns=TOP_MOVERS_COLUMNS)
@@ -161,6 +186,28 @@ def _compute_top_movers(day_df: pd.DataFrame, date_utc: str, settings: Settings)
     out["accel_abs"] = out["accel_abs_num"]
     out["is_estimate"] = out["is_estimate_bool"]
     return out[TOP_MOVERS_COLUMNS]
+
+
+def _compute_rolling_updates(day_df: pd.DataFrame, date_utc: str) -> pd.DataFrame:
+    if day_df.empty:
+        return pd.DataFrame(columns=ROLLING_UPDATES_COLUMNS)
+    cadence_series = day_df.get("cadence", "").astype(str).str.lower()
+    rolling = day_df[
+        (cadence_series == "rolling")
+        & (day_df["status"] == "ok")
+        & (day_df["count_num"].notna())
+        & (day_df["delta_abs_num"].notna())
+    ].copy()
+    if rolling.empty:
+        return pd.DataFrame(columns=ROLLING_UPDATES_COLUMNS)
+
+    rolling["date_utc"] = date_utc
+    rolling["count"] = rolling["count_num"]
+    rolling["delta_abs"] = rolling["delta_abs_num"]
+    rolling["delta_pct"] = rolling["delta_pct_num"]
+    rolling["is_estimate"] = rolling["is_estimate_bool"]
+    rolling = rolling.sort_values("delta_abs_num", key=lambda s: s.abs(), ascending=False)
+    return rolling[ROLLING_UPDATES_COLUMNS]
 
 
 def _compute_volatility(growth_df: pd.DataFrame, day_df: pd.DataFrame, date_utc: str) -> pd.DataFrame:
@@ -342,29 +389,35 @@ def _compute_anomalies(growth_df: pd.DataFrame, day_df: pd.DataFrame, date_utc: 
     return pd.DataFrame(rows, columns=ANOMALY_COLUMNS)
 
 
-def _load_approved_count(settings: Settings, date_utc: str) -> int:
-    approved_path = settings.approved_dir / f"{date_utc}.json"
-    if not approved_path.exists():
-        return 0
-    payload = read_json(approved_path)
-    if not isinstance(payload, dict):
-        return 0
-    tlds = payload.get("tlds")
-    if isinstance(tlds, list):
-        return len(tlds)
-    return int(payload.get("count", 0))
-
-
-def _total_delegated_domains_today(settings: Settings, date_utc: str) -> int:
+def _counted_today_breakdown(settings: Settings, date_utc: str) -> dict[str, int]:
     daily_df = _load_daily_df(settings, date_utc)
-    if daily_df.empty:
-        return 0
-    if "status" not in daily_df.columns:
-        return 0
-    ok_rows = daily_df[(daily_df["status"] == "ok") & daily_df["count_num"].notna()]
+    if daily_df.empty or "status" not in daily_df.columns:
+        return {
+            "counted_today_count": 0,
+            "counted_today_core_count": 0,
+            "counted_today_rolling_count": 0,
+            "total_delegated_domains_today": 0,
+        }
+
+    ok_rows = daily_df[(daily_df["status"] == "ok") & (daily_df["count_num"].notna())].copy()
     if ok_rows.empty:
-        return 0
-    return int(ok_rows["count_num"].sum())
+        return {
+            "counted_today_count": 0,
+            "counted_today_core_count": 0,
+            "counted_today_rolling_count": 0,
+            "total_delegated_domains_today": 0,
+        }
+
+    cadence = ok_rows.get("cadence", "").astype(str).str.lower()
+    core_count = int((cadence == "core").sum())
+    rolling_count = int((cadence == "rolling").sum())
+
+    return {
+        "counted_today_count": int(len(ok_rows)),
+        "counted_today_core_count": core_count,
+        "counted_today_rolling_count": rolling_count,
+        "total_delegated_domains_today": int(ok_rows["count_num"].sum()),
+    }
 
 
 def _top_rows_as_json(top_df: pd.DataFrame, leaderboard: str) -> list[dict[str, Any]]:
@@ -375,6 +428,21 @@ def _top_rows_as_json(top_df: pd.DataFrame, leaderboard: str) -> list[dict[str, 
             "delta_abs": None if pd.isna(row["delta_abs"]) else float(row["delta_abs"]),
             "delta_pct": None if pd.isna(row["delta_pct"]) else float(row["delta_pct"]),
             "count": None if pd.isna(row["count"]) else int(row["count"]),
+        }
+        for _, row in subset.iterrows()
+    ]
+
+
+def _rolling_rows_as_json(rolling_df: pd.DataFrame, limit: int = 20) -> list[dict[str, Any]]:
+    subset = rolling_df.head(limit)
+    return [
+        {
+            "tld": row["tld"],
+            "count": None if pd.isna(row["count"]) else int(row["count"]),
+            "prev_date_utc": "" if pd.isna(row["prev_date_utc"]) else str(row["prev_date_utc"]),
+            "days_since_prev": None if pd.isna(row["days_since_prev"]) else int(row["days_since_prev"]),
+            "delta_abs": None if pd.isna(row["delta_abs"]) else float(row["delta_abs"]),
+            "delta_pct": None if pd.isna(row["delta_pct"]) else float(row["delta_pct"]),
         }
         for _, row in subset.iterrows()
     ]
@@ -391,6 +459,27 @@ def _sector_snapshot_json(snapshot_df: pd.DataFrame) -> list[dict[str, Any]]:
     ]
 
 
+def _empty_signals_files(
+    *,
+    date_utc: str,
+    top_movers_path: Path,
+    core_top_movers_path: Path,
+    rolling_updates_path: Path,
+    volatility_path: Path,
+    anomalies_path: Path,
+    sector_snapshot_path: Path,
+    sector_indices_path: Path,
+) -> None:
+    pd.DataFrame(columns=TOP_MOVERS_COLUMNS).to_csv(top_movers_path, index=False)
+    pd.DataFrame(columns=TOP_MOVERS_COLUMNS).to_csv(core_top_movers_path, index=False)
+    pd.DataFrame(columns=ROLLING_UPDATES_COLUMNS).to_csv(rolling_updates_path, index=False)
+    pd.DataFrame(columns=VOLATILITY_COLUMNS).to_csv(volatility_path, index=False)
+    pd.DataFrame(columns=ANOMALY_COLUMNS).to_csv(anomalies_path, index=False)
+    pd.DataFrame(columns=SECTOR_COLUMNS).to_csv(sector_snapshot_path, index=False)
+    if not sector_indices_path.exists():
+        pd.DataFrame(columns=SECTOR_COLUMNS).to_csv(sector_indices_path, index=False)
+
+
 def compute_signals_for_date(
     date_utc: str,
     *,
@@ -399,52 +488,73 @@ def compute_signals_for_date(
 ) -> dict[str, Any]:
     settings = settings or get_settings()
     _ensure_signal_dir(settings)
+
     coverage_meta = compute_coverage_latest(date_utc, settings=settings)
     coverage_payload = coverage_meta["coverage_payload"]
     approved_tlds_count = int(coverage_payload.get("approved_tlds_count", 0))
-    processed_tlds_count_today = int(coverage_payload.get("counted_today_count", 0))
+
+    breakdown = _counted_today_breakdown(settings, date_utc)
+    counted_today_count = breakdown["counted_today_count"]
+    counted_today_core_count = breakdown["counted_today_core_count"]
+    counted_today_rolling_count = breakdown["counted_today_rolling_count"]
+    total_delegated_domains_today = breakdown["total_delegated_domains_today"]
+
     coverage_pct_today = (
-        float(processed_tlds_count_today) / float(approved_tlds_count)
+        float(counted_today_count) / float(approved_tlds_count)
         if approved_tlds_count
         else 0.0
     )
     note_if_partial = (
         "Approved != counted. See /approved for full list."
-        if processed_tlds_count_today != approved_tlds_count
+        if counted_today_count != approved_tlds_count
         else ""
     )
-    total_delegated_domains_today = _total_delegated_domains_today(settings, date_utc)
 
     growth_df = _load_growth_df(settings)
     top_movers_path = settings.signals_dir / f"{date_utc}_top_movers.csv"
+    core_top_movers_path = settings.signals_dir / f"{date_utc}_core_top_movers.csv"
+    rolling_updates_path = settings.signals_dir / f"{date_utc}_rolling_updates.csv"
     volatility_path = settings.signals_dir / f"{date_utc}_volatility.csv"
     anomalies_path = settings.signals_dir / f"{date_utc}_anomalies.csv"
     sector_snapshot_path = settings.signals_dir / f"{date_utc}_sector_snapshot.csv"
     sector_indices_path = settings.signals_dir / "sector_indices.csv"
+
     if growth_df.empty:
-        pd.DataFrame(columns=TOP_MOVERS_COLUMNS).to_csv(top_movers_path, index=False)
-        pd.DataFrame(columns=VOLATILITY_COLUMNS).to_csv(volatility_path, index=False)
-        pd.DataFrame(columns=ANOMALY_COLUMNS).to_csv(anomalies_path, index=False)
-        pd.DataFrame(columns=SECTOR_COLUMNS).to_csv(sector_snapshot_path, index=False)
-        if not sector_indices_path.exists():
-            pd.DataFrame(columns=SECTOR_COLUMNS).to_csv(sector_indices_path, index=False)
+        _empty_signals_files(
+            date_utc=date_utc,
+            top_movers_path=top_movers_path,
+            core_top_movers_path=core_top_movers_path,
+            rolling_updates_path=rolling_updates_path,
+            volatility_path=volatility_path,
+            anomalies_path=anomalies_path,
+            sector_snapshot_path=sector_snapshot_path,
+            sector_indices_path=sector_indices_path,
+        )
         latest_payload = {
             "date_utc": date_utc,
             "run_id": run_id or str(uuid.uuid4()),
             "approved_tlds_count": approved_tlds_count,
-            "processed_tlds_count_today": processed_tlds_count_today,
+            "counted_today_count": counted_today_count,
+            "counted_today_core_count": counted_today_core_count,
+            "counted_today_rolling_count": counted_today_rolling_count,
+            "processed_tlds_count_today": counted_today_count,
             "coverage_pct_today": coverage_pct_today,
             "note_if_partial": note_if_partial,
             "total_delegated_domains_today": total_delegated_domains_today,
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
+            "core_movers_abs": [],
+            "core_movers_pct": [],
+            "rolling_updates": [],
             "anomalies": [],
             "sector_snapshot": [],
         }
         write_json(settings.latest_signals_path, latest_payload)
         return {
             "top_movers_path": top_movers_path,
+            "core_top_movers_path": core_top_movers_path,
+            "rolling_updates_path": rolling_updates_path,
             "volatility_path": volatility_path,
             "anomalies_path": anomalies_path,
             "sector_snapshot_path": sector_snapshot_path,
@@ -459,29 +569,41 @@ def compute_signals_for_date(
     growth_df["accel_pct_num"] = growth_df.groupby("tld")["delta_pct_num"].diff()
     day_df = growth_df[growth_df["date_utc"] == date_utc].copy()
     if day_df.empty:
-        pd.DataFrame(columns=TOP_MOVERS_COLUMNS).to_csv(top_movers_path, index=False)
-        pd.DataFrame(columns=VOLATILITY_COLUMNS).to_csv(volatility_path, index=False)
-        pd.DataFrame(columns=ANOMALY_COLUMNS).to_csv(anomalies_path, index=False)
-        pd.DataFrame(columns=SECTOR_COLUMNS).to_csv(sector_snapshot_path, index=False)
-        if not sector_indices_path.exists():
-            pd.DataFrame(columns=SECTOR_COLUMNS).to_csv(sector_indices_path, index=False)
+        _empty_signals_files(
+            date_utc=date_utc,
+            top_movers_path=top_movers_path,
+            core_top_movers_path=core_top_movers_path,
+            rolling_updates_path=rolling_updates_path,
+            volatility_path=volatility_path,
+            anomalies_path=anomalies_path,
+            sector_snapshot_path=sector_snapshot_path,
+            sector_indices_path=sector_indices_path,
+        )
         latest_payload = {
             "date_utc": date_utc,
             "run_id": run_id or str(uuid.uuid4()),
             "approved_tlds_count": approved_tlds_count,
-            "processed_tlds_count_today": processed_tlds_count_today,
+            "counted_today_count": counted_today_count,
+            "counted_today_core_count": counted_today_core_count,
+            "counted_today_rolling_count": counted_today_rolling_count,
+            "processed_tlds_count_today": counted_today_count,
             "coverage_pct_today": coverage_pct_today,
             "note_if_partial": note_if_partial,
             "total_delegated_domains_today": total_delegated_domains_today,
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
+            "core_movers_abs": [],
+            "core_movers_pct": [],
+            "rolling_updates": [],
             "anomalies": [],
             "sector_snapshot": [],
         }
         write_json(settings.latest_signals_path, latest_payload)
         return {
             "top_movers_path": top_movers_path,
+            "core_top_movers_path": core_top_movers_path,
+            "rolling_updates_path": rolling_updates_path,
             "volatility_path": volatility_path,
             "anomalies_path": anomalies_path,
             "sector_snapshot_path": sector_snapshot_path,
@@ -492,14 +614,16 @@ def compute_signals_for_date(
         }
 
     day_df = _with_quality_flags(day_df)
-    movers_df = _compute_top_movers(day_df, date_utc, settings)
+    core_movers_df = _compute_core_top_movers(day_df, date_utc, settings)
+    rolling_updates_df = _compute_rolling_updates(day_df, date_utc)
     vol_df = _compute_volatility(growth_df, day_df, date_utc)
     anomalies_df = _compute_anomalies(growth_df, day_df, date_utc)
 
-    movers_df.to_csv(top_movers_path, index=False)
-
+    # Backward compatibility file, mirrors core movers.
+    core_movers_df.to_csv(top_movers_path, index=False)
+    core_movers_df.to_csv(core_top_movers_path, index=False)
+    rolling_updates_df.to_csv(rolling_updates_path, index=False)
     vol_df.to_csv(volatility_path, index=False)
-
     anomalies_df.to_csv(anomalies_path, index=False)
 
     sector_rows = _compute_sector_rows(date_utc, day_df, settings)
@@ -511,13 +635,19 @@ def compute_signals_for_date(
         "date_utc": date_utc,
         "run_id": run_id or str(uuid.uuid4()),
         "approved_tlds_count": approved_tlds_count,
-        "processed_tlds_count_today": processed_tlds_count_today,
+        "counted_today_count": counted_today_count,
+        "counted_today_core_count": counted_today_core_count,
+        "counted_today_rolling_count": counted_today_rolling_count,
+        "processed_tlds_count_today": counted_today_count,
         "coverage_pct_today": coverage_pct_today,
         "note_if_partial": note_if_partial,
         "total_delegated_domains_today": total_delegated_domains_today,
-        "top_movers_abs": _top_rows_as_json(movers_df, "top_abs_growers"),
-        "top_movers_pct": _top_rows_as_json(movers_df, "top_pct_growers"),
-        "top_decliners_abs": _top_rows_as_json(movers_df, "top_abs_decliners"),
+        "top_movers_abs": _top_rows_as_json(core_movers_df, "top_abs_growers"),
+        "top_movers_pct": _top_rows_as_json(core_movers_df, "top_pct_growers"),
+        "top_decliners_abs": _top_rows_as_json(core_movers_df, "top_abs_decliners"),
+        "core_movers_abs": _top_rows_as_json(core_movers_df, "top_abs_growers"),
+        "core_movers_pct": _top_rows_as_json(core_movers_df, "top_pct_growers"),
+        "rolling_updates": _rolling_rows_as_json(rolling_updates_df, limit=20),
         "anomalies": [
             {
                 "tld": row["tld"],
@@ -534,6 +664,8 @@ def compute_signals_for_date(
 
     return {
         "top_movers_path": top_movers_path,
+        "core_top_movers_path": core_top_movers_path,
+        "rolling_updates_path": rolling_updates_path,
         "volatility_path": volatility_path,
         "anomalies_path": anomalies_path,
         "sector_snapshot_path": sector_snapshot_path,
