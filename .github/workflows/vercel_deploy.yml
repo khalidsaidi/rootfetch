@@ -43,6 +43,10 @@ jobs:
         if: steps.vercel_config.outputs.ready == 'true'
         run: npm ci
 
+      - name: Sync RootFetch artifacts into web public/
+        if: steps.vercel_config.outputs.ready == 'true'
+        run: npm run sync-data
+
       - name: Pull Vercel environment
         if: steps.vercel_config.outputs.ready == 'true'
         run: npx vercel@latest pull --yes --environment=production --token "${{ secrets.VERCEL_TOKEN }}"
@@ -50,16 +54,9 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Build project
-        if: steps.vercel_config.outputs.ready == 'true'
-        run: npx vercel@latest build --prod --token "${{ secrets.VERCEL_TOKEN }}"
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
       - name: Deploy project
         if: steps.vercel_config.outputs.ready == 'true'
-        run: npx vercel@latest deploy --prebuilt --prod --token "${{ secrets.VERCEL_TOKEN }}"
+        run: npx vercel@latest deploy --prod --token "${{ secrets.VERCEL_TOKEN }}"
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

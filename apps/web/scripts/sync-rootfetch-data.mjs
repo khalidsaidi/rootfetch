@@ -42,10 +42,18 @@ async function copyOne(source, dest) {
 
 async function main() {
   for (const item of requiredCopies) {
-    if (!(await exists(item.source))) {
+    const sourceExists = await exists(item.source);
+    if (!sourceExists) {
+      const destExists = await exists(item.dest);
+      if (destExists) {
+        console.warn(
+          `source missing, keeping existing synced artifact: ${path.relative(appRoot, item.dest)}`
+        );
+        continue;
+      }
       throw new Error(
         `Missing required RootFetch artifact: ${path.relative(repoRoot, item.source)}. ` +
-          "Run `rootfetch run-daily` before building the web dashboard."
+          `Expected source or existing destination ${path.relative(appRoot, item.dest)}.`
       );
     }
     await copyOne(item.source, item.dest);
