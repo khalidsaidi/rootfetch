@@ -19,7 +19,21 @@ def _render_table(df: pd.DataFrame, columns: list[str], limit: int = 10) -> str:
     if df.empty:
         return "_No data._\n"
     subset = df[columns].head(limit)
-    return subset.to_markdown(index=False) + "\n"
+    headers = [str(col) for col in subset.columns]
+    lines = [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join("---" for _ in headers) + " |",
+    ]
+    for _, row in subset.iterrows():
+        values = []
+        for col in headers:
+            value = row[col]
+            if pd.isna(value):
+                values.append("")
+            else:
+                values.append(str(value).replace("\n", " ").replace("|", "\\|"))
+        lines.append("| " + " | ".join(values) + " |")
+    return "\n".join(lines) + "\n"
 
 
 def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Settings | None = None) -> dict[str, Any]:

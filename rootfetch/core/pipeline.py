@@ -138,14 +138,19 @@ def _sleep_backoff(attempt: int) -> None:
     time.sleep(base + jitter)
 
 
-def _download_and_count(url: str, tld: str, settings: Settings) -> dict[str, Any]:
+def _download_and_count(url: str, tld: str, token: str, settings: Settings) -> dict[str, Any]:
     started = time.monotonic()
     fetched_at = utc_now_iso()
     last_error = ""
     for attempt in range(settings.retry_max + 1):
         response = None
         try:
-            response = requests.get(url, stream=True, timeout=settings.http_timeout)
+            response = requests.get(
+                url,
+                stream=True,
+                timeout=settings.http_timeout,
+                headers={"Authorization": f"Bearer {token}"},
+            )
             if _is_transient_status(response.status_code):
                 raise TransientFetchError(f"HTTP {response.status_code}")
             if response.status_code >= 400:
@@ -369,12 +374,26 @@ def run_daily(
     daily_path = _daily_counts_path(settings, date_utc)
     existing_rows = _read_daily_rows(daily_path)
     existing_by_tld = {row["tld"]: row for row in existing_rows if row.get("tld")}
-    pending_links = [item for item in selected_links if item["tld"] not in existing_by_tld]
+    pending_links = []
+    preserved_rows: list[dict[str, Any]] = []
+    for item in selected_links:
+        tld = item["tld"]
+        existing = existing_by_tld.get(tld)
+        if not existing:
+            pending_links.append(item)
+            continue
+        if existing.get("status") != "ok":
+            pending_links.append(item)
+            continue
+        preserved_rows.append(existing)
 
-    processed_rows: list[dict[str, Any]] = [existing_by_tld[tld] for tld in sorted(existing_by_tld) if tld in selected_tlds]
+    processed_rows: list[dict[str, Any]] = list(preserved_rows)
     if pending_links:
         with ThreadPoolExecutor(max_workers=settings.max_workers) as executor:
-            future_map = {executor.submit(_download_and_count, item["url"], item["tld"], settings): item for item in pending_links}
+            future_map = {
+                executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
+                for item in pending_links
+            }
             for future in as_completed(future_map):
                 item = future_map[future]
                 metric = future.result()
