@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import random
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -69,20 +71,31 @@ def _save_cached_token(settings: Settings, token: str) -> None:
 
 
 def _auth_request(settings: Settings, payload: dict[str, Any]) -> tuple[int, dict[str, Any], str | None]:
-    response = requests.post(
-        AUTH_URL,
-        json=payload,
-        timeout=settings.http_timeout,
-        headers={"Accept": "application/json"},
-    )
-    try:
-        body: dict[str, Any] = response.json()
-    except ValueError:
-        body = {}
-    token = body.get("accessToken")
-    if isinstance(token, str) and token:
-        return response.status_code, body, token
-    return response.status_code, body, None
+    max_retries = min(max(settings.retry_max, 0), 3)
+    last_status = 0
+    last_body: dict[str, Any] = {}
+    for attempt in range(max_retries + 1):
+        response = requests.post(
+            AUTH_URL,
+            json=payload,
+            timeout=settings.http_timeout,
+            headers={"Accept": "application/json"},
+        )
+        last_status = response.status_code
+        try:
+            last_body = response.json()
+        except ValueError:
+            last_body = {}
+        token = last_body.get("accessToken")
+        if isinstance(token, str) and token:
+            return response.status_code, last_body, token
+        if response.status_code == 429 or 500 <= response.status_code <= 599:
+            if attempt < max_retries:
+                delay = min(2**attempt, 8) + random.uniform(0.0, 0.5)
+                time.sleep(delay)
+                continue
+        return response.status_code, last_body, None
+    return last_status, last_body, None
 
 
 def _looks_like_mfa_required(status_code: int, body: dict[str, Any]) -> bool:
@@ -114,36 +127,22 @@ def get_access_token(*, settings: Settings | None = None, dry_run: bool = False)
     if not settings.username or not settings.password:
         raise RuntimeError("Missing CZDS credentials: CZDS_USERNAME/CZDS_PASSWORD must be set.")
 
-    payload_variants = [
-        {"username": settings.username, "password": settings.password},
-        {"userName": settings.username, "password": settings.password},
-        {"email": settings.username, "password": settings.password},
-        {"login": settings.username, "password": settings.password},
-    ]
-
-    status_code = 0
-    body: dict[str, Any] = {}
-    token: str | None = None
-    for candidate in payload_variants:
-        status_code, body, token = _auth_request(settings, candidate)
-        if token:
-            _save_cached_token(settings, token)
-            return token
+    base_payload = {"username": settings.username, "password": settings.password}
+    status_code, body, token = _auth_request(settings, base_payload)
+    if token:
+        _save_cached_token(settings, token)
+        return token
 
     if settings.totp_secret and _looks_like_mfa_required(status_code, body):
         totp_code = pyotp.TOTP(settings.totp_secret).now()
         for field_name in ("otp", "totp", "mfaCode", "code"):
-            for candidate in payload_variants:
-                payload = dict(candidate)
-                payload[field_name] = totp_code
-                status_code, body, token = _auth_request(settings, payload)
-                if token:
-                    _record_auth_note(
-                        settings,
-                        f"authentication succeeded with credential keys {sorted(candidate.keys())} and MFA field '{field_name}'",
-                    )
-                    _save_cached_token(settings, token)
-                    return token
+            payload = dict(base_payload)
+            payload[field_name] = totp_code
+            status_code, body, token = _auth_request(settings, payload)
+            if token:
+                _record_auth_note(settings, f"authentication succeeded with MFA field '{field_name}'")
+                _save_cached_token(settings, token)
+                return token
 
     message = ""
     if isinstance(body, dict):
