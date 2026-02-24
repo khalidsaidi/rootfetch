@@ -69,7 +69,12 @@ def _save_cached_token(settings: Settings, token: str) -> None:
 
 
 def _auth_request(settings: Settings, payload: dict[str, Any]) -> tuple[int, dict[str, Any], str | None]:
-    response = requests.post(AUTH_URL, json=payload, timeout=settings.http_timeout)
+    response = requests.post(
+        AUTH_URL,
+        json=payload,
+        timeout=settings.http_timeout,
+        headers={"Accept": "application/json"},
+    )
     try:
         body: dict[str, Any] = response.json()
     except ValueError:
@@ -109,22 +114,36 @@ def get_access_token(*, settings: Settings | None = None, dry_run: bool = False)
     if not settings.username or not settings.password:
         raise RuntimeError("Missing CZDS credentials: CZDS_USERNAME/CZDS_PASSWORD must be set.")
 
-    base_payload = {"username": settings.username, "password": settings.password}
-    status_code, body, token = _auth_request(settings, base_payload)
-    if token:
-        _save_cached_token(settings, token)
-        return token
+    payload_variants = [
+        {"username": settings.username, "password": settings.password},
+        {"userName": settings.username, "password": settings.password},
+        {"email": settings.username, "password": settings.password},
+        {"login": settings.username, "password": settings.password},
+    ]
+
+    status_code = 0
+    body: dict[str, Any] = {}
+    token: str | None = None
+    for candidate in payload_variants:
+        status_code, body, token = _auth_request(settings, candidate)
+        if token:
+            _save_cached_token(settings, token)
+            return token
 
     if settings.totp_secret and _looks_like_mfa_required(status_code, body):
         totp_code = pyotp.TOTP(settings.totp_secret).now()
         for field_name in ("otp", "totp", "mfaCode", "code"):
-            payload = dict(base_payload)
-            payload[field_name] = totp_code
-            status_code, body, token = _auth_request(settings, payload)
-            if token:
-                _record_auth_note(settings, f"authentication succeeded with MFA field '{field_name}'")
-                _save_cached_token(settings, token)
-                return token
+            for candidate in payload_variants:
+                payload = dict(candidate)
+                payload[field_name] = totp_code
+                status_code, body, token = _auth_request(settings, payload)
+                if token:
+                    _record_auth_note(
+                        settings,
+                        f"authentication succeeded with credential keys {sorted(candidate.keys())} and MFA field '{field_name}'",
+                    )
+                    _save_cached_token(settings, token)
+                    return token
 
     message = ""
     if isinstance(body, dict):
