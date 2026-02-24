@@ -85,7 +85,11 @@ def _auth_request(settings: Settings, payload: dict[str, Any]) -> tuple[int, dic
         try:
             last_body = response.json()
         except ValueError:
-            last_body = {}
+            text = response.text.strip()
+            if text:
+                last_body = {"detail": text[:300]}
+            else:
+                last_body = {}
         token = last_body.get("accessToken")
         if isinstance(token, str) and token:
             return response.status_code, last_body, token
