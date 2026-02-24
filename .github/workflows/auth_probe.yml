@@ -1,0 +1,63 @@
+name: auth-probe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      CZDS_USERNAME: ${{ secrets.CZDS_USERNAME }}
+      CZDS_PASSWORD: ${{ secrets.CZDS_PASSWORD }}
+    steps:
+      - name: Probe auth payload formatting and status
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import requests
+
+          url = "https://account-api.icann.org/api/authenticate"
+          user_raw = os.getenv("CZDS_USERNAME", "")
+          pass_raw = os.getenv("CZDS_PASSWORD", "")
+          user_strip = user_raw.rstrip("\r\n\t ")
+          pass_strip = pass_raw.rstrip("\r\n\t ")
+
+          def has_cr(s: str) -> bool:
+              return "\r" in s
+
+          print("username_len_raw", len(user_raw))
+          print("password_len_raw", len(pass_raw))
+          print("username_has_cr_raw", has_cr(user_raw))
+          print("password_has_cr_raw", has_cr(pass_raw))
+          print("username_len_stripped", len(user_strip))
+          print("password_len_stripped", len(pass_strip))
+
+          def attempt(user: str, pw: str, label: str):
+              try:
+                  r = requests.post(
+                      url,
+                      json={"username": user, "password": pw},
+                      timeout=60,
+                      headers={"Accept": "application/json"},
+                  )
+                  print(f"{label}_status", r.status_code)
+                  ct = (r.headers.get("content-type") or "").lower()
+                  if "application/json" in ct:
+                      try:
+                          body = r.json()
+                      except Exception:
+                          body = {}
+                      if isinstance(body, dict):
+                          safe = {k: body.get(k) for k in ("message", "error", "detail", "title") if k in body}
+                          print(f"{label}_body_keys", sorted(body.keys())[:12])
+                          print(f"{label}_body_safe", json.dumps(safe))
+                  else:
+                      text = (r.text or "").strip()
+                      print(f"{label}_body_text_len", len(text))
+              except Exception as exc:
+                  print(f"{label}_error", str(exc))
+
+          attempt(user_raw, pass_raw, "raw")
+          attempt(user_strip, pass_strip, "stripped")
+          PY
