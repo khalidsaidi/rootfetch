@@ -69,6 +69,14 @@ rootfetch rag search "query" --k 8
 rootfetch mcp serve --transport stdio
 ```
 
+Web dashboard:
+
+```bash
+cd apps/web
+npm ci
+npm run dev
+```
+
 ## Data Outputs
 
 - `data/daily_counts/<YYYY-MM-DD>.csv`
@@ -78,6 +86,19 @@ rootfetch mcp serve --transport stdio
 - `data/digests/*`
 
 Signal definitions: [docs/signal_spec.md](docs/signal_spec.md)
+Dashboard deployment notes: [docs/dashboard.md](docs/dashboard.md)
+
+## Dashboard
+
+The monorepo includes a Next.js dashboard in `apps/web`.
+
+- Build-time data sync script: `apps/web/scripts/sync-rootfetch-data.mjs`
+- Synced static artifacts:
+  - `data/signals/latest.json` -> `apps/web/public/rootfetch/latest.json`
+  - `data/digests/latest.md` -> `apps/web/public/rootfetch/latest.md`
+
+The dashboard renders approved counts, sector snapshot, movers, anomalies, and
+links to the latest digest.
 
 ## GitHub Actions
 
@@ -93,9 +114,30 @@ Required repository secrets:
 - `CZDS_PASSWORD`
 - optional `CZDS_TOTP_SECRET`
 
+Recommended repository variables:
+
+- `ROOTFETCH_TLD_ALLOWLIST` (safe starter: `app,dev,xyz`)
+- `ROOTFETCH_MAX_WORKERS`
+- `ROOTFETCH_HTTP_TIMEOUT`
+- `ROOTFETCH_RETRY_MAX`
+
+Optional Vercel deployment secrets (for workflow-based deploy):
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
 ## MCP and RAG
 
 - MCP docs: [docs/mcp_server.md](docs/mcp_server.md)
 - RAG docs: [docs/rag.md](docs/rag.md)
 
 MCP server is read-only and serves only committed artifacts.
+
+## Verification
+
+Offline challenge pack:
+
+```bash
+bash scripts/challenge_pack.sh
+```

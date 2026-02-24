@@ -15,10 +15,11 @@ def _resource_uri_for_chunk(chunk: dict[str, Any]) -> str:
         if date_utc:
             return f"rootfetch://digest/{date_utc}"
         return "rootfetch://digest/latest"
-    if source_path.endswith("/docs/metrics_spec.md"):
-        return "rootfetch://docs/metrics_spec"
-    if source_path.endswith("/docs/signal_spec.md"):
-        return "rootfetch://docs/signal_spec"
+    if source_path.endswith("/README.md"):
+        return "rootfetch://docs/readme"
+    if "/docs/" in source_path and source_path.endswith(".md"):
+        stem = Path(source_path).stem.lower()
+        return f"rootfetch://docs/{stem}"
     return "rootfetch://growth_trends"
 
 

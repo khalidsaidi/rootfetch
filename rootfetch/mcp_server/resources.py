@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -78,6 +79,16 @@ def get_signal_spec_text(settings: Settings | None = None) -> str:
     return _read_text(settings.docs_dir / "signal_spec.md")
 
 
+def get_docs_text(doc_name: str, settings: Settings | None = None) -> str:
+    settings = settings or get_settings()
+    key = re.sub(r"[^a-z0-9_-]", "", doc_name.lower())
+    if not key:
+        raise FileNotFoundError("Invalid docs resource key.")
+    if key == "readme":
+        return _read_text(settings.repo_root / "README.md")
+    return _read_text(settings.docs_dir / f"{key}.md")
+
+
 def get_top_movers_text(date: str, settings: Settings | None = None) -> str:
     settings = settings or get_settings()
     resolved = _resolve_date(date, settings)
@@ -128,6 +139,10 @@ def register_resources(mcp: FastMCP) -> None:
     @mcp.resource("rootfetch://docs/signal_spec")
     def resource_signal_spec() -> str:
         return get_signal_spec_text()
+
+    @mcp.resource("rootfetch://docs/{doc_name}")
+    def resource_docs(doc_name: str) -> str:
+        return get_docs_text(doc_name)
 
     @mcp.resource("rootfetch://signals/top_movers/{date}")
     def resource_top_movers(date: str) -> str:

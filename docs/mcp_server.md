@@ -42,6 +42,7 @@ Then connect to the RootFetch server command above.
 - `rootfetch://digest/{date}`
 - `rootfetch://docs/metrics_spec`
 - `rootfetch://docs/signal_spec`
+- `rootfetch://docs/{doc_name}` (for other markdown docs, including `readme`)
 - `rootfetch://signals/top_movers/{date}`
 - `rootfetch://signals/anomalies/{date}`
 - `rootfetch://signals/sector_snapshot/{date}`

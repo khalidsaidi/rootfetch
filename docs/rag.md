@@ -54,4 +54,9 @@ MCP tool `rag_search` returns:
 - `id`, `score`, `source_path`, `source_type`, `date_utc`, `title`, `excerpt`,
   `resource_uri`
 
+`resource_uri` maps directly to MCP resources:
+
+- docs/readme -> `rootfetch://docs/{doc_name}`
+- digests -> `rootfetch://digest/{date}`
+
 MCP tool `rag_get_chunk` returns full chunk text and metadata.

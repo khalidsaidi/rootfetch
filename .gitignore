@@ -35,6 +35,12 @@ build/
 *.sqlite3
 *.db
 
+# Web app artifacts
+apps/web/node_modules/
+apps/web/.next/
+apps/web/out/
+apps/web/.vercel/
+
 # Keep committed planning docs
 !.ai/execution_plan.md
 !.ai/README.md
