@@ -4,18 +4,8 @@
 *.key
 *.pem
 
-# Agent workspace (safe docs allowed separately)
-.ai/token.json
-.ai/logs/
-.ai/tmp/
-.ai/zonefiles/
-.ai/snapshots/
-.ai/rag/
-.ai/approved_snapshot.json
-.ai/*approved_snapshot*.json
-.ai/*links*.json
-.ai/notes_auth.md
-.ai/.secret
+# Agent workspace (fully local, never committed)
+.ai/
 
 # Raw zone data
 *.zone
@@ -41,7 +31,3 @@ apps/web/node_modules/
 apps/web/.next/
 apps/web/out/
 apps/web/.vercel/
-
-# Keep committed planning docs
-!.ai/execution_plan.md
-!.ai/README.md
