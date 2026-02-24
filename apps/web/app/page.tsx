@@ -28,6 +28,10 @@ type LatestSignals = {
   date_utc: string;
   run_id: string;
   approved_tlds_count: number;
+  processed_tlds_count_today?: number;
+  coverage_pct_today?: number;
+  note_if_partial?: string;
+  total_delegated_domains_today?: number;
   top_movers_abs: Mover[];
   top_movers_pct: Mover[];
   top_decliners_abs: Mover[];
@@ -35,15 +39,43 @@ type LatestSignals = {
   sector_snapshot: Sector[];
 };
 
+type CoverageLatest = {
+  date_utc: string;
+  approved_tlds_count: number;
+  approved_tlds: string[];
+  counted_today_tlds: string[];
+  counted_today_count: number;
+  counted_ever_tlds: string[];
+  counted_ever_count: number;
+  missing_ever_tlds: string[];
+  missing_ever_count: number;
+};
+
 const EMPTY_SIGNALS: LatestSignals = {
   date_utc: "n/a",
   run_id: "n/a",
   approved_tlds_count: 0,
+  processed_tlds_count_today: 0,
+  coverage_pct_today: 0,
+  note_if_partial: "",
+  total_delegated_domains_today: 0,
   top_movers_abs: [],
   top_movers_pct: [],
   top_decliners_abs: [],
   anomalies: [],
   sector_snapshot: [],
+};
+
+const EMPTY_COVERAGE: CoverageLatest = {
+  date_utc: "n/a",
+  approved_tlds_count: 0,
+  approved_tlds: [],
+  counted_today_tlds: [],
+  counted_today_count: 0,
+  counted_ever_tlds: [],
+  counted_ever_count: 0,
+  missing_ever_tlds: [],
+  missing_ever_count: 0,
 };
 
 function fmtInt(value: number | undefined): string {
@@ -79,6 +111,24 @@ async function loadLatestSignals(): Promise<LatestSignals> {
   }
 }
 
+async function loadCoverage(): Promise<CoverageLatest> {
+  const coveragePath = path.join(process.cwd(), "public", "rootfetch", "coverage_latest.json");
+  try {
+    const payload = await fs.readFile(coveragePath, "utf-8");
+    const parsed = JSON.parse(payload) as Partial<CoverageLatest>;
+    return {
+      ...EMPTY_COVERAGE,
+      ...parsed,
+      approved_tlds: parsed.approved_tlds ?? [],
+      counted_today_tlds: parsed.counted_today_tlds ?? [],
+      counted_ever_tlds: parsed.counted_ever_tlds ?? [],
+      missing_ever_tlds: parsed.missing_ever_tlds ?? [],
+    };
+  } catch {
+    return EMPTY_COVERAGE;
+  }
+}
+
 async function loadDigestSnippet(): Promise<string> {
   const digestPath = path.join(process.cwd(), "public", "rootfetch", "latest.md");
   try {
@@ -98,7 +148,7 @@ function MoverList({ title, items }: { title: string; items: Mover[] }) {
     <section className={styles.panel}>
       <h2>{title}</h2>
       {items.length === 0 ? (
-        <p className={styles.empty}>No rows for this window.</p>
+        <p className={styles.empty}>Top movers appear after we have yesterday&apos;s baseline.</p>
       ) : (
         <ul className={styles.rankList}>
           {items.slice(0, 8).map((item) => (
@@ -116,7 +166,26 @@ function MoverList({ title, items }: { title: string; items: Mover[] }) {
 }
 
 export default async function Home() {
-  const [latest, digestSnippet] = await Promise.all([loadLatestSignals(), loadDigestSnippet()]);
+  const [latest, coverage, digestSnippet] = await Promise.all([
+    loadLatestSignals(),
+    loadCoverage(),
+    loadDigestSnippet(),
+  ]);
+
+  const approvedCount = coverage.approved_tlds_count || latest.approved_tlds_count;
+  const countedToday = coverage.counted_today_count || latest.processed_tlds_count_today || 0;
+  const coveragePct =
+    typeof latest.coverage_pct_today === "number"
+      ? latest.coverage_pct_today
+      : approvedCount > 0
+        ? countedToday / approvedCount
+        : 0;
+
+  const mcpSnippet = `{
+  "mcpServers": {
+    "rootfetch": { "url": "https://<vercel-domain>/api/mcp" }
+  }
+}`;
 
   return (
     <main className={styles.page}>
@@ -134,7 +203,19 @@ export default async function Home() {
           </article>
           <article>
             <p>Approved TLDs</p>
-            <strong>{fmtInt(latest.approved_tlds_count)}</strong>
+            <strong>{fmtInt(approvedCount)}</strong>
+          </article>
+          <article>
+            <p>Counted today</p>
+            <strong>{fmtInt(countedToday)}</strong>
+          </article>
+          <article>
+            <p>Coverage today</p>
+            <strong>{fmtPct(coveragePct)}</strong>
+          </article>
+          <article>
+            <p>Total delegated counted today</p>
+            <strong>{fmtInt(latest.total_delegated_domains_today)}</strong>
           </article>
           <article>
             <p>Run ID</p>
@@ -142,10 +223,19 @@ export default async function Home() {
           </article>
         </div>
 
+        {latest.note_if_partial ? <p className={styles.note}>{latest.note_if_partial}</p> : null}
+
         <div className={styles.links}>
+          <Link href="/approved">Approved TLDs</Link>
           <Link href="/rootfetch/latest.md">Read digest</Link>
           <Link href="/api/latest">JSON API</Link>
+          <Link href="/api/mcp">MCP endpoint</Link>
           <Link href="/about">About metrics</Link>
+        </div>
+
+        <div className={styles.mcpBox}>
+          <p>MCP endpoint: <code>/api/mcp</code></p>
+          <pre className={styles.codeBlock}>{mcpSnippet}</pre>
         </div>
       </section>
 

@@ -10,6 +10,7 @@ def main() -> int:
     meta = run_discovery_only(date_utc=date_utc)
     print(f"internal_snapshot={meta['internal_snapshot_path']}")
     print(f"sanitized_snapshot={meta['sanitized_path']}")
+    print(f"sanitized_latest={meta['latest_path']}")
     print(f"approved_count={len(meta['tlds'])}")
     return 0
 

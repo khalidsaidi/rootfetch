@@ -10,6 +10,7 @@ import yaml
 
 from rootfetch.config import Settings, get_settings
 from rootfetch.core.io_utils import read_json, write_json
+from rootfetch.signals.coverage import compute_coverage_latest
 
 
 TOP_MOVERS_COLUMNS = [
@@ -354,6 +355,18 @@ def _load_approved_count(settings: Settings, date_utc: str) -> int:
     return int(payload.get("count", 0))
 
 
+def _total_delegated_domains_today(settings: Settings, date_utc: str) -> int:
+    daily_df = _load_daily_df(settings, date_utc)
+    if daily_df.empty:
+        return 0
+    if "status" not in daily_df.columns:
+        return 0
+    ok_rows = daily_df[(daily_df["status"] == "ok") & daily_df["count_num"].notna()]
+    if ok_rows.empty:
+        return 0
+    return int(ok_rows["count_num"].sum())
+
+
 def _top_rows_as_json(top_df: pd.DataFrame, leaderboard: str) -> list[dict[str, Any]]:
     subset = top_df[top_df["leaderboard"] == leaderboard].head(20)
     return [
@@ -386,6 +399,21 @@ def compute_signals_for_date(
 ) -> dict[str, Any]:
     settings = settings or get_settings()
     _ensure_signal_dir(settings)
+    coverage_meta = compute_coverage_latest(date_utc, settings=settings)
+    coverage_payload = coverage_meta["coverage_payload"]
+    approved_tlds_count = int(coverage_payload.get("approved_tlds_count", 0))
+    processed_tlds_count_today = int(coverage_payload.get("counted_today_count", 0))
+    coverage_pct_today = (
+        float(processed_tlds_count_today) / float(approved_tlds_count)
+        if approved_tlds_count
+        else 0.0
+    )
+    note_if_partial = (
+        "Approved != counted. See /approved for full list."
+        if processed_tlds_count_today != approved_tlds_count
+        else ""
+    )
+    total_delegated_domains_today = _total_delegated_domains_today(settings, date_utc)
 
     growth_df = _load_growth_df(settings)
     top_movers_path = settings.signals_dir / f"{date_utc}_top_movers.csv"
@@ -403,7 +431,11 @@ def compute_signals_for_date(
         latest_payload = {
             "date_utc": date_utc,
             "run_id": run_id or str(uuid.uuid4()),
-            "approved_tlds_count": _load_approved_count(settings, date_utc),
+            "approved_tlds_count": approved_tlds_count,
+            "processed_tlds_count_today": processed_tlds_count_today,
+            "coverage_pct_today": coverage_pct_today,
+            "note_if_partial": note_if_partial,
+            "total_delegated_domains_today": total_delegated_domains_today,
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
@@ -418,6 +450,7 @@ def compute_signals_for_date(
             "sector_snapshot_path": sector_snapshot_path,
             "sector_indices_path": sector_indices_path,
             "latest_path": settings.latest_signals_path,
+            "coverage_path": coverage_meta["coverage_path"],
             "latest_payload": latest_payload,
         }
 
@@ -435,7 +468,11 @@ def compute_signals_for_date(
         latest_payload = {
             "date_utc": date_utc,
             "run_id": run_id or str(uuid.uuid4()),
-            "approved_tlds_count": _load_approved_count(settings, date_utc),
+            "approved_tlds_count": approved_tlds_count,
+            "processed_tlds_count_today": processed_tlds_count_today,
+            "coverage_pct_today": coverage_pct_today,
+            "note_if_partial": note_if_partial,
+            "total_delegated_domains_today": total_delegated_domains_today,
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
@@ -450,6 +487,7 @@ def compute_signals_for_date(
             "sector_snapshot_path": sector_snapshot_path,
             "sector_indices_path": sector_indices_path,
             "latest_path": settings.latest_signals_path,
+            "coverage_path": coverage_meta["coverage_path"],
             "latest_payload": latest_payload,
         }
 
@@ -472,7 +510,11 @@ def compute_signals_for_date(
     latest_payload = {
         "date_utc": date_utc,
         "run_id": run_id or str(uuid.uuid4()),
-        "approved_tlds_count": _load_approved_count(settings, date_utc),
+        "approved_tlds_count": approved_tlds_count,
+        "processed_tlds_count_today": processed_tlds_count_today,
+        "coverage_pct_today": coverage_pct_today,
+        "note_if_partial": note_if_partial,
+        "total_delegated_domains_today": total_delegated_domains_today,
         "top_movers_abs": _top_rows_as_json(movers_df, "top_abs_growers"),
         "top_movers_pct": _top_rows_as_json(movers_df, "top_pct_growers"),
         "top_decliners_abs": _top_rows_as_json(movers_df, "top_abs_decliners"),
@@ -497,5 +539,6 @@ def compute_signals_for_date(
         "sector_snapshot_path": sector_snapshot_path,
         "sector_indices_path": sector_indices_path,
         "latest_path": settings.latest_signals_path,
+        "coverage_path": coverage_meta["coverage_path"],
         "latest_payload": latest_payload,
     }

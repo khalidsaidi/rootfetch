@@ -46,9 +46,10 @@ jobs:
 
           git add "data/daily_counts/${TODAY}.csv" || true
           git add "data/approved_tlds/${TODAY}.json" || true
+          git add data/approved_tlds/latest.json || true
           git add "data/digests/${TODAY}.md" data/digests/latest.md || true
           git add data/growth_trends.csv || true
-          git add data/signals/*.csv data/signals/latest.json || true
+          git add data/signals/*.csv data/signals/latest.json data/signals/coverage_latest.json || true
 
           if git diff --cached --quiet; then
             echo "No output changes to commit."

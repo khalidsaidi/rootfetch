@@ -159,7 +159,9 @@ def write_discovery_artifacts(
         "tlds": tlds,
     }
     sanitized_path = settings.approved_dir / f"{date_utc}.json"
+    latest_path = settings.approved_dir / "latest.json"
     write_json(sanitized_path, sanitized)
+    write_json(latest_path, sanitized)
 
     previous_file = _find_previous_approved_file(settings, date_utc)
     previous_tlds = _read_tld_set(previous_file)
@@ -178,6 +180,7 @@ def write_discovery_artifacts(
 
     return {
         "sanitized_path": sanitized_path,
+        "latest_path": latest_path,
         "internal_snapshot_path": settings.approved_snapshot_path,
         "diff_path": diff_path,
         "newly_approved": newly_approved,

@@ -17,6 +17,14 @@ const requiredCopies = [
     source: path.join(repoRoot, "data", "digests", "latest.md"),
     dest: path.join(appRoot, "public", "rootfetch", "latest.md"),
   },
+  {
+    source: path.join(repoRoot, "data", "approved_tlds", "latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "approved_latest.json"),
+  },
+  {
+    source: path.join(repoRoot, "data", "signals", "coverage_latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "coverage_latest.json"),
+  },
 ];
 
 const optionalCopies = [

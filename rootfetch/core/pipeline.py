@@ -436,6 +436,7 @@ def run_daily(
             "anomalies": str(signal_meta["anomalies_path"]),
             "sector_indices": str(signal_meta["sector_indices_path"]),
             "latest": str(signal_meta["latest_path"]),
+            "coverage": str(signal_meta["coverage_path"]),
             "digest": str(digest_meta["dated_digest_path"]),
         },
     )

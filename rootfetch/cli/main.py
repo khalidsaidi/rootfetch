@@ -75,6 +75,7 @@ def _cmd_compute_signals(args: argparse.Namespace) -> int:
                 "anomalies": str(signal_meta["anomalies_path"]),
                 "sector_snapshot": str(signal_meta["sector_snapshot_path"]),
                 "latest": str(signal_meta["latest_path"]),
+                "coverage": str(signal_meta["coverage_path"]),
                 "digest": str(digest_meta["dated_digest_path"]),
             },
             indent=2,

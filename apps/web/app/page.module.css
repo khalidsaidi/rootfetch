@@ -61,7 +61,7 @@
 .metaGrid strong {
   display: block;
   margin-top: 7px;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .mono {
@@ -77,6 +77,15 @@
   flex-wrap: wrap;
 }
 
+.note {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-left: 4px solid rgba(11, 109, 81, 0.4);
+  background: rgba(11, 109, 81, 0.08);
+  border-radius: 8px;
+  color: var(--muted);
+}
+
 .links a {
   border-radius: 999px;
   border: 1px solid rgba(11, 109, 81, 0.28);
@@ -89,6 +98,30 @@
 .links a:hover {
   background: rgba(11, 109, 81, 0.11);
   transform: translateY(-1px);
+}
+
+.mcpBox {
+  margin-top: 14px;
+  border: 1px dashed rgba(16, 36, 23, 0.2);
+  border-radius: 12px;
+  background: rgba(16, 36, 23, 0.03);
+  padding: 10px 12px;
+}
+
+.mcpBox p {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.codeBlock {
+  margin-top: 8px;
+  background: #eff4e9;
+  border: 1px solid rgba(16, 36, 23, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  overflow-x: auto;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.76rem;
 }
 
 .grid3,
