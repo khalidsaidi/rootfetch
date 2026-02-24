@@ -65,14 +65,27 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
 
     failed_count = 0
     estimate_count = 0
+    run_mode = "daily"
     if not daily_df.empty:
         failed_count = int((daily_df.get("status") == "failed").sum())
         estimate_count = int(daily_df.get("is_estimate").astype(str).str.lower().isin({"true", "1", "yes"}).sum())
+        cadence = daily_df.get("cadence")
+        if cadence is None:
+            cadence = pd.Series(["legacy"] * len(daily_df))
+        cadence = cadence.astype(str).str.strip().str.lower()
+        baseline_rows = int((cadence == "baseline").sum())
+        core_rows = int((cadence == "core").sum())
+        rolling_rows = int((cadence == "rolling").sum())
+        if baseline_rows > 0 and core_rows == 0 and rolling_rows == 0:
+            run_mode = "baseline"
+        elif core_rows > 0 or rolling_rows > 0:
+            run_mode = "hybrid"
 
     digest_lines = [
         f"# RootFetch Daily Digest — {date_utc}",
         "",
         f"- Run ID: {run_id or latest_payload.get('run_id', 'unknown')}",
+        f"- Mode: {run_mode}",
         f"- Approved TLDs observed: {latest_payload.get('approved_tlds_count', 'n/a')}",
         f"- Counted today: {latest_payload.get('counted_today_count', 'n/a')} (core={latest_payload.get('counted_today_core_count', 'n/a')}, rolling={latest_payload.get('counted_today_rolling_count', 'n/a')})",
         "",

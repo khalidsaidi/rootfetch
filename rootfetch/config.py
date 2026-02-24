@@ -55,6 +55,9 @@ class Settings:
     static_rag_dir: Path
     static_rag_chunks_path: Path
     static_rag_meta_path: Path
+    state_dir: Path
+    baseline_complete_path: Path
+    baseline_progress_path: Path
 
     username: str | None
     password: str | None
@@ -64,6 +67,7 @@ class Settings:
     max_workers: int
     http_timeout: int
     retry_max: int
+    log_every: int
     count_mode: str
     min_base_for_pct: int
     rag_backend: str
@@ -81,6 +85,7 @@ def get_settings() -> Settings:
     signals_dir = data_dir / "signals"
     digests_dir = data_dir / "digests"
     static_rag_dir = data_dir / "rag"
+    state_dir = data_dir / "state"
     rag_dir = ai_dir / "rag"
     allowlist = _parse_csv_set(os.getenv("ROOTFETCH_TLD_ALLOWLIST"))
     env_blocklist = _parse_csv_set(os.getenv("ROOTFETCH_TLD_BLOCKLIST"))
@@ -118,14 +123,18 @@ def get_settings() -> Settings:
         static_rag_dir=static_rag_dir,
         static_rag_chunks_path=static_rag_dir / "rag_chunks.json",
         static_rag_meta_path=static_rag_dir / "rag_meta.json",
+        state_dir=state_dir,
+        baseline_complete_path=state_dir / "baseline_complete.json",
+        baseline_progress_path=ai_dir / "baseline_progress.json",
         username=os.getenv("CZDS_USERNAME"),
         password=os.getenv("CZDS_PASSWORD"),
         totp_secret=os.getenv("CZDS_TOTP_SECRET"),
         allowlist=allowlist,
         blocklist=env_blocklist,
-        max_workers=_parse_int(os.getenv("ROOTFETCH_MAX_WORKERS"), 4),
-        http_timeout=_parse_int(os.getenv("ROOTFETCH_HTTP_TIMEOUT"), 60),
-        retry_max=_parse_int(os.getenv("ROOTFETCH_RETRY_MAX"), 5),
+        max_workers=_parse_int(os.getenv("ROOTFETCH_MAX_WORKERS"), 8),
+        http_timeout=_parse_int(os.getenv("ROOTFETCH_HTTP_TIMEOUT"), 120),
+        retry_max=_parse_int(os.getenv("ROOTFETCH_RETRY_MAX"), 8),
+        log_every=_parse_int(os.getenv("ROOTFETCH_LOG_EVERY"), 25),
         count_mode=count_mode,
         min_base_for_pct=_parse_int(os.getenv("ROOTFETCH_MIN_BASE_FOR_PCT"), 1000),
         rag_backend=os.getenv("ROOTFETCH_RAG_BACKEND", "fts").strip().lower(),

@@ -7,7 +7,13 @@ from pathlib import Path
 from rootfetch.config import get_settings
 from rootfetch.core.auth import get_access_token
 from rootfetch.core.io_utils import utc_now_iso, utc_today_str
-from rootfetch.core.pipeline import run_daily, run_discovery_only, run_hybrid
+from rootfetch.core.pipeline import (
+    baseline_completion_status,
+    run_baseline,
+    run_daily,
+    run_discovery_only,
+    run_hybrid,
+)
 from rootfetch.signals.compute import compute_signals_for_date
 from rootfetch.signals.digest import write_daily_digest
 from rootfetch.rag.static_build import build_static_rag
@@ -83,6 +89,37 @@ def _cmd_run_hybrid(args: argparse.Namespace) -> int:
             indent=2,
         )
     )
+    return 0
+
+
+def _cmd_run_baseline(args: argparse.Namespace) -> int:
+    result = run_baseline(
+        date_utc=args.date,
+        dry_run=args.dry_run,
+        verbose=args.verbose,
+        resume=args.resume,
+        skip_discovery=args.skip_discovery,
+    )
+    print(
+        json.dumps(
+            {
+                "date_utc": result.date_utc,
+                "run_id": result.run_id,
+                "selected_tlds": len(result.selected_tlds),
+                "processed_tlds": len(result.processed_tlds),
+                "failed_tlds": result.failed_tlds,
+                "outputs": result.outputs,
+                "summary": result.summary,
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def _cmd_baseline_status(args: argparse.Namespace) -> int:
+    status = baseline_completion_status(date_utc=args.date)
+    print(json.dumps(status, indent=2))
     return 0
 
 
@@ -165,6 +202,18 @@ def build_parser() -> argparse.ArgumentParser:
     run_hybrid_cmd.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
     run_hybrid_cmd.add_argument("--skip-discovery", action="store_true", help="Reuse internal approved links snapshot")
     run_hybrid_cmd.set_defaults(func=_cmd_run_hybrid)
+
+    run_baseline_cmd = subparsers.add_parser("run-baseline", help="Run full baseline ingestion for all approved TLDs")
+    _add_common_flags(run_baseline_cmd)
+    run_baseline_cmd.add_argument("--date", default=None, help="Baseline UTC date YYYY-MM-DD (default: resume date or today)")
+    run_baseline_cmd.add_argument("--resume", action="store_true", help="Resume from existing baseline day file")
+    run_baseline_cmd.add_argument("--skip-discovery", action="store_true", help="Reuse internal approved links snapshot")
+    run_baseline_cmd.set_defaults(func=_cmd_run_baseline)
+
+    baseline_status_cmd = subparsers.add_parser("baseline-status", help="Show baseline completion status")
+    _add_common_flags(baseline_status_cmd)
+    baseline_status_cmd.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
+    baseline_status_cmd.set_defaults(func=_cmd_baseline_status)
 
     compute_signals = subparsers.add_parser("compute-signals", help="Recompute signals from aggregate outputs")
     _add_common_flags(compute_signals)

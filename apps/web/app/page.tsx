@@ -167,7 +167,7 @@ async function loadDigestSnippet(): Promise<string> {
       .join("\n")
       .trim();
   } catch {
-    return "Latest digest is unavailable. Run `rootfetch run-hybrid` first.";
+    return "Latest digest is unavailable. Run `rootfetch run-baseline --resume` or `rootfetch run-hybrid` first.";
   }
 }
 
@@ -226,6 +226,8 @@ export default async function Home() {
   const countedToday = latest.counted_today_count ?? coverage.counted_today_count ?? latest.processed_tlds_count_today ?? 0;
   const countedCore = latest.counted_today_core_count ?? coverage.counted_today_core_count ?? 0;
   const countedRolling = latest.counted_today_rolling_count ?? coverage.counted_today_rolling_count ?? 0;
+  const countedEver = coverage.counted_ever_count ?? 0;
+  const missingEver = coverage.missing_ever_count ?? Math.max(0, approvedCount - countedEver);
   const coveragePct =
     typeof latest.coverage_pct_today === "number"
       ? latest.coverage_pct_today
@@ -249,7 +251,7 @@ export default async function Home() {
         <p className={styles.kicker}>RootFetch Daily Dashboard</p>
         <h1>Hybrid delegation signals from committed aggregates</h1>
         <p className={styles.subtitle}>
-          Ingestion runs on your local machine (core daily + rolling long tail). Vercel serves read-only artifacts.
+          Ingestion runs on your local machine (day-1 full baseline, then core daily + rolling long tail). Vercel serves read-only artifacts.
         </p>
 
         <div className={styles.metaGrid}>
@@ -264,6 +266,14 @@ export default async function Home() {
           <article>
             <p>Counted today</p>
             <strong>{fmtInt(countedToday)}</strong>
+          </article>
+          <article>
+            <p>Counted ever</p>
+            <strong>{fmtInt(countedEver)}</strong>
+          </article>
+          <article>
+            <p>Missing ever</p>
+            <strong>{fmtInt(missingEver)}</strong>
           </article>
           <article>
             <p>Core counted today</p>

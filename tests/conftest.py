@@ -43,6 +43,9 @@ def temp_settings(tmp_path: Path):
         static_rag_dir=data / "rag",
         static_rag_chunks_path=data / "rag" / "rag_chunks.json",
         static_rag_meta_path=data / "rag" / "rag_meta.json",
+        state_dir=data / "state",
+        baseline_complete_path=data / "state" / "baseline_complete.json",
+        baseline_progress_path=ai / "baseline_progress.json",
     )
 
     for path in [
@@ -57,6 +60,7 @@ def temp_settings(tmp_path: Path):
         updated.snapshots_dir,
         updated.rag_dir,
         updated.static_rag_dir,
+        updated.state_dir,
     ]:
         path.mkdir(parents=True, exist_ok=True)
 

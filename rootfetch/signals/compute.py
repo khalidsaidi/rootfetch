@@ -108,7 +108,15 @@ def _load_growth_df(settings: Settings) -> pd.DataFrame:
     df["is_estimate_bool"] = df.get("is_estimate", "false").map(_to_bool)
     df["approved_today_bool"] = df.get("approved_today", "false").map(_to_bool)
     if "cadence" not in df.columns:
-        df["cadence"] = ""
+        df["cadence"] = "legacy"
+    else:
+        df["cadence"] = (
+            df["cadence"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .replace("", "legacy")
+        )
     return df
 
 
@@ -123,7 +131,15 @@ def _load_daily_df(settings: Settings, date_utc: str) -> pd.DataFrame:
     if "is_estimate" in df.columns:
         df["is_estimate_bool"] = df["is_estimate"].map(_to_bool)
     if "cadence" not in df.columns:
-        df["cadence"] = ""
+        df["cadence"] = "legacy"
+    else:
+        df["cadence"] = (
+            df["cadence"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .replace("", "legacy")
+        )
     return df
 
 

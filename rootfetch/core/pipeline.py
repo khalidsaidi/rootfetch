@@ -18,10 +18,12 @@ from rootfetch.config import Settings, get_settings
 from rootfetch.core.auth import get_access_token
 from rootfetch.core.discovery import fetch_approved_links, write_discovery_artifacts
 from rootfetch.core.hybrid_select import select_hybrid_tlds
-from rootfetch.core.io_utils import ensure_dir, read_json, utc_now_iso, utc_today_str
+from rootfetch.core.io_utils import ensure_dir, read_json, utc_now_iso, utc_today_str, write_json
 from rootfetch.core.logging_utils import setup_logger
 from rootfetch.core.zone_count import parse_zone_metrics
+from rootfetch.rag.static_build import build_static_rag
 from rootfetch.signals.compute import compute_signals_for_date
+from rootfetch.signals.coverage import compute_coverage_latest
 from rootfetch.signals.digest import write_daily_digest
 
 
@@ -60,6 +62,8 @@ GROWTH_COLUMNS = [
     "days_since_prev",
     "cadence",
 ]
+
+CADENCE_MIGRATION_MARKER = "cadence_migrated_v1.json"
 
 
 class TransientFetchError(RuntimeError):
@@ -101,6 +105,40 @@ class _CountingReader:
         return getattr(self.raw, name)
 
 
+def _normalize_cadence(value: Any, *, fallback: str = "legacy") -> str:
+    text = str(value or "").strip().lower()
+    return text if text else fallback
+
+
+def _normalize_daily_row(row: dict[str, Any]) -> dict[str, Any]:
+    out = {column: row.get(column, "") for column in DAILY_COUNTS_COLUMNS}
+    out["date_utc"] = str(out.get("date_utc", "")).strip()
+    out["tld"] = str(out.get("tld", "")).strip().lower()
+    out["status"] = str(out.get("status", "")).strip().lower()
+    out["cadence"] = _normalize_cadence(out.get("cadence"))
+    return out
+
+
+def _normalize_growth_row(row: dict[str, Any]) -> dict[str, Any]:
+    out = {column: row.get(column, "") for column in GROWTH_COLUMNS}
+    out["date_utc"] = str(out.get("date_utc", "")).strip()
+    out["tld"] = str(out.get("tld", "")).strip().lower()
+    out["status"] = str(out.get("status", "")).strip().lower()
+    out["cadence"] = _normalize_cadence(out.get("cadence"))
+    return out
+
+
+def _atomic_write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f"{path.name}.tmp-{uuid.uuid4().hex}")
+    with temp_path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+    temp_path.replace(path)
+
+
 def _is_transient_status(status_code: int) -> bool:
     return status_code == 429 or 500 <= status_code <= 599
 
@@ -109,20 +147,100 @@ def _daily_counts_path(settings: Settings, date_utc: str) -> Path:
     return settings.daily_counts_dir / f"{date_utc}.csv"
 
 
-def _read_daily_rows(path: Path) -> list[dict[str, str]]:
+def _read_daily_rows(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
     with path.open("r", newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+        reader = csv.DictReader(fh)
+        rows = list(reader)
+    return [_normalize_daily_row(row) for row in rows]
 
 
 def _write_daily_rows(path: Path, rows: list[dict[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=DAILY_COUNTS_COLUMNS, extrasaction="ignore")
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
+    normalized = [_normalize_daily_row(row) for row in rows]
+    _atomic_write_csv(path, DAILY_COUNTS_COLUMNS, normalized)
+
+
+def _load_growth_rows(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    with path.open("r", newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        rows = list(reader)
+    return [_normalize_growth_row(row) for row in rows]
+
+
+def _write_growth_rows(path: Path, rows: list[dict[str, Any]]) -> None:
+    normalized = [_normalize_growth_row(row) for row in rows]
+    _atomic_write_csv(path, GROWTH_COLUMNS, normalized)
+
+
+def _migrate_daily_file_cadence(path: Path) -> bool:
+    if not path.exists():
+        return False
+    with path.open("r", newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        fieldnames = reader.fieldnames or []
+        rows = list(reader)
+
+    changed = "cadence" not in fieldnames
+    normalized_rows: list[dict[str, Any]] = []
+    for row in rows:
+        normalized = _normalize_daily_row(row)
+        old = str(row.get("cadence", "")).strip().lower()
+        if normalized["cadence"] != old:
+            changed = True
+        normalized_rows.append(normalized)
+
+    if changed:
+        _write_daily_rows(path, normalized_rows)
+    return changed
+
+
+def _migrate_growth_file_cadence(path: Path) -> bool:
+    if not path.exists():
+        return False
+    with path.open("r", newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        fieldnames = reader.fieldnames or []
+        rows = list(reader)
+
+    changed = "cadence" not in fieldnames
+    normalized_rows: list[dict[str, Any]] = []
+    for row in rows:
+        normalized = _normalize_growth_row(row)
+        old = str(row.get("cadence", "")).strip().lower()
+        if normalized["cadence"] != old:
+            changed = True
+        normalized_rows.append(normalized)
+
+    if changed:
+        _write_growth_rows(path, normalized_rows)
+    return changed
+
+
+def _migrate_legacy_cadence_once(settings: Settings) -> None:
+    marker_path = settings.ai_dir / CADENCE_MIGRATION_MARKER
+    if marker_path.exists():
+        return
+
+    ensure_dir(marker_path.parent)
+
+    daily_files_touched = 0
+    for path in sorted(settings.daily_counts_dir.glob("*.csv")):
+        if _migrate_daily_file_cadence(path):
+            daily_files_touched += 1
+
+    growth_touched = _migrate_growth_file_cadence(settings.growth_trends_path)
+
+    write_json(
+        marker_path,
+        {
+            "migrated_at_utc": utc_now_iso(),
+            "daily_files_touched": daily_files_touched,
+            "growth_trends_touched": bool(growth_touched),
+        },
+    )
 
 
 def _apply_tld_filters(links: list[dict[str, str]], settings: Settings) -> list[dict[str, str]]:
@@ -241,7 +359,7 @@ def _download_and_count(url: str, tld: str, token: str, settings: Settings) -> d
     }
 
 
-def _as_daily_row(date_utc: str, metric: dict[str, Any], cadence: str = "") -> dict[str, Any]:
+def _as_daily_row(date_utc: str, metric: dict[str, Any], cadence: str = "legacy") -> dict[str, Any]:
     return {
         "date_utc": date_utc,
         "tld": metric["tld"],
@@ -258,7 +376,7 @@ def _as_daily_row(date_utc: str, metric: dict[str, Any], cadence: str = "") -> d
         "fetch_seconds": metric["fetch_seconds"],
         "status": metric["status"],
         "error": metric["error"],
-        "cadence": cadence,
+        "cadence": _normalize_cadence(cadence),
     }
 
 
@@ -271,14 +389,7 @@ def _safe_float(value: Any) -> float | None:
         return None
 
 
-def _load_growth_rows(path: Path) -> list[dict[str, str]]:
-    if not path.exists():
-        return []
-    with path.open("r", newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
-
-
-def _last_known_by_tld(growth_rows: Iterable[dict[str, str]]) -> dict[str, tuple[str, float]]:
+def _last_known_by_tld(growth_rows: Iterable[dict[str, Any]]) -> dict[str, tuple[str, float]]:
     latest: dict[str, tuple[str, float]] = {}
     for row in growth_rows:
         if row.get("status") != "ok":
@@ -305,15 +416,6 @@ def _days_between(prev_date_utc: str | None, current_date_utc: str) -> int | Non
     return (curr - prev).days
 
 
-def _write_growth_rows(path: Path, rows: list[dict[str, Any]]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=GROWTH_COLUMNS, extrasaction="ignore")
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
-
-
 def _update_growth_trends(
     date_utc: str,
     daily_rows: list[dict[str, Any]],
@@ -322,15 +424,17 @@ def _update_growth_trends(
     settings: Settings,
 ) -> Path:
     existing_rows = _load_growth_rows(settings.growth_trends_path)
-    target_tlds = {r["tld"] for r in daily_rows}
+    target_tlds = {r["tld"] for r in daily_rows if r.get("tld")}
     existing_rows = [
         row for row in existing_rows if not (row.get("date_utc") == date_utc and row.get("tld") in target_tlds)
     ]
     last_by_tld = _last_known_by_tld(existing_rows)
 
     new_rows: list[dict[str, Any]] = []
-    for row in sorted(daily_rows, key=lambda item: item["tld"]):
-        tld = row["tld"]
+    for row in sorted(daily_rows, key=lambda item: str(item.get("tld", ""))):
+        tld = str(row.get("tld", "")).strip().lower()
+        if not tld:
+            continue
         count = _safe_float(row.get("count"))
         previous = last_by_tld.get(tld)
         prev_date_utc = previous[0] if previous else ""
@@ -359,7 +463,7 @@ def _update_growth_trends(
             "status": row.get("status", ""),
             "prev_date_utc": prev_date_utc,
             "days_since_prev": "" if days_since_prev is None else days_since_prev,
-            "cadence": row.get("cadence", ""),
+            "cadence": _normalize_cadence(row.get("cadence")),
         }
         new_rows.append(growth_row)
         if row.get("status") == "ok" and count is not None:
@@ -404,6 +508,117 @@ def _load_approved_tlds_latest(settings: Settings) -> list[str]:
     return sorted({str(tld).strip().lower() for tld in tlds if str(tld).strip()})
 
 
+def _load_baseline_progress(settings: Settings) -> dict[str, Any]:
+    if not settings.baseline_progress_path.exists():
+        return {}
+    payload = read_json(settings.baseline_progress_path)
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
+
+def _save_baseline_progress(settings: Settings, *, baseline_date_utc: str, approved_count: int) -> None:
+    progress = _load_baseline_progress(settings)
+    first_started = str(progress.get("first_started_at_utc", "")).strip() or utc_now_iso()
+    write_json(
+        settings.baseline_progress_path,
+        {
+            "baseline_date_utc": baseline_date_utc,
+            "first_started_at_utc": first_started,
+            "last_resumed_at_utc": utc_now_iso(),
+            "approved_count": int(approved_count),
+        },
+    )
+
+
+def _clear_baseline_progress(settings: Settings) -> None:
+    if settings.baseline_progress_path.exists():
+        settings.baseline_progress_path.unlink()
+
+
+def _resolve_baseline_date(
+    *,
+    date_utc: str | None,
+    resume: bool,
+    settings: Settings,
+) -> str:
+    if date_utc:
+        return date_utc
+    if resume:
+        progress = _load_baseline_progress(settings)
+        progress_date = str(progress.get("baseline_date_utc", "")).strip()
+        if progress_date:
+            return progress_date
+    return utc_today_str()
+
+
+def _read_ok_tlds_for_date(settings: Settings, date_utc: str) -> set[str]:
+    rows = _read_daily_rows(_daily_counts_path(settings, date_utc))
+    return {
+        str(row.get("tld", "")).strip().lower()
+        for row in rows
+        if str(row.get("status", "")).strip().lower() == "ok" and str(row.get("tld", "")).strip()
+    }
+
+
+def _count_ok_rows_for_tlds(rows: list[dict[str, Any]], tlds: set[str]) -> int:
+    return sum(
+        1
+        for row in rows
+        if row.get("tld") in tlds and str(row.get("status", "")).strip().lower() == "ok"
+    )
+
+
+def _read_coverage_payload(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {}
+    payload = read_json(path)
+    if isinstance(payload, dict):
+        return payload
+    return {}
+
+
+def baseline_completion_status(*, date_utc: str | None = None, settings: Settings | None = None) -> dict[str, Any]:
+    settings = settings or get_settings()
+    target_date = date_utc or utc_today_str()
+    coverage_meta = compute_coverage_latest(target_date, settings=settings)
+    coverage_payload = coverage_meta["coverage_payload"]
+
+    approved_count = int(coverage_payload.get("approved_tlds_count", 0))
+    counted_ever_count = int(coverage_payload.get("counted_ever_count", 0))
+    missing_ever_count = int(coverage_payload.get("missing_ever_count", 0))
+    has_marker = settings.baseline_complete_path.exists()
+    baseline_complete = bool(
+        has_marker
+        and approved_count > 0
+        and approved_count == counted_ever_count
+        and missing_ever_count == 0
+    )
+
+    return {
+        "date_utc": str(coverage_payload.get("date_utc", target_date)),
+        "has_marker": has_marker,
+        "baseline_complete": baseline_complete,
+        "approved_tlds_count": approved_count,
+        "counted_ever_count": counted_ever_count,
+        "missing_ever_count": missing_ever_count,
+        "coverage_path": str(coverage_meta["coverage_path"]),
+        "baseline_complete_path": str(settings.baseline_complete_path),
+    }
+
+
+def _write_baseline_complete_marker(*, baseline_date_utc: str, approved_count: int, settings: Settings) -> None:
+    ensure_dir(settings.state_dir)
+    write_json(
+        settings.baseline_complete_path,
+        {
+            "completed_at_utc": utc_now_iso(),
+            "baseline_date_utc": baseline_date_utc,
+            "approved_count_at_completion": int(approved_count),
+        },
+    )
+
+
 def _prepare_daily_rows_for_targets(
     *,
     date_utc: str,
@@ -421,7 +636,7 @@ def _prepare_daily_rows_for_targets(
     processed_rows: list[dict[str, Any]] = []
     for item in target_links:
         tld = item["tld"]
-        cadence = cadence_map.get(tld, "")
+        cadence = _normalize_cadence(cadence_map.get(tld))
         existing = existing_by_tld.get(tld)
         if existing and existing.get("status") == "ok":
             existing = dict(existing)
@@ -431,7 +646,7 @@ def _prepare_daily_rows_for_targets(
         pending_links.append(item)
 
     if pending_links:
-        with ThreadPoolExecutor(max_workers=settings.max_workers) as executor:
+        with ThreadPoolExecutor(max_workers=max(1, settings.max_workers)) as executor:
             future_map = {
                 executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
                 for item in pending_links
@@ -439,16 +654,81 @@ def _prepare_daily_rows_for_targets(
             for future in as_completed(future_map):
                 item = future_map[future]
                 metric = future.result()
-                processed_rows.append(
-                    _as_daily_row(date_utc, metric, cadence=cadence_map.get(item["tld"], ""))
-                )
-                logger.info("processed tld=%s status=%s cadence=%s", item["tld"], metric["status"], cadence_map.get(item["tld"], ""))
+                cadence = _normalize_cadence(cadence_map.get(item["tld"]))
+                processed_rows.append(_as_daily_row(date_utc, metric, cadence=cadence))
+                logger.info("processed tld=%s status=%s cadence=%s", item["tld"], metric["status"], cadence)
 
     merged_rows: dict[str, dict[str, Any]] = {row["tld"]: row for row in existing_rows if row.get("tld")}
     for row in processed_rows:
         merged_rows[row["tld"]] = row
 
-    rows_for_write = sorted(merged_rows.values(), key=lambda row: row["tld"])
+    rows_for_write = sorted(merged_rows.values(), key=lambda row: str(row.get("tld", "")))
+    _write_daily_rows(daily_path, rows_for_write)
+    return daily_path, rows_for_write, processed_rows
+
+
+def _prepare_baseline_rows(
+    *,
+    date_utc: str,
+    approved_tlds: list[str],
+    target_links: list[dict[str, str]],
+    token: str,
+    settings: Settings,
+    logger: Any,
+) -> tuple[Path, list[dict[str, Any]], list[dict[str, Any]]]:
+    daily_path = _daily_counts_path(settings, date_utc)
+    existing_rows = _read_daily_rows(daily_path)
+    approved_set = set(approved_tlds)
+
+    merged_rows: dict[str, dict[str, Any]] = {row["tld"]: row for row in existing_rows if row.get("tld")}
+    for tld, row in list(merged_rows.items()):
+        if tld in approved_set and str(row.get("status", "")).strip().lower() == "ok":
+            updated = dict(row)
+            updated["cadence"] = "baseline"
+            merged_rows[tld] = updated
+
+    pending_links = [
+        item
+        for item in target_links
+        if not (
+            merged_rows.get(item["tld"], {}).get("status") == "ok"
+            and merged_rows.get(item["tld"], {}).get("tld") == item["tld"]
+        )
+    ]
+
+    processed_rows: list[dict[str, Any]] = []
+    log_every = max(1, settings.log_every)
+
+    if pending_links:
+        with ThreadPoolExecutor(max_workers=max(1, settings.max_workers)) as executor:
+            future_map = {
+                executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
+                for item in pending_links
+            }
+            completed = 0
+            total_pending = len(pending_links)
+            for future in as_completed(future_map):
+                item = future_map[future]
+                metric = future.result()
+                row = _as_daily_row(date_utc, metric, cadence="baseline")
+                merged_rows[item["tld"]] = row
+                processed_rows.append(row)
+                completed += 1
+
+                if completed % log_every == 0 or completed == total_pending:
+                    checkpoint_rows = sorted(merged_rows.values(), key=lambda r: str(r.get("tld", "")))
+                    _write_daily_rows(daily_path, checkpoint_rows)
+                    processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, approved_set)
+                    remaining = max(0, len(approved_set) - processed_ok)
+                    logger.info(
+                        "baseline progress processed_ok=%s remaining=%s attempted=%s/%s",
+                        processed_ok,
+                        remaining,
+                        completed,
+                        total_pending,
+                    )
+
+    rows_for_write = sorted(merged_rows.values(), key=lambda row: str(row.get("tld", "")))
     _write_daily_rows(daily_path, rows_for_write)
     return daily_path, rows_for_write, processed_rows
 
@@ -484,6 +764,8 @@ def _build_outputs(
             "latest": str(signal_meta.get("latest_path", "")),
             "coverage": str(signal_meta.get("coverage_path", "")),
             "digest": str(digest_meta.get("dated_digest_path", "")),
+            "rag_chunks": str(signal_meta.get("rag_chunks_path", "")),
+            "rag_meta": str(signal_meta.get("rag_meta_path", "")),
         },
         summary=summary,
     )
@@ -507,6 +789,10 @@ def run_daily(
     ensure_dir(settings.signals_dir)
     ensure_dir(settings.logs_dir)
     ensure_dir(settings.snapshots_dir)
+    ensure_dir(settings.state_dir)
+
+    if not dry_run:
+        _migrate_legacy_cadence_once(settings)
 
     token = get_access_token(settings=settings, dry_run=dry_run)
     approved_links = fetch_approved_links(token, settings=settings, dry_run=dry_run)
@@ -542,9 +828,10 @@ def run_daily(
         logger=logger,
     )
 
+    selected_set = set(selected_tlds)
     growth_path = _update_growth_trends(
         date_utc,
-        [row for row in processed_rows if row.get("tld") in set(selected_tlds)],
+        [row for row in processed_rows if row.get("tld") in selected_set],
         set(discovery_meta["newly_approved"]),
         run_id,
         settings,
@@ -595,6 +882,18 @@ def run_hybrid(
     ensure_dir(settings.signals_dir)
     ensure_dir(settings.logs_dir)
     ensure_dir(settings.snapshots_dir)
+    ensure_dir(settings.state_dir)
+
+    if not dry_run:
+        _migrate_legacy_cadence_once(settings)
+
+    if not dry_run:
+        completion = baseline_completion_status(date_utc=date_utc, settings=settings)
+        if not completion["baseline_complete"]:
+            raise RuntimeError(
+                "Baseline is incomplete. Run `rootfetch run-baseline --resume` until "
+                "approved_tlds_count == counted_ever_count and missing_ever_count == 0."
+            )
 
     approved_links: list[dict[str, str]] = []
     discovery_meta: dict[str, Any] = {
@@ -611,7 +910,10 @@ def run_hybrid(
         if skip_discovery:
             approved_links = _load_links_from_internal_snapshot(settings)
             if not approved_links:
-                raise RuntimeError("Missing .ai/approved_snapshot.json links; run discover first or remove --skip-discovery.")
+                raise RuntimeError(
+                    "Missing .ai/approved_snapshot.json links; run discover first or remove --skip-discovery."
+                )
+            discovery_meta = write_discovery_artifacts(approved_links, date_utc=date_utc, settings=settings)
             approved_tlds = sorted({item["tld"] for item in approved_links})
         else:
             approved_links = fetch_approved_links(token, settings=settings, dry_run=False)
@@ -642,7 +944,6 @@ def run_hybrid(
             summary=summary,
         )
 
-    assert approved_links
     token = get_access_token(settings=settings, dry_run=False)
     target_set = set(target_tlds)
     target_links = [item for item in approved_links if item["tld"] in target_set]
@@ -672,9 +973,7 @@ def run_hybrid(
     processed_selected_rows = [row for row in processed_rows if row.get("tld") in selected_set]
     processed_ok = [row for row in processed_selected_rows if row.get("status") == "ok"]
     failed_rows = [row for row in processed_selected_rows if row.get("status") == "failed"]
-    total_counted_sum = int(
-        sum(_safe_float(row.get("count")) or 0 for row in processed_ok)
-    )
+    total_counted_sum = int(sum(_safe_float(row.get("count")) or 0 for row in processed_ok))
     missing_today = max(0, selection["approved_count"] - len(processed_ok))
 
     summary.update(
@@ -697,6 +996,179 @@ def run_hybrid(
         daily_path=daily_path,
         growth_path=growth_path,
         signal_meta=signal_meta,
+        digest_meta=digest_meta,
+        summary=summary,
+    )
+
+
+def run_baseline(
+    date_utc: str | None = None,
+    *,
+    dry_run: bool = False,
+    verbose: bool = False,
+    resume: bool = False,
+    skip_discovery: bool = False,
+    settings: Settings | None = None,
+) -> RunResult:
+    settings = settings or get_settings()
+    baseline_date_utc = _resolve_baseline_date(date_utc=date_utc, resume=resume, settings=settings)
+    run_id = str(uuid.uuid4())
+    log_path = settings.logs_dir / f"run_baseline_{baseline_date_utc}.log"
+    logger = setup_logger("rootfetch.pipeline.baseline", log_path=log_path, verbose=verbose)
+
+    ensure_dir(settings.daily_counts_dir)
+    ensure_dir(settings.approved_dir)
+    ensure_dir(settings.signals_dir)
+    ensure_dir(settings.logs_dir)
+    ensure_dir(settings.snapshots_dir)
+    ensure_dir(settings.state_dir)
+    ensure_dir(settings.baseline_progress_path.parent)
+
+    if not dry_run:
+        _migrate_legacy_cadence_once(settings)
+
+    approved_links: list[dict[str, str]] = []
+    approved_tlds: list[str] = []
+    source = ""
+    discovery_meta: dict[str, Any] = {
+        "newly_approved": [],
+        "tlds": [],
+    }
+
+    if dry_run:
+        approved_tlds = _load_approved_tlds_latest(settings)
+        source = "approved_latest"
+        if not approved_tlds:
+            approved_links = _load_links_from_internal_snapshot(settings)
+            approved_tlds = sorted({item["tld"] for item in approved_links})
+            source = "internal_snapshot"
+    else:
+        token = get_access_token(settings=settings, dry_run=False)
+        if skip_discovery:
+            approved_links = _load_links_from_internal_snapshot(settings)
+            if not approved_links:
+                raise RuntimeError(
+                    "Missing .ai/approved_snapshot.json links; run discover first or remove --skip-discovery."
+                )
+            discovery_meta = write_discovery_artifacts(approved_links, date_utc=baseline_date_utc, settings=settings)
+            approved_tlds = sorted({item["tld"] for item in approved_links})
+            source = "internal_snapshot"
+        else:
+            approved_links = fetch_approved_links(token, settings=settings, dry_run=False)
+            discovery_meta = write_discovery_artifacts(approved_links, date_utc=baseline_date_utc, settings=settings)
+            approved_tlds = discovery_meta.get("tlds", [])
+            source = "czds_discovery"
+
+    approved_set = set(approved_tlds)
+    already_ok = _read_ok_tlds_for_date(settings, baseline_date_utc)
+    baseline_target_tlds = sorted(approved_set - already_ok)
+
+    summary = {
+        "mode": "baseline",
+        "baseline_date_utc": baseline_date_utc,
+        "approved_count": len(approved_tlds),
+        "already_ok_count": len(already_ok),
+        "baseline_target_count": len(baseline_target_tlds),
+        "source": source,
+        "resume": bool(resume),
+    }
+
+    if dry_run:
+        return RunResult(
+            date_utc=baseline_date_utc,
+            run_id=run_id,
+            selected_tlds=baseline_target_tlds,
+            processed_tlds=[],
+            failed_tlds=[],
+            outputs={},
+            summary=summary,
+        )
+
+    _save_baseline_progress(settings, baseline_date_utc=baseline_date_utc, approved_count=len(approved_tlds))
+
+    link_by_tld = {item["tld"]: item["url"] for item in approved_links}
+    missing_link_tlds = [tld for tld in baseline_target_tlds if tld not in link_by_tld]
+    if missing_link_tlds:
+        logger.warning("baseline missing download links for %s tlds", len(missing_link_tlds))
+
+    target_links = [
+        {"tld": tld, "url": link_by_tld[tld]}
+        for tld in baseline_target_tlds
+        if tld in link_by_tld
+    ]
+
+    token = get_access_token(settings=settings, dry_run=False)
+    daily_path, rows_for_write, processed_rows = _prepare_baseline_rows(
+        date_utc=baseline_date_utc,
+        approved_tlds=approved_tlds,
+        target_links=target_links,
+        token=token,
+        settings=settings,
+        logger=logger,
+    )
+
+    rows_for_growth = [row for row in rows_for_write if row.get("tld") in approved_set]
+    growth_path = _update_growth_trends(
+        baseline_date_utc,
+        rows_for_growth,
+        set(discovery_meta.get("newly_approved", [])),
+        run_id,
+        settings,
+    )
+
+    signal_meta = compute_signals_for_date(baseline_date_utc, run_id=run_id, settings=settings)
+    digest_meta = write_daily_digest(baseline_date_utc, run_id=run_id, settings=settings)
+    rag_meta = build_static_rag(settings=settings)
+
+    coverage_payload = _read_coverage_payload(Path(signal_meta["coverage_path"]))
+    approved_count = int(coverage_payload.get("approved_tlds_count", len(approved_tlds)))
+    counted_ever_count = int(coverage_payload.get("counted_ever_count", 0))
+    missing_ever_count = int(coverage_payload.get("missing_ever_count", 0))
+
+    baseline_complete = bool(
+        approved_count > 0
+        and approved_count == counted_ever_count
+        and missing_ever_count == 0
+    )
+
+    if baseline_complete:
+        _write_baseline_complete_marker(
+            baseline_date_utc=baseline_date_utc,
+            approved_count=approved_count,
+            settings=settings,
+        )
+        _clear_baseline_progress(settings)
+
+    processed_ok = _count_ok_rows_for_tlds(rows_for_write, approved_set)
+    remaining = max(0, len(approved_set) - processed_ok)
+
+    summary.update(
+        {
+            "attempted_this_run": len(processed_rows),
+            "failed_this_run": sum(1 for row in processed_rows if row.get("status") == "failed"),
+            "processed_ok": processed_ok,
+            "remaining": remaining,
+            "missing_link_count": len(missing_link_tlds),
+            "baseline_complete": baseline_complete,
+            "counted_ever_count": counted_ever_count,
+            "missing_ever_count": missing_ever_count,
+            "daily_counts": str(daily_path),
+            "rag_chunks_indexed": int(rag_meta.get("chunks_indexed", 0)),
+        }
+    )
+
+    signal_meta_with_rag = dict(signal_meta)
+    signal_meta_with_rag["rag_chunks_path"] = settings.static_rag_chunks_path
+    signal_meta_with_rag["rag_meta_path"] = settings.static_rag_meta_path
+
+    return _build_outputs(
+        date_utc=baseline_date_utc,
+        run_id=run_id,
+        selected_tlds=baseline_target_tlds,
+        processed_rows=processed_rows,
+        daily_path=daily_path,
+        growth_path=growth_path,
+        signal_meta=signal_meta_with_rag,
         digest_meta=digest_meta,
         summary=summary,
     )

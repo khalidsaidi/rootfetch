@@ -6,6 +6,10 @@ RootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted
 
 Create a local `.env` (never committed):
 
+```bash
+cp .env.example .env
+```
+
 - `CZDS_USERNAME`
 - `CZDS_PASSWORD`
 - `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)
@@ -18,6 +22,7 @@ Optional hybrid overrides:
 - `ROOTFETCH_MAX_WORKERS`
 - `ROOTFETCH_HTTP_TIMEOUT`
 - `ROOTFETCH_RETRY_MAX`
+- `ROOTFETCH_LOG_EVERY`
 
 ## Daily Local Command
 
@@ -30,10 +35,12 @@ Run:
 The script does:
 
 1. `rootfetch discover`
-2. `rootfetch run-hybrid`
-3. `rootfetch compute-signals --date <today>`
-4. `rootfetch rag build-static`
-5. commit/push safe artifacts only under `data/`
+2. checks `rootfetch baseline-status --date <today>`
+3. loops `rootfetch run-baseline --resume` until baseline completion (`missing_ever_count=0`)
+4. after baseline completion, runs `rootfetch run-hybrid --date <today>`
+5. `rootfetch compute-signals --date <run_date>`
+6. `rootfetch rag build-static`
+7. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json`)
 
 ## Scheduling
 

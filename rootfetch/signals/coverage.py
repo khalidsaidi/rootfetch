@@ -86,8 +86,9 @@ def _has_count_value(value: Any) -> bool:
 
 
 def _load_counted_ever(settings: Settings) -> list[str]:
-    rows = _read_csv_rows(settings.growth_trends_path)
     tlds: set[str] = set()
+
+    rows = _read_csv_rows(settings.growth_trends_path)
     for row in rows:
         tld = str(row.get("tld", "")).strip().lower()
         if not tld:
@@ -95,6 +96,15 @@ def _load_counted_ever(settings: Settings) -> list[str]:
         status_ok = str(row.get("status", "")).strip().lower() == "ok"
         if status_ok or _has_count_value(row.get("count")):
             tlds.add(tld)
+
+    # Backfill coverage from daily_counts history in case growth_trends was partial.
+    for daily_path in sorted(settings.daily_counts_dir.glob("*.csv")):
+        for row in _read_csv_rows(daily_path):
+            if str(row.get("status", "")).strip().lower() != "ok":
+                continue
+            tld = str(row.get("tld", "")).strip().lower()
+            if tld:
+                tlds.add(tld)
     return sorted(tlds)
 
 

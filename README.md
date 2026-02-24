@@ -7,9 +7,9 @@ from zone snapshots and publishes safe aggregate artifacts for product surfaces.
 
 - Ingestion runs on your machine (local runner), not on Vercel.
 - Vercel serves read-only precomputed artifacts from the repo.
-- Hybrid cadence:
-  - Core set processed daily
-  - Long tail processed on deterministic rolling shards
+- Two ingestion modes:
+  - Day-1 baseline: ingest all approved CZDS TLDs in one resumable run.
+  - Daily hybrid (after baseline completion): core set daily + deterministic rolling long tail.
 
 ## Primary Metric
 
@@ -38,11 +38,20 @@ Set local env vars (or use local `.env`):
 - `CZDS_PASSWORD`
 - optional `CZDS_TOTP_SECRET`
 
+Quick start:
+
+```bash
+cp .env.example .env
+```
+
 ## CLI
 
 ```bash
 rootfetch auth-check
 rootfetch discover
+rootfetch run-baseline --dry-run
+rootfetch run-baseline --resume
+rootfetch baseline-status
 rootfetch run-hybrid
 rootfetch run-hybrid --dry-run
 rootfetch compute-signals --date YYYY-MM-DD
@@ -60,6 +69,13 @@ Primary daily entrypoint:
 ./scripts/local_run_hybrid.sh
 ```
 
+The script auto-switches:
+
+1. runs `rootfetch discover`
+2. if baseline is incomplete, repeatedly runs `rootfetch run-baseline --resume` until 100% coverage
+3. once baseline is complete, runs `rootfetch run-hybrid`
+4. rebuilds static RAG + commits safe artifacts only
+
 See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 
 ## Outputs
@@ -71,6 +87,7 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - `data/digests/*`
 - `data/rag/rag_chunks.json`
 - `data/rag/rag_meta.json`
+- `data/state/baseline_complete.json` (written once baseline reaches 100%)
 
 ## Docs
 
