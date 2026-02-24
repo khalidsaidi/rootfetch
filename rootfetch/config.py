@@ -19,6 +19,18 @@ def _parse_bool(value: str | None, default: bool) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _parse_int(value: str | None, default: int) -> int:
+    if value is None:
+        return default
+    stripped = value.strip()
+    if not stripped:
+        return default
+    try:
+        return int(stripped)
+    except ValueError:
+        return default
+
+
 @dataclass(frozen=True)
 class Settings:
     repo_root: Path
@@ -102,11 +114,11 @@ def get_settings() -> Settings:
         totp_secret=os.getenv("CZDS_TOTP_SECRET"),
         allowlist=allowlist,
         blocklist=env_blocklist,
-        max_workers=int(os.getenv("ROOTFETCH_MAX_WORKERS", "4")),
-        http_timeout=int(os.getenv("ROOTFETCH_HTTP_TIMEOUT", "60")),
-        retry_max=int(os.getenv("ROOTFETCH_RETRY_MAX", "5")),
+        max_workers=_parse_int(os.getenv("ROOTFETCH_MAX_WORKERS"), 4),
+        http_timeout=_parse_int(os.getenv("ROOTFETCH_HTTP_TIMEOUT"), 60),
+        retry_max=_parse_int(os.getenv("ROOTFETCH_RETRY_MAX"), 5),
         count_mode=count_mode,
-        min_base_for_pct=int(os.getenv("ROOTFETCH_MIN_BASE_FOR_PCT", "1000")),
+        min_base_for_pct=_parse_int(os.getenv("ROOTFETCH_MIN_BASE_FOR_PCT"), 1000),
         rag_backend=os.getenv("ROOTFETCH_RAG_BACKEND", "fts").strip().lower(),
         rag_autobuild=_parse_bool(os.getenv("ROOTFETCH_RAG_AUTOBUILD"), True),
     )
