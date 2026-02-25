@@ -1,4 +1,4 @@
-import { access, copyFile, mkdir } from "node:fs/promises";
+import { access, copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -76,6 +76,107 @@ async function copyOne(source, dest) {
   await copyFile(source, dest);
 }
 
+function normalizeSiteUrl(raw) {
+  return (raw || "https://rootfetch.vercel.app").trim().replace(/\/+$/, "");
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+async function readJsonOrDefault(filePath, fallback) {
+  try {
+    const raw = await readFile(filePath, "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function parseCsvTlds(csvText, limit) {
+  const lines = csvText.trim().split(/\r?\n/);
+  if (lines.length <= 1) {
+    return [];
+  }
+  const header = lines[0].split(",");
+  const tldIndex = header.indexOf("tld");
+  if (tldIndex < 0) {
+    return [];
+  }
+  const out = [];
+  for (const line of lines.slice(1)) {
+    if (!line.trim()) continue;
+    const cols = line.split(",");
+    const tld = (cols[tldIndex] || "").trim();
+    if (!tld) continue;
+    out.push(tld);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+async function generateSeoTextArtifacts() {
+  const siteUrl = normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL);
+  const publicDir = path.join(appRoot, "public");
+  const rootfetchPublicDir = path.join(publicDir, "rootfetch");
+  const latest = await readJsonOrDefault(path.join(rootfetchPublicDir, "latest.json"), {});
+  const topTldsCsv = await readFile(path.join(rootfetchPublicDir, "top_tlds_latest.csv"), "utf-8").catch(
+    () => ""
+  );
+  const topTlds = parseCsvTlds(topTldsCsv, 200);
+  const lastmod = new Date().toISOString();
+
+  const baseRoutes = ["/", "/approved", "/about", "/sectors", "/compare", "/ask"];
+  const urls = [...baseRoutes, ...topTlds.map((tld) => `/tld/${encodeURIComponent(tld)}`)];
+  const sitemapBody = urls
+    .map((route) => `  <url><loc>${escapeXml(`${siteUrl}${route}`)}</loc><lastmod>${lastmod}</lastmod></url>`)
+    .join("\n");
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    `${sitemapBody}\n` +
+    `</urlset>\n`;
+
+  const robotsTxt =
+    `User-agent: *\n` +
+    `Allow: /\n` +
+    `Disallow: /api/\n` +
+    `\n` +
+    `Sitemap: ${siteUrl}/sitemap.xml\n` +
+    `Host: ${new URL(siteUrl).host}\n`;
+
+  const llmsTxt =
+    `# RootFetch\n\n` +
+    `RootFetch provides read-only delegation analytics from locally ingested CZDS zone data.\n\n` +
+    `## Public artifacts\n` +
+    `- ${siteUrl}/rootfetch/latest.json\n` +
+    `- ${siteUrl}/rootfetch/top_tlds_latest.csv\n` +
+    `- ${siteUrl}/rootfetch/distribution_latest.json\n` +
+    `- ${siteUrl}/rootfetch/concentration_latest.json\n` +
+    `- ${siteUrl}/rootfetch/coverage_latest.json\n` +
+    `- ${siteUrl}/rootfetch/latest.md\n\n` +
+    `## Metric definitions\n` +
+    `- approved_tlds_count: approved TLDs visible in latest discovery snapshot\n` +
+    `- counted_today_count: observed today (core+rolling)\n` +
+    `- snapshot_rows_today: rows present in today's snapshot\n` +
+    `- counted_ever_count: approved TLDs observed at least once historically\n` +
+    `- missing_ever_count: approved - counted_ever\n` +
+    `- top*_share_pct and hhi: concentration metrics\n` +
+    `${latest?.date_utc ? `\nCurrent snapshot date: ${latest.date_utc}\n` : ""}`;
+
+  await mkdir(publicDir, { recursive: true });
+  await writeFile(path.join(publicDir, "sitemap.xml"), sitemapXml, "utf-8");
+  await writeFile(path.join(publicDir, "robots.txt"), robotsTxt, "utf-8");
+  await writeFile(path.join(publicDir, "llms.txt"), llmsTxt, "utf-8");
+  console.log("generated public/sitemap.xml");
+  console.log("generated public/robots.txt");
+  console.log("generated public/llms.txt");
+}
+
 async function main() {
   for (const item of requiredCopies) {
     const sourceExists = await exists(item.source);
@@ -104,6 +205,8 @@ async function main() {
     await copyOne(item.source, item.dest);
     console.log(`synced ${path.relative(repoRoot, item.source)} -> ${path.relative(appRoot, item.dest)}`);
   }
+
+  await generateSeoTextArtifacts();
 }
 
 main().catch((error) => {
