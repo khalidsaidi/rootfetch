@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
@@ -27,10 +28,23 @@ def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
+def _sanitize_json_value(value: object) -> object:
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    if isinstance(value, dict):
+        return {key: _sanitize_json_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_json_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_sanitize_json_value(item) for item in value]
+    return value
+
+
 def write_json(path: Path, payload: object) -> None:
     ensure_parent(path)
+    safe_payload = _sanitize_json_value(payload)
     with path.open("w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2, sort_keys=False)
+        json.dump(safe_payload, fh, indent=2, sort_keys=False, allow_nan=False)
         fh.write("\n")
 
 
