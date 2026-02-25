@@ -76,7 +76,29 @@ def _http_post_json(
     )
     with urllib.request.urlopen(req, timeout=timeout) as response:
         body = response.read().decode("utf-8")
+        content_type = (response.headers.get("content-type") or "").lower()
         next_session = response.headers.get("mcp-session-id") or session_id
+
+    if "text/event-stream" in content_type:
+        # mcp-handler on Vercel can respond with SSE even for single JSON-RPC replies.
+        parsed: dict[str, Any] | None = None
+        for raw_line in body.splitlines():
+            line = raw_line.strip()
+            if not line.startswith("data:"):
+                continue
+            payload_text = line[5:].strip()
+            if not payload_text:
+                continue
+            try:
+                candidate = json.loads(payload_text)
+            except Exception:
+                continue
+            if isinstance(candidate, dict):
+                parsed = candidate
+        if parsed is None:
+            raise RuntimeError("mcp_sse_parse_error: no JSON data event found")
+        return parsed, next_session
+
     return json.loads(body), next_session
 
 
@@ -259,6 +281,29 @@ def main() -> int:
     coverage_counted_ever_tool = int(coverage_tool.get("counted_ever_count") or 0)
     rag_hits = rag_tool.get("hits") or []
     rag_hits_count = len(rag_hits) if isinstance(rag_hits, list) else 0
+    rag_query_used = query
+    if rag_hits_count <= 0:
+        fallback_queries = ["rootfetch", "count_ns_sld", "coverage"]
+        req_id = 5
+        for candidate_query in fallback_queries:
+            if candidate_query == query:
+                continue
+            rag_tool, session_id = _mcp_tool_call(
+                endpoint,
+                token,
+                origin,
+                args.timeout,
+                "rag_search",
+                {"query": candidate_query, "k": 5},
+                req_id,
+                session_id,
+            )
+            req_id += 1
+            rag_hits = rag_tool.get("hits") or []
+            rag_hits_count = len(rag_hits) if isinstance(rag_hits, list) else 0
+            rag_query_used = candidate_query
+            if rag_hits_count > 0:
+                break
 
     approved_count_artifact = int(approved_latest.get("count") or 0)
     coverage_missing_artifact = int(coverage_latest.get("missing_ever_count") or 0)
@@ -267,6 +312,7 @@ def main() -> int:
     print(f"mcp_tool_approved_count={approved_count_tool}")
     print(f"mcp_tool_missing_ever={coverage_missing_tool}")
     print(f"mcp_tool_counted_ever={coverage_counted_ever_tool}")
+    print(f"mcp_rag_query_used={rag_query_used}")
     print(f"mcp_rag_hits={rag_hits_count}")
     print(f"artifact_approved_count={approved_count_artifact}")
     print(f"artifact_missing_ever={coverage_missing_artifact}")
