@@ -2,6 +2,11 @@ import { expect, test } from "@playwright/test";
 
 test("analytics events fire on core product interactions", async ({ page }) => {
   const events = new Set<string>();
+  const pageErrors: string[] = [];
+
+  page.on("pageerror", (error) => {
+    pageErrors.push(error.message);
+  });
 
   await page.route("**://www.google-analytics.com/g/collect**", async (route) => {
     const url = new URL(route.request().url());
@@ -49,4 +54,5 @@ test("analytics events fire on core product interactions", async ({ page }) => {
   expect(events.has("rf_open_digest") || events.has("rf_read_digest")).toBeTruthy();
   expect(events.has("rf_approved_search")).toBeTruthy();
   expect(events.has("rf_ask_submit")).toBeTruthy();
+  expect(pageErrors).toEqual([]);
 });
