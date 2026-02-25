@@ -60,7 +60,8 @@ def _http_post_json(
 ) -> tuple[dict[str, Any], str | None]:
     headers = {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        # mcp-handler enforces both media types in Accept.
+        "Accept": "application/json, text/event-stream",
         "Authorization": f"Bearer {token}",
         "Origin": origin,
     }
