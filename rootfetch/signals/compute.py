@@ -4,6 +4,7 @@ import math
 import re
 import subprocess
 import uuid
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -710,6 +711,623 @@ def _write_cross_sectional_signals(
     }
 
 
+def _parse_date_utc(value: str) -> datetime | None:
+    try:
+        return datetime.strptime(str(value), "%Y-%m-%d")
+    except Exception:
+        return None
+
+
+def _available_daily_dates(settings: Settings) -> list[str]:
+    return sorted(path.stem for path in settings.daily_counts_dir.glob("????-??-??.csv"))
+
+
+def _nearest_date_on_or_before(candidates: list[str], target_date: datetime) -> str:
+    if not candidates:
+        return ""
+    valid = [
+        stem
+        for stem in candidates
+        if (_parse_date_utc(stem) is not None and _parse_date_utc(stem) <= target_date)
+    ]
+    return valid[-1] if valid else candidates[0]
+
+
+def _load_daily_ok_for_date(settings: Settings, date_utc: str) -> pd.DataFrame:
+    if not date_utc:
+        return pd.DataFrame()
+    day_df = _load_daily_df(settings, date_utc)
+    return _daily_ok_rows(day_df)
+
+
+def _daily_rank_curve(ok_rows: pd.DataFrame, limit: int = 300) -> list[dict[str, Any]]:
+    if ok_rows.empty:
+        return []
+    ranked = ok_rows.sort_values(["count_num", "tld"], ascending=[False, True]).head(limit)
+    rows: list[dict[str, Any]] = []
+    for idx, (_, row) in enumerate(ranked.iterrows(), start=1):
+        rows.append(
+            {
+                "rank": idx,
+                "tld": str(row["tld"]),
+                "count": int(round(float(row["count_num"]))),
+            }
+        )
+    return rows
+
+
+def _power_curve_payload(settings: Settings, date_utc: str) -> dict[str, Any]:
+    available = _available_daily_dates(settings)
+    if not available:
+        return {
+            "today": [],
+            "d30": [],
+            "d90": [],
+            "date_utc_today": date_utc,
+            "date_utc_d30": "",
+            "date_utc_d90": "",
+        }
+
+    parsed_today = _parse_date_utc(date_utc) or _parse_date_utc(available[-1]) or datetime.utcnow()
+    date_today = _nearest_date_on_or_before(available, parsed_today)
+    date_d30 = _nearest_date_on_or_before(available, parsed_today - timedelta(days=30))
+    date_d90 = _nearest_date_on_or_before(available, parsed_today - timedelta(days=90))
+
+    rows_today = _daily_rank_curve(_load_daily_ok_for_date(settings, date_today), limit=320)
+    rows_d30 = _daily_rank_curve(_load_daily_ok_for_date(settings, date_d30), limit=320)
+    rows_d90 = _daily_rank_curve(_load_daily_ok_for_date(settings, date_d90), limit=320)
+
+    return {
+        "today": rows_today,
+        "d30": rows_d30,
+        "d90": rows_d90,
+        "date_utc_today": date_today,
+        "date_utc_d30": date_d30,
+        "date_utc_d90": date_d90,
+    }
+
+
+def _daily_totals_series(growth_df: pd.DataFrame) -> pd.DataFrame:
+    if growth_df.empty:
+        return pd.DataFrame(columns=["date_utc", "total_delegated_count"])
+
+    working = growth_df[
+        (growth_df["status"] == "ok")
+        & (growth_df["count_num"].notna())
+    ].copy()
+    if working.empty:
+        return pd.DataFrame(columns=["date_utc", "total_delegated_count"])
+
+    totals = (
+        working.groupby("date_utc", as_index=False)["count_num"]
+        .sum()
+        .rename(columns={"count_num": "total_delegated_count"})
+        .sort_values("date_utc")
+    )
+    totals["total_delegated_count"] = totals["total_delegated_count"].round().astype(int)
+    return totals
+
+
+def _value_at_or_before_date(totals: pd.DataFrame, target_date: datetime) -> tuple[str, float] | tuple[None, None]:
+    if totals.empty:
+        return (None, None)
+    dated = totals.copy()
+    dated["date_dt"] = pd.to_datetime(dated["date_utc"], errors="coerce")
+    matched = dated[dated["date_dt"] <= target_date].sort_values("date_dt")
+    if matched.empty:
+        return (None, None)
+    row = matched.iloc[-1]
+    return (str(row["date_utc"]), float(row["total_delegated_count"]))
+
+
+def _pulse_payload(
+    *,
+    growth_df: pd.DataFrame,
+    date_utc: str,
+    total_delegated_today: int,
+) -> dict[str, Any]:
+    totals = _daily_totals_series(growth_df)
+    if totals.empty:
+        return {
+            "total_delegated_today": int(total_delegated_today),
+            "delta_abs_today": 0,
+            "delta_pct_today": 0.0,
+            "rolling_7d_delta_abs": 0,
+            "rolling_7d_delta_pct": 0.0,
+            "series_30d": [{"date_utc": date_utc, "total_delegated_count": int(total_delegated_today)}],
+        }
+
+    parsed_today = _parse_date_utc(date_utc) or datetime.utcnow()
+    today_row = totals[totals["date_utc"] == date_utc]
+    if today_row.empty:
+        totals = pd.concat(
+            [
+                totals,
+                pd.DataFrame(
+                    [{"date_utc": date_utc, "total_delegated_count": int(total_delegated_today)}]
+                ),
+            ],
+            ignore_index=True,
+        ).sort_values("date_utc")
+        current_total = float(total_delegated_today)
+    else:
+        current_total = float(today_row.iloc[0]["total_delegated_count"])
+
+    prev_rows = totals[totals["date_utc"] < date_utc]
+    prev_total = float(prev_rows.iloc[-1]["total_delegated_count"]) if not prev_rows.empty else math.nan
+    delta_abs_today = (
+        int(round(current_total - prev_total))
+        if not math.isnan(prev_total)
+        else 0
+    )
+    delta_pct_today = (
+        float((current_total - prev_total) / prev_total)
+        if not math.isnan(prev_total) and prev_total > 0
+        else 0.0
+    )
+
+    _date_7d, total_7d = _value_at_or_before_date(totals, parsed_today - timedelta(days=7))
+    rolling_7d_delta_abs = (
+        int(round(current_total - total_7d))
+        if total_7d is not None
+        else 0
+    )
+    rolling_7d_delta_pct = (
+        float((current_total - total_7d) / total_7d)
+        if total_7d is not None and total_7d > 0
+        else 0.0
+    )
+
+    series_30d = totals.tail(30).copy()
+    points = [
+        {
+            "date_utc": str(row["date_utc"]),
+            "total_delegated_count": int(row["total_delegated_count"]),
+        }
+        for _, row in series_30d.iterrows()
+    ]
+
+    return {
+        "total_delegated_today": int(round(current_total)),
+        "delta_abs_today": int(delta_abs_today),
+        "delta_pct_today": float(delta_pct_today),
+        "rolling_7d_delta_abs": int(rolling_7d_delta_abs),
+        "rolling_7d_delta_pct": float(rolling_7d_delta_pct),
+        "series_30d": points,
+    }
+
+
+def _tld_temporal_metrics(growth_df: pd.DataFrame, date_utc: str) -> dict[str, dict[str, float]]:
+    if growth_df.empty:
+        return {}
+
+    parsed_today = _parse_date_utc(date_utc) or datetime.utcnow()
+    growth_ok = growth_df[
+        (growth_df["status"] == "ok")
+        & (growth_df["count_num"].notna())
+    ].copy()
+    if growth_ok.empty:
+        return {}
+
+    growth_ok["date_dt"] = pd.to_datetime(growth_ok["date_utc"], errors="coerce")
+    growth_ok = growth_ok.dropna(subset=["date_dt"]).sort_values(["tld", "date_dt"])
+
+    def _count_at_or_before(df_tld: pd.DataFrame, target_date: datetime) -> float | None:
+        subset = df_tld[df_tld["date_dt"] <= target_date]
+        if subset.empty:
+            return None
+        return float(subset.iloc[-1]["count_num"])
+
+    out: dict[str, dict[str, float]] = {}
+    for tld, grp in growth_ok.groupby("tld"):
+        current = _count_at_or_before(grp, parsed_today)
+        if current is None:
+            continue
+        count_7d = _count_at_or_before(grp, parsed_today - timedelta(days=7))
+        count_30d = _count_at_or_before(grp, parsed_today - timedelta(days=30))
+        delta_7d_abs = (current - count_7d) if count_7d is not None else math.nan
+        delta_30d_abs = (current - count_30d) if count_30d is not None else math.nan
+        delta_7d_pct = (
+            (delta_7d_abs / count_7d)
+            if count_7d is not None and count_7d > 0
+            else math.nan
+        )
+        delta_30d_pct = (
+            (delta_30d_abs / count_30d)
+            if count_30d is not None and count_30d > 0
+            else math.nan
+        )
+        out[str(tld)] = {
+            "current": float(current),
+            "delta_7d_abs": float(delta_7d_abs) if not math.isnan(delta_7d_abs) else math.nan,
+            "delta_30d_abs": float(delta_30d_abs) if not math.isnan(delta_30d_abs) else math.nan,
+            "delta_7d_pct": float(delta_7d_pct) if not math.isnan(delta_7d_pct) else math.nan,
+            "delta_30d_pct": float(delta_30d_pct) if not math.isnan(delta_30d_pct) else math.nan,
+        }
+    return out
+
+
+def _top_n_tlds_for_date(growth_df: pd.DataFrame, date_utc: str, n: int = 10) -> list[str]:
+    if growth_df.empty:
+        return []
+    rows = growth_df[
+        (growth_df["date_utc"] == date_utc)
+        & (growth_df["status"] == "ok")
+        & (growth_df["count_num"].notna())
+    ].copy()
+    if rows.empty:
+        return []
+    ranked = rows.sort_values(["count_num", "tld"], ascending=[False, True]).head(n)
+    return [str(item) for item in ranked["tld"].tolist()]
+
+
+def _dvi_payload(
+    *,
+    day_df: pd.DataFrame,
+    anomalies_df: pd.DataFrame,
+    growth_df: pd.DataFrame,
+    date_utc: str,
+) -> dict[str, Any]:
+    if day_df.empty or "status" not in day_df.columns or "delta_abs_num" not in day_df.columns:
+        ok_rows = pd.DataFrame()
+    else:
+        ok_rows = day_df[(day_df["status"] == "ok") & day_df["delta_abs_num"].notna()].copy()
+    abs_delta = ok_rows["delta_abs_num"].abs() if not ok_rows.empty else pd.Series(dtype=float)
+
+    std_abs = float(abs_delta.std(ddof=0)) if not abs_delta.empty else 0.0
+    dispersion_score = min(100.0, math.log10(1.0 + max(std_abs, 0.0)) * 18.0)
+
+    anomaly_count = int(len(anomalies_df.index))
+    max_abs_robust = (
+        float(anomalies_df["robust_z"].abs().max())
+        if (not anomalies_df.empty and "robust_z" in anomalies_df.columns and anomalies_df["robust_z"].notna().any())
+        else 0.0
+    )
+    anomaly_score = min(100.0, anomaly_count * 12.0 + max_abs_robust * 10.0)
+
+    prev_dates = sorted(stem for stem in growth_df["date_utc"].dropna().unique().tolist() if str(stem) < date_utc)
+    prev_date = prev_dates[-1] if prev_dates else ""
+    today_top10 = set(_top_n_tlds_for_date(growth_df, date_utc, n=10))
+    prev_top10 = set(_top_n_tlds_for_date(growth_df, prev_date, n=10)) if prev_date else set()
+    turnover_pct = (
+        (len(today_top10.symmetric_difference(prev_top10)) / 10.0) * 100.0
+        if today_top10 and prev_top10
+        else 0.0
+    )
+    turnover_score = min(100.0, turnover_pct * 2.5)
+
+    score = 0.45 * dispersion_score + 0.35 * anomaly_score + 0.20 * turnover_score
+    score = max(0.0, min(100.0, score))
+    if score >= 67.0:
+        level = "high"
+    elif score >= 34.0:
+        level = "elevated"
+    else:
+        level = "stable"
+
+    return {
+        "score": round(score, 2),
+        "level": level,
+        "dispersion_component": round(dispersion_score, 2),
+        "anomaly_component": round(anomaly_score, 2),
+        "top10_shift_component": round(turnover_score, 2),
+        "inputs": {
+            "std_abs_delta": round(std_abs, 4),
+            "anomaly_count": anomaly_count,
+            "max_abs_robust_z": round(max_abs_robust, 4),
+            "top10_turnover_pct": round(turnover_pct, 2),
+        },
+    }
+
+
+def _anomaly_spotlight_payload(
+    *,
+    anomalies_df: pd.DataFrame,
+    core_movers_df: pd.DataFrame,
+    day_df: pd.DataFrame,
+    vol_df: pd.DataFrame,
+    settings: Settings,
+    limit: int = 8,
+) -> list[dict[str, Any]]:
+    if day_df.empty or "tld" not in day_df.columns:
+        return []
+
+    sector_map = _load_sector_map(settings.sector_map_path)
+    day_lookup = day_df.set_index("tld", drop=False).copy()
+    vol_lookup = (
+        vol_df.set_index("tld")["vol30"].to_dict()
+        if not vol_df.empty and "tld" in vol_df.columns
+        else {}
+    )
+
+    rows: list[dict[str, Any]] = []
+    if not anomalies_df.empty:
+        ranked = anomalies_df.copy()
+        ranked["score"] = ranked.get("robust_z", pd.Series(dtype=float)).abs()
+        if "z" in ranked.columns:
+            ranked["score"] = ranked["score"].fillna(ranked["z"].abs())
+        ranked["score"] = ranked["score"].fillna(0.0)
+        ranked = ranked.sort_values(["score", "delta_pct"], ascending=[False, False]).head(limit)
+
+        for _, row in ranked.iterrows():
+            tld = str(row["tld"])
+            day = day_lookup.loc[tld] if tld in day_lookup.index else None
+            delta_abs = float(day["delta_abs_num"]) if day is not None and pd.notna(day["delta_abs_num"]) else math.nan
+            delta_pct = float(row["delta_pct"]) if pd.notna(row.get("delta_pct")) else (
+                float(day["delta_pct_num"]) if day is not None and pd.notna(day["delta_pct_num"]) else math.nan
+            )
+            score = float(row.get("score") or 0.0)
+            if score >= 3.5:
+                intensity = "high"
+                label = "z-score spike"
+            elif score >= 2.0:
+                intensity = "medium"
+                label = "elevated"
+            else:
+                intensity = "low"
+                label = "normal range"
+            count_val = (
+                int(round(float(day["count_num"])))
+                if day is not None and pd.notna(day["count_num"])
+                else int(round(float(row.get("count") or 0)))
+            )
+            rows.append(
+                {
+                    "tld": tld,
+                    "count": count_val,
+                    "delta_abs": delta_abs if not math.isnan(delta_abs) else 0.0,
+                    "delta_pct": delta_pct if not math.isnan(delta_pct) else 0.0,
+                    "z_score": float(row["z"]) if pd.notna(row.get("z")) else math.nan,
+                    "robust_z": float(row["robust_z"]) if pd.notna(row.get("robust_z")) else math.nan,
+                    "anomaly_score": score,
+                    "volatility": float(vol_lookup.get(tld, math.nan)),
+                    "sector": _map_tld_to_sectors(tld, sector_map)[0],
+                    "cadence": str(day["cadence"]) if day is not None and "cadence" in day else "",
+                    "label": label,
+                    "intensity": intensity,
+                }
+            )
+    else:
+        fallback = core_movers_df[core_movers_df.get("leaderboard") == "top_abs_growers"].head(limit)
+        for _, row in fallback.iterrows():
+            tld = str(row["tld"])
+            delta_pct = float(row["delta_pct"]) if pd.notna(row.get("delta_pct")) else 0.0
+            abs_pct = abs(delta_pct)
+            if abs_pct >= 0.03:
+                intensity = "high"
+                label = "spike"
+            elif abs_pct >= 0.01:
+                intensity = "medium"
+                label = "elevated"
+            else:
+                intensity = "low"
+                label = "normal range"
+            day = day_lookup.loc[tld] if tld in day_lookup.index else None
+            rows.append(
+                {
+                    "tld": tld,
+                    "count": int(row["count"]) if pd.notna(row.get("count")) else 0,
+                    "delta_abs": float(row["delta_abs"]) if pd.notna(row.get("delta_abs")) else 0.0,
+                    "delta_pct": delta_pct,
+                    "z_score": math.nan,
+                    "robust_z": math.nan,
+                    "anomaly_score": abs_pct * 100.0,
+                    "volatility": float(vol_lookup.get(tld, math.nan)),
+                    "sector": _map_tld_to_sectors(tld, sector_map)[0],
+                    "cadence": str(day["cadence"]) if day is not None and "cadence" in day else "",
+                    "label": label,
+                    "intensity": intensity,
+                }
+            )
+    return rows[:limit]
+
+
+def _market_map_payload(
+    *,
+    day_df: pd.DataFrame,
+    tld_temporal_metrics: dict[str, dict[str, float]],
+    spotlight: list[dict[str, Any]],
+    settings: Settings,
+    limit: int = 160,
+) -> list[dict[str, Any]]:
+    ok_rows = _daily_ok_rows(day_df)
+    if ok_rows.empty:
+        return []
+
+    anomaly_score_by_tld = {str(item["tld"]): float(item.get("anomaly_score") or 0.0) for item in spotlight}
+    sector_map = _load_sector_map(settings.sector_map_path)
+
+    ranked = ok_rows.sort_values(["count_num", "tld"], ascending=[False, True]).head(limit)
+    out: list[dict[str, Any]] = []
+    for _, row in ranked.iterrows():
+        tld = str(row["tld"])
+        metrics = tld_temporal_metrics.get(tld, {})
+        out.append(
+            {
+                "tld": tld,
+                "count": int(round(float(row["count_num"]))),
+                "share_pct": 0.0,  # filled below
+                "delta_abs": float(row.get("delta_abs_num") or 0.0),
+                "delta_pct": float(row.get("delta_pct_num") or 0.0),
+                "delta_7d_abs": float(metrics.get("delta_7d_abs", math.nan)),
+                "delta_30d_abs": float(metrics.get("delta_30d_abs", math.nan)),
+                "delta_7d_pct": float(metrics.get("delta_7d_pct", math.nan)),
+                "delta_30d_pct": float(metrics.get("delta_30d_pct", math.nan)),
+                "anomaly_score": float(anomaly_score_by_tld.get(tld, 0.0)),
+                "sector": _map_tld_to_sectors(tld, sector_map)[0],
+                "cadence": str(row.get("cadence") or ""),
+            }
+        )
+
+    total = sum(item["count"] for item in out)
+    for item in out:
+        item["share_pct"] = (item["count"] / total * 100.0) if total > 0 else 0.0
+    return out
+
+
+def _radar_points_payload(
+    *,
+    day_df: pd.DataFrame,
+    vol_df: pd.DataFrame,
+    spotlight: list[dict[str, Any]],
+    settings: Settings,
+    limit: int = 220,
+) -> list[dict[str, Any]]:
+    ok_rows = _daily_ok_rows(day_df)
+    if ok_rows.empty:
+        return []
+
+    sector_map = _load_sector_map(settings.sector_map_path)
+    vol_lookup = (
+        vol_df.set_index("tld")["vol30"].to_dict()
+        if not vol_df.empty and "tld" in vol_df.columns
+        else {}
+    )
+    anomaly_lookup = {str(item["tld"]): float(item.get("anomaly_score") or 0.0) for item in spotlight}
+
+    ranked = ok_rows.sort_values(["count_num", "tld"], ascending=[False, True]).head(limit)
+    points: list[dict[str, Any]] = []
+    for _, row in ranked.iterrows():
+        tld = str(row["tld"])
+        points.append(
+            {
+                "tld": tld,
+                "growth_pct": float(row.get("delta_pct_num") or 0.0) * 100.0,
+                "volatility": float(vol_lookup.get(tld, math.nan)),
+                "anomaly_score": float(anomaly_lookup.get(tld, 0.0)),
+                "count": int(round(float(row["count_num"]))),
+                "sector": _map_tld_to_sectors(tld, sector_map)[0],
+                "cadence": str(row.get("cadence") or ""),
+            }
+        )
+    return points
+
+
+def _sector_indices_payload(sector_all: pd.DataFrame, date_utc: str) -> list[dict[str, Any]]:
+    if sector_all.empty:
+        return []
+
+    parsed_today = _parse_date_utc(date_utc) or datetime.utcnow()
+    rows: list[dict[str, Any]] = []
+    for sector, grp in sector_all.groupby("sector"):
+        working = grp.copy().sort_values("date_utc")
+        working["date_dt"] = pd.to_datetime(working["date_utc"], errors="coerce")
+        working["sector_count_num"] = pd.to_numeric(working["sector_count"], errors="coerce")
+        working = working.dropna(subset=["date_dt", "sector_count_num"])
+        if working.empty:
+            continue
+
+        current = working[working["date_dt"] <= parsed_today].tail(1)
+        if current.empty:
+            continue
+        current_row = current.iloc[0]
+        current_count = float(current_row["sector_count_num"])
+
+        prev_7 = working[working["date_dt"] <= parsed_today - timedelta(days=7)].tail(1)
+        prev_30 = working[working["date_dt"] <= parsed_today - timedelta(days=30)].tail(1)
+        prev7_count = float(prev_7.iloc[0]["sector_count_num"]) if not prev_7.empty else math.nan
+        prev30_count = float(prev_30.iloc[0]["sector_count_num"]) if not prev_30.empty else math.nan
+        delta_7d_pct = (
+            (current_count - prev7_count) / prev7_count
+            if not math.isnan(prev7_count) and prev7_count > 0
+            else math.nan
+        )
+        delta_30d_pct = (
+            (current_count - prev30_count) / prev30_count
+            if not math.isnan(prev30_count) and prev30_count > 0
+            else math.nan
+        )
+        pct_changes = working["sector_count_num"].pct_change().dropna()
+        volatility = float(pct_changes.tail(30).std(ddof=0)) if not pct_changes.empty else math.nan
+        series_30d = [
+            {
+                "date_utc": str(item["date_utc"]),
+                "sector_count": int(round(float(item["sector_count_num"]))),
+            }
+            for _, item in working.tail(30).iterrows()
+        ]
+        rows.append(
+            {
+                "sector": str(sector),
+                "total_delegated": int(round(current_count)),
+                "delta_7d_pct": float(delta_7d_pct) if not math.isnan(delta_7d_pct) else math.nan,
+                "delta_30d_pct": float(delta_30d_pct) if not math.isnan(delta_30d_pct) else math.nan,
+                "volatility": float(volatility) if not math.isnan(volatility) else math.nan,
+                "series_30d": series_30d,
+            }
+        )
+    return sorted(rows, key=lambda item: item["total_delegated"], reverse=True)
+
+
+def _load_sector_indices_df(settings: Settings) -> pd.DataFrame:
+    path = settings.signals_dir / "sector_indices.csv"
+    if not path.exists():
+        return pd.DataFrame(columns=SECTOR_COLUMNS)
+    try:
+        return pd.read_csv(path, dtype=str)
+    except Exception:
+        return pd.DataFrame(columns=SECTOR_COLUMNS)
+
+
+def _market_risk_payload(
+    *,
+    concentration_payload: dict[str, Any],
+    distribution_payload: dict[str, Any],
+    settings: Settings,
+    date_utc: str,
+) -> dict[str, Any]:
+    top10_share = float(concentration_payload.get("top10_share_pct") or 0.0)
+    top3_share = float(concentration_payload.get("top3_share_pct") or 0.0)
+    hhi = float(concentration_payload.get("hhi") or 0.0)
+
+    concentration_score = min(100.0, top10_share * 0.85 + hhi * 250.0)
+    if concentration_score >= 67.0:
+        concentration_risk = "high"
+    elif concentration_score >= 40.0:
+        concentration_risk = "moderate"
+    else:
+        concentration_risk = "low"
+
+    available = _available_daily_dates(settings)
+    prev_dates = [stem for stem in available if stem < date_utc]
+    prev_date = prev_dates[-1] if prev_dates else ""
+    tiny_today = int(distribution_payload.get("tiny_tlds_lt_100") or 0)
+    tiny_prev = tiny_today
+    if prev_date:
+        prev_ok = _load_daily_ok_for_date(settings, prev_date)
+        prev_distribution = _distribution_payload(
+            date_utc=prev_date,
+            ok_rows=prev_ok,
+            approved_tlds_count=int(distribution_payload.get("approved_tlds_count") or 0),
+        )
+        tiny_prev = int(prev_distribution.get("tiny_tlds_lt_100") or tiny_today)
+
+    if tiny_today > tiny_prev:
+        tiny_trend = "rising"
+    elif tiny_today < tiny_prev:
+        tiny_trend = "falling"
+    else:
+        tiny_trend = "stable"
+
+    if top10_share >= 68.0:
+        fragmentation_trend = "low"
+    elif top10_share >= 55.0:
+        fragmentation_trend = "moderate"
+    else:
+        fragmentation_trend = "high"
+
+    return {
+        "concentration_risk": concentration_risk,
+        "concentration_score": round(concentration_score, 2),
+        "top10_share_pct": top10_share,
+        "top3_share_pct": top3_share,
+        "hhi": hhi,
+        "fragmentation": fragmentation_trend,
+        "tiny_tld_saturation_trend": tiny_trend,
+        "core_dominance": "stable",
+    }
+
+
 def _top_rows_as_json(top_df: pd.DataFrame, leaderboard: str) -> list[dict[str, Any]]:
     subset = top_df[top_df["leaderboard"] == leaderboard].head(20)
     return [
@@ -1005,6 +1623,13 @@ def compute_signals_for_date(
     anomalies_path = settings.signals_dir / f"{date_utc}_anomalies.csv"
     sector_snapshot_path = settings.signals_dir / f"{date_utc}_sector_snapshot.csv"
     sector_indices_path = settings.signals_dir / "sector_indices.csv"
+    power_curve_payload = _power_curve_payload(settings, date_utc)
+    market_risk_payload = _market_risk_payload(
+        concentration_payload=cross_meta["concentration_payload"],
+        distribution_payload=cross_meta["distribution_payload"],
+        settings=settings,
+        date_utc=date_utc,
+    )
 
     if growth_df.empty:
         _empty_signals_files(
@@ -1027,6 +1652,42 @@ def compute_signals_for_date(
             approvals_diff_payload=cross_meta["approvals_diff_payload"],
             core_movers_df=pd.DataFrame(columns=TOP_MOVERS_COLUMNS),
         )
+        empty_df = pd.DataFrame()
+        pulse_payload = _pulse_payload(
+            growth_df=growth_df,
+            date_utc=date_utc,
+            total_delegated_today=total_delegated_domains_today,
+        )
+        dvi_payload = _dvi_payload(
+            day_df=daily_df,
+            anomalies_df=empty_df,
+            growth_df=growth_df,
+            date_utc=date_utc,
+        )
+        anomaly_spotlight = _anomaly_spotlight_payload(
+            anomalies_df=empty_df,
+            core_movers_df=empty_df,
+            day_df=daily_df,
+            vol_df=empty_df,
+            settings=settings,
+            limit=8,
+        )
+        market_map = _market_map_payload(
+            day_df=daily_df,
+            tld_temporal_metrics={},
+            spotlight=anomaly_spotlight,
+            settings=settings,
+            limit=180,
+        )
+        radar_points = _radar_points_payload(
+            day_df=daily_df,
+            vol_df=empty_df,
+            spotlight=anomaly_spotlight,
+            settings=settings,
+            limit=220,
+        )
+        existing_sector_all = _load_sector_indices_df(settings)
+        sector_indices = _sector_indices_payload(existing_sector_all, date_utc)
         latest_payload = {
             "date_utc": date_utc,
             "run_id": resolved_run_id,
@@ -1065,6 +1726,14 @@ def compute_signals_for_date(
                 "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
                 "added_first_10": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
             },
+            "pulse": pulse_payload,
+            "dvi": dvi_payload,
+            "anomaly_spotlight": anomaly_spotlight,
+            "market_map": market_map,
+            "power_curve": power_curve_payload,
+            "radar_points": radar_points,
+            "sector_indices": sector_indices,
+            "market_risk": market_risk_payload,
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
@@ -1125,6 +1794,43 @@ def compute_signals_for_date(
             approvals_diff_payload=cross_meta["approvals_diff_payload"],
             core_movers_df=pd.DataFrame(columns=TOP_MOVERS_COLUMNS),
         )
+        empty_df = pd.DataFrame()
+        tld_temporal_metrics = _tld_temporal_metrics(growth_df, date_utc)
+        pulse_payload = _pulse_payload(
+            growth_df=growth_df,
+            date_utc=date_utc,
+            total_delegated_today=total_delegated_domains_today,
+        )
+        dvi_payload = _dvi_payload(
+            day_df=daily_df,
+            anomalies_df=empty_df,
+            growth_df=growth_df,
+            date_utc=date_utc,
+        )
+        anomaly_spotlight = _anomaly_spotlight_payload(
+            anomalies_df=empty_df,
+            core_movers_df=empty_df,
+            day_df=daily_df,
+            vol_df=empty_df,
+            settings=settings,
+            limit=8,
+        )
+        market_map = _market_map_payload(
+            day_df=daily_df,
+            tld_temporal_metrics=tld_temporal_metrics,
+            spotlight=anomaly_spotlight,
+            settings=settings,
+            limit=180,
+        )
+        radar_points = _radar_points_payload(
+            day_df=daily_df,
+            vol_df=empty_df,
+            spotlight=anomaly_spotlight,
+            settings=settings,
+            limit=220,
+        )
+        existing_sector_all = _load_sector_indices_df(settings)
+        sector_indices = _sector_indices_payload(existing_sector_all, date_utc)
         latest_payload = {
             "date_utc": date_utc,
             "run_id": resolved_run_id,
@@ -1163,6 +1869,14 @@ def compute_signals_for_date(
                 "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
                 "added_first_10": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
             },
+            "pulse": pulse_payload,
+            "dvi": dvi_payload,
+            "anomaly_spotlight": anomaly_spotlight,
+            "market_map": market_map,
+            "power_curve": power_curve_payload,
+            "radar_points": radar_points,
+            "sector_indices": sector_indices,
+            "market_risk": market_risk_payload,
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
@@ -1225,6 +1939,41 @@ def compute_signals_for_date(
         approvals_diff_payload=cross_meta["approvals_diff_payload"],
         core_movers_df=core_movers_df,
     )
+    tld_temporal_metrics = _tld_temporal_metrics(growth_df, date_utc)
+    pulse_payload = _pulse_payload(
+        growth_df=growth_df,
+        date_utc=date_utc,
+        total_delegated_today=total_delegated_domains_today,
+    )
+    dvi_payload = _dvi_payload(
+        day_df=day_df,
+        anomalies_df=anomalies_df,
+        growth_df=growth_df,
+        date_utc=date_utc,
+    )
+    anomaly_spotlight = _anomaly_spotlight_payload(
+        anomalies_df=anomalies_df,
+        core_movers_df=core_movers_df,
+        day_df=day_df,
+        vol_df=vol_df,
+        settings=settings,
+        limit=8,
+    )
+    market_map = _market_map_payload(
+        day_df=day_df,
+        tld_temporal_metrics=tld_temporal_metrics,
+        spotlight=anomaly_spotlight,
+        settings=settings,
+        limit=180,
+    )
+    radar_points = _radar_points_payload(
+        day_df=day_df,
+        vol_df=vol_df,
+        spotlight=anomaly_spotlight,
+        settings=settings,
+        limit=220,
+    )
+    sector_indices = _sector_indices_payload(sector_all, date_utc)
 
     latest_payload = {
         "date_utc": date_utc,
@@ -1264,6 +2013,14 @@ def compute_signals_for_date(
             "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
             "added_first_10": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
         },
+        "pulse": pulse_payload,
+        "dvi": dvi_payload,
+        "anomaly_spotlight": anomaly_spotlight,
+        "market_map": market_map,
+        "power_curve": power_curve_payload,
+        "radar_points": radar_points,
+        "sector_indices": sector_indices,
+        "market_risk": market_risk_payload,
         "top_movers_abs": _top_rows_as_json(core_movers_df, "top_abs_growers"),
         "top_movers_pct": _top_rows_as_json(core_movers_df, "top_pct_growers"),
         "top_decliners_abs": _top_rows_as_json(core_movers_df, "top_abs_decliners"),

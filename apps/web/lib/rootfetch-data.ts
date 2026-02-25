@@ -37,6 +37,90 @@ export type LatestSignals = {
     added_preview?: string[];
     added_first_10?: string[];
   };
+  pulse?: {
+    total_delegated_today?: number;
+    delta_abs_today?: number;
+    delta_pct_today?: number;
+    rolling_7d_delta_abs?: number;
+    rolling_7d_delta_pct?: number;
+    series_30d?: Array<{ date_utc: string; total_delegated_count: number }>;
+  };
+  dvi?: {
+    score?: number;
+    level?: string;
+    dispersion_component?: number;
+    anomaly_component?: number;
+    top10_shift_component?: number;
+    inputs?: {
+      std_abs_delta?: number;
+      anomaly_count?: number;
+      max_abs_robust_z?: number;
+      top10_turnover_pct?: number;
+    };
+  };
+  anomaly_spotlight?: Array<{
+    tld: string;
+    count: number;
+    delta_abs: number;
+    delta_pct: number;
+    z_score?: number;
+    robust_z?: number;
+    anomaly_score?: number;
+    volatility?: number;
+    sector?: string;
+    cadence?: string;
+    label?: string;
+    intensity?: string;
+  }>;
+  market_map?: Array<{
+    tld: string;
+    count: number;
+    share_pct: number;
+    delta_abs: number;
+    delta_pct: number;
+    delta_7d_abs?: number;
+    delta_30d_abs?: number;
+    delta_7d_pct?: number;
+    delta_30d_pct?: number;
+    anomaly_score?: number;
+    sector?: string;
+    cadence?: string;
+  }>;
+  power_curve?: {
+    today?: Array<{ rank: number; tld: string; count: number }>;
+    d30?: Array<{ rank: number; tld: string; count: number }>;
+    d90?: Array<{ rank: number; tld: string; count: number }>;
+    date_utc_today?: string;
+    date_utc_d30?: string;
+    date_utc_d90?: string;
+  };
+  radar_points?: Array<{
+    tld: string;
+    growth_pct: number;
+    volatility?: number;
+    anomaly_score?: number;
+    count: number;
+    sector?: string;
+    cadence?: string;
+  }>;
+  sector_indices?: Array<{
+    sector: string;
+    total_delegated: number;
+    delta_7d_pct?: number;
+    delta_30d_pct?: number;
+    volatility?: number;
+    series_30d?: Array<{ date_utc: string; sector_count: number }>;
+  }>;
+  market_risk?: {
+    concentration_risk?: string;
+    concentration_score?: number;
+    top10_share_pct?: number;
+    top3_share_pct?: number;
+    hhi?: number;
+    fragmentation?: string;
+    tiny_tld_saturation_trend?: string;
+    core_dominance?: string;
+  };
   insights?: Array<{ kind: string; severity: string; text: string }>;
   security_status?: {
     date_utc?: string;
@@ -180,6 +264,14 @@ export async function loadLatest(): Promise<LatestSignals> {
     distribution: {},
     concentration: {},
     approvals_diff: {},
+    pulse: {},
+    dvi: {},
+    anomaly_spotlight: [],
+    market_map: [],
+    power_curve: { today: [], d30: [], d90: [] },
+    radar_points: [],
+    sector_indices: [],
+    market_risk: {},
     insights: [],
     security_status: {},
     top_movers_abs: [],
