@@ -26,6 +26,22 @@ const requiredCopies = [
     dest: path.join(appRoot, "public", "rootfetch", "coverage_latest.json"),
   },
   {
+    source: path.join(repoRoot, "data", "signals", "top_tlds_latest.csv"),
+    dest: path.join(appRoot, "public", "rootfetch", "top_tlds_latest.csv"),
+  },
+  {
+    source: path.join(repoRoot, "data", "signals", "distribution_latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "distribution_latest.json"),
+  },
+  {
+    source: path.join(repoRoot, "data", "signals", "concentration_latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "concentration_latest.json"),
+  },
+  {
+    source: path.join(repoRoot, "data", "signals", "approvals_diff_latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "approvals_diff_latest.json"),
+  },
+  {
     source: path.join(repoRoot, "data", "rag", "rag_chunks.json"),
     dest: path.join(appRoot, "public", "rootfetch", "rag_chunks.json"),
   },

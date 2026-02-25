@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import McpSnippet from "./components/McpSnippet";
 import styles from "./page.module.css";
 
 type Mover = {
@@ -17,6 +18,9 @@ type RollingUpdate = {
   days_since_prev?: number;
   delta_abs?: number;
   delta_pct?: number;
+  cadence?: string;
+  status?: string;
+  is_first_seen?: boolean;
 };
 
 type Anomaly = {
@@ -33,6 +37,41 @@ type Sector = {
   sector_delta_pct?: number;
 };
 
+type TopTld = {
+  tld?: string;
+  count?: number;
+  share_pct?: number;
+  sector?: string;
+  cadence?: string;
+  status?: string;
+  is_estimate?: boolean;
+};
+
+type Distribution = {
+  p50?: number;
+  p90?: number;
+  p99?: number;
+  max?: number;
+  min?: number;
+  tiny_tlds_lt_100?: number;
+  small_tlds_lt_1000?: number;
+};
+
+type Concentration = {
+  top1_share_pct?: number;
+  top3_share_pct?: number;
+  top10_share_pct?: number;
+  hhi?: number;
+};
+
+type ApprovalsDiff = {
+  prev_date_utc?: string;
+  added_count?: number;
+  removed_count?: number;
+  added_preview?: string[];
+  added?: string[];
+};
+
 type LatestSignals = {
   date_utc: string;
   run_id: string;
@@ -44,6 +83,11 @@ type LatestSignals = {
   coverage_pct_today?: number;
   note_if_partial?: string;
   total_delegated_domains_today?: number;
+  total_delegated_counted_today?: number;
+  top_tlds?: TopTld[];
+  distribution?: Distribution;
+  concentration?: Concentration;
+  approvals_diff?: ApprovalsDiff;
   top_movers_abs: Mover[];
   top_movers_pct: Mover[];
   top_decliners_abs: Mover[];
@@ -79,6 +123,11 @@ const EMPTY_SIGNALS: LatestSignals = {
   coverage_pct_today: 0,
   note_if_partial: "",
   total_delegated_domains_today: 0,
+  total_delegated_counted_today: 0,
+  top_tlds: [],
+  distribution: {},
+  concentration: {},
+  approvals_diff: {},
   top_movers_abs: [],
   top_movers_pct: [],
   top_decliners_abs: [],
@@ -103,6 +152,10 @@ const EMPTY_COVERAGE: CoverageLatest = {
   missing_ever_count: 0,
 };
 
+const EMPTY_DISTRIBUTION: Distribution = {};
+const EMPTY_CONCENTRATION: Concentration = {};
+const EMPTY_APPROVALS_DIFF: ApprovalsDiff = {};
+
 function fmtInt(value: number | undefined): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "n/a";
@@ -110,11 +163,44 @@ function fmtInt(value: number | undefined): string {
   return new Intl.NumberFormat("en-US").format(Math.trunc(value));
 }
 
-function fmtPct(value: number | undefined): string {
+function fmtRatioPct(value: number | undefined): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "n/a";
   }
   return `${(value * 100).toFixed(2)}%`;
+}
+
+function fmtPctPoints(value: number | undefined): string {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "n/a";
+  }
+  return `${value.toFixed(2)}%`;
+}
+
+function parseCsvRecord(line: string): string[] {
+  const out: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === "," && !inQuotes) {
+      out.push(current);
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  out.push(current);
+  return out;
 }
 
 async function loadLatestSignals(): Promise<LatestSignals> {
@@ -125,6 +211,10 @@ async function loadLatestSignals(): Promise<LatestSignals> {
     return {
       ...EMPTY_SIGNALS,
       ...parsed,
+      top_tlds: parsed.top_tlds ?? [],
+      distribution: parsed.distribution ?? {},
+      concentration: parsed.concentration ?? {},
+      approvals_diff: parsed.approvals_diff ?? {},
       top_movers_abs: parsed.top_movers_abs ?? [],
       top_movers_pct: parsed.top_movers_pct ?? [],
       top_decliners_abs: parsed.top_decliners_abs ?? [],
@@ -157,6 +247,73 @@ async function loadCoverage(): Promise<CoverageLatest> {
   }
 }
 
+async function loadTopTldsCsv(): Promise<TopTld[]> {
+  const csvPath = path.join(process.cwd(), "public", "rootfetch", "top_tlds_latest.csv");
+  try {
+    const raw = await fs.readFile(csvPath, "utf-8");
+    const lines = raw.split("\n").map((line) => line.trim()).filter(Boolean);
+    if (lines.length <= 1) {
+      return [];
+    }
+    const header = parseCsvRecord(lines[0]);
+    const idx = Object.fromEntries(header.map((name, i) => [name, i]));
+    const rows: TopTld[] = [];
+    for (const line of lines.slice(1)) {
+      const fields = parseCsvRecord(line);
+      rows.push({
+        tld: fields[idx.tld] ?? "",
+        count: Number(fields[idx.count] ?? ""),
+        share_pct: Number(fields[idx.share_pct] ?? ""),
+        sector: fields[idx.sector] ?? "",
+        cadence: fields[idx.cadence] ?? "",
+        status: fields[idx.status] ?? "",
+      });
+    }
+    return rows.filter((row) => row.tld);
+  } catch {
+    return [];
+  }
+}
+
+async function loadDistribution(): Promise<Distribution> {
+  const filePath = path.join(process.cwd(), "public", "rootfetch", "distribution_latest.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw) as Distribution;
+  } catch {
+    return EMPTY_DISTRIBUTION;
+  }
+}
+
+async function loadConcentration(): Promise<Concentration> {
+  const filePath = path.join(process.cwd(), "public", "rootfetch", "concentration_latest.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    return JSON.parse(raw) as Concentration;
+  } catch {
+    return EMPTY_CONCENTRATION;
+  }
+}
+
+async function loadApprovalsDiff(): Promise<ApprovalsDiff> {
+  const filePath = path.join(process.cwd(), "public", "rootfetch", "approvals_diff_latest.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    const parsed = JSON.parse(raw) as ApprovalsDiff;
+    const addedList = Array.isArray(parsed.added) ? parsed.added : [];
+    const preview = Array.isArray(parsed.added_preview) && parsed.added_preview.length > 0
+      ? parsed.added_preview
+      : addedList.slice(0, 10);
+    return {
+      ...parsed,
+      added_preview: preview,
+      added: addedList,
+    };
+  } catch {
+    return EMPTY_APPROVALS_DIFF;
+  }
+}
+
 async function loadDigestSnippet(): Promise<string> {
   const digestPath = path.join(process.cwd(), "public", "rootfetch", "latest.md");
   try {
@@ -183,7 +340,7 @@ function MoverList({ title, items }: { title: string; items: Mover[] }) {
             <li key={`${title}-${item.tld}-${item.delta_abs}`}>
               <span className={styles.tld}>{item.tld ?? "unknown"}</span>
               <span>{fmtInt(item.delta_abs)}</span>
-              <span>{fmtPct(item.delta_pct)}</span>
+              <span>{fmtRatioPct(item.delta_pct)}</span>
               <span>{fmtInt(item.count)}</span>
             </li>
           ))}
@@ -194,32 +351,77 @@ function MoverList({ title, items }: { title: string; items: Mover[] }) {
 }
 
 function RollingList({ items }: { items: RollingUpdate[] }) {
+  const firstSeenCount = items.filter((item) => !item.prev_date_utc || item.is_first_seen).length;
   return (
     <section className={styles.panel}>
-      <h2>Rolling Updates (Since Last Seen)</h2>
+      <h2>Rolling Updates</h2>
+      {firstSeenCount > 0 ? (
+        <p className={styles.panelSub}>First observations today: {fmtInt(firstSeenCount)}</p>
+      ) : null}
       {items.length === 0 ? (
-        <p className={styles.empty}>No rolling updates for this run.</p>
+        <p className={styles.empty}>No rolling updates or first-seen rows for this run.</p>
       ) : (
         <ul className={styles.rankList}>
-          {items.slice(0, 8).map((item) => (
-            <li key={`${item.tld}-${item.prev_date_utc}-${item.delta_abs}`}>
-              <span className={styles.tld}>{item.tld ?? "unknown"}</span>
-              <span>{item.prev_date_utc ?? "n/a"}</span>
-              <span>{typeof item.days_since_prev === "number" ? `${item.days_since_prev}d` : "n/a"}</span>
-              <span>{fmtInt(item.delta_abs)}</span>
-            </li>
-          ))}
+          {items.slice(0, 8).map((item) => {
+            const isFirstSeen = !item.prev_date_utc || item.is_first_seen;
+            return (
+              <li key={`${item.tld}-${item.prev_date_utc}-${item.delta_abs}`}>
+                <span className={styles.tld}>{item.tld ?? "unknown"}</span>
+                <span>{isFirstSeen ? "First seen today (baseline)" : item.prev_date_utc}</span>
+                <span>{isFirstSeen ? "new" : typeof item.days_since_prev === "number" ? `${item.days_since_prev}d` : "n/a"}</span>
+                <span>{isFirstSeen ? "n/a" : fmtInt(item.delta_abs)}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
   );
 }
 
+function TopTldsTable({ items }: { items: TopTld[] }) {
+  return (
+    <article className={styles.panel}>
+      <h2>Top TLDs by Size</h2>
+      {items.length === 0 ? (
+        <p className={styles.empty}>No cross-sectional ranking available yet.</p>
+      ) : (
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>TLD</th>
+              <th>Count</th>
+              <th>Share</th>
+              <th>Sector</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.slice(0, 20).map((item, idx) => (
+              <tr key={`${item.tld}-${idx}`}>
+                <td>{idx + 1}</td>
+                <td className={styles.tld}>{item.tld ?? "n/a"}</td>
+                <td>{fmtInt(item.count)}</td>
+                <td>{fmtPctPoints(item.share_pct)}</td>
+                <td>{item.sector || "other"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </article>
+  );
+}
+
 export default async function Home() {
-  const [latest, coverage, digestSnippet] = await Promise.all([
+  const [latest, coverage, digestSnippet, topTldsFallback, distributionFallback, concentrationFallback, approvalsDiffFallback] = await Promise.all([
     loadLatestSignals(),
     loadCoverage(),
     loadDigestSnippet(),
+    loadTopTldsCsv(),
+    loadDistribution(),
+    loadConcentration(),
+    loadApprovalsDiff(),
   ]);
 
   const approvedCount = coverage.approved_tlds_count || latest.approved_tlds_count;
@@ -238,12 +440,12 @@ export default async function Home() {
   const coreAbs = latest.core_movers_abs ?? latest.top_movers_abs;
   const corePct = latest.core_movers_pct ?? latest.top_movers_pct;
   const rollingUpdates = latest.rolling_updates ?? [];
-
-  const mcpSnippet = `{
-  "mcpServers": {
-    "rootfetch": { "url": "https://<vercel-domain>/api/mcp" }
-  }
-}`;
+  const topTlds = (latest.top_tlds && latest.top_tlds.length > 0 ? latest.top_tlds : topTldsFallback) ?? [];
+  const distribution: Distribution = { ...distributionFallback, ...(latest.distribution ?? {}) };
+  const concentration: Concentration = { ...concentrationFallback, ...(latest.concentration ?? {}) };
+  const approvalsDiff: ApprovalsDiff = { ...approvalsDiffFallback, ...(latest.approvals_diff ?? {}) };
+  const approvalsAdded = approvalsDiff.added_preview ?? [];
+  const totalDelegated = latest.total_delegated_counted_today ?? latest.total_delegated_domains_today;
 
   return (
     <main className={styles.page}>
@@ -285,11 +487,11 @@ export default async function Home() {
           </article>
           <article>
             <p>Coverage today</p>
-            <strong>{fmtPct(coveragePct)}</strong>
+            <strong>{fmtRatioPct(coveragePct)}</strong>
           </article>
           <article>
             <p>Total delegated counted today</p>
-            <strong>{fmtInt(latest.total_delegated_domains_today)}</strong>
+            <strong>{fmtInt(totalDelegated)}</strong>
           </article>
           <article>
             <p>Run ID</p>
@@ -311,8 +513,52 @@ export default async function Home() {
           <p>
             MCP endpoint: <code>/api/mcp</code>
           </p>
-          <pre className={styles.codeBlock}>{mcpSnippet}</pre>
+          <McpSnippet siteUrl={process.env.NEXT_PUBLIC_SITE_URL} />
         </div>
+      </section>
+
+      <section className={styles.grid2}>
+        <TopTldsTable items={topTlds} />
+        <article className={styles.panel}>
+          <h2>Distribution + Concentration</h2>
+          <div className={styles.metricTiles}>
+            <div>
+              <p>Median (p50)</p>
+              <strong>{fmtInt(distribution.p50)}</strong>
+            </div>
+            <div>
+              <p>p90</p>
+              <strong>{fmtInt(distribution.p90)}</strong>
+            </div>
+            <div>
+              <p>p99</p>
+              <strong>{fmtInt(distribution.p99)}</strong>
+            </div>
+            <div>
+              <p>Top 1 share</p>
+              <strong>{fmtPctPoints(concentration.top1_share_pct)}</strong>
+            </div>
+            <div>
+              <p>Top 10 share</p>
+              <strong>{fmtPctPoints(concentration.top10_share_pct)}</strong>
+            </div>
+            <div>
+              <p>HHI</p>
+              <strong>{typeof concentration.hhi === "number" ? concentration.hhi.toFixed(4) : "n/a"}</strong>
+            </div>
+          </div>
+
+          <div className={styles.approvalsBox}>
+            <p className={styles.approvalsTitle}>
+              New approvals today: +{fmtInt(approvalsDiff.added_count)} / -{fmtInt(approvalsDiff.removed_count)}
+            </p>
+            {approvalsAdded.length > 0 ? (
+              <p className={styles.approvalsList}>{approvalsAdded.slice(0, 10).join(", ")}</p>
+            ) : (
+              <p className={styles.empty}>No newly approved TLDs in this snapshot diff.</p>
+            )}
+          </div>
+        </article>
       </section>
 
       <section className={styles.grid3}>
@@ -340,7 +586,7 @@ export default async function Home() {
                   <tr key={row.sector}>
                     <td>{row.sector ?? "other"}</td>
                     <td>{fmtInt(row.sector_count)}</td>
-                    <td>{fmtPct(row.sector_delta_pct)}</td>
+                    <td>{fmtRatioPct(row.sector_delta_pct)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -361,7 +607,7 @@ export default async function Home() {
                     <span>{item.reason ?? "n/a"}</span>
                   </div>
                   <div>
-                    <span>{fmtPct(item.delta_pct)}</span>
+                    <span>{fmtRatioPct(item.delta_pct)}</span>
                     <span>z:{typeof item.z === "number" ? item.z.toFixed(2) : "n/a"}</span>
                     <span>rz:{typeof item.robust_z === "number" ? item.robust_z.toFixed(2) : "n/a"}</span>
                   </div>

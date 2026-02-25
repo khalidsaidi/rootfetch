@@ -9,7 +9,7 @@ import pandas as pd
 import yaml
 
 from rootfetch.config import Settings, get_settings
-from rootfetch.core.io_utils import write_json
+from rootfetch.core.io_utils import read_json, write_json
 from rootfetch.signals.coverage import compute_coverage_latest
 
 
@@ -33,6 +33,8 @@ ROLLING_UPDATES_COLUMNS = [
     "days_since_prev",
     "delta_abs",
     "delta_pct",
+    "cadence",
+    "status",
     "is_estimate",
     "data_quality",
 ]
@@ -68,6 +70,17 @@ SECTOR_COLUMNS = [
     "sector_delta_pct",
     "member_tlds_count",
     "notes",
+]
+
+TOP_TLDS_COLUMNS = [
+    "date_utc",
+    "tld",
+    "count",
+    "sector",
+    "share_pct",
+    "cadence",
+    "is_estimate",
+    "status",
 ]
 
 
@@ -207,23 +220,64 @@ def _compute_core_top_movers(day_df: pd.DataFrame, date_utc: str, settings: Sett
 def _compute_rolling_updates(day_df: pd.DataFrame, date_utc: str) -> pd.DataFrame:
     if day_df.empty:
         return pd.DataFrame(columns=ROLLING_UPDATES_COLUMNS)
-    cadence_series = day_df.get("cadence", "").astype(str).str.lower()
-    rolling = day_df[
-        (cadence_series == "rolling")
-        & (day_df["status"] == "ok")
+    working = day_df[
+        (day_df["status"] == "ok")
         & (day_df["count_num"].notna())
-        & (day_df["delta_abs_num"].notna())
     ].copy()
-    if rolling.empty:
+    if working.empty:
         return pd.DataFrame(columns=ROLLING_UPDATES_COLUMNS)
 
-    rolling["date_utc"] = date_utc
-    rolling["count"] = rolling["count_num"]
-    rolling["delta_abs"] = rolling["delta_abs_num"]
-    rolling["delta_pct"] = rolling["delta_pct_num"]
-    rolling["is_estimate"] = rolling["is_estimate_bool"]
-    rolling = rolling.sort_values("delta_abs_num", key=lambda s: s.abs(), ascending=False)
-    return rolling[ROLLING_UPDATES_COLUMNS]
+    cadence_series = (
+        working["cadence"].astype(str).str.strip().str.lower()
+        if "cadence" in working.columns
+        else pd.Series(["legacy"] * len(working), index=working.index, dtype=str)
+    )
+    prev_series = (
+        working["prev_date_utc"]
+        if "prev_date_utc" in working.columns
+        else pd.Series([""] * len(working), index=working.index, dtype=str)
+    )
+    days_since_prev_series = (
+        working["days_since_prev_num"]
+        if "days_since_prev_num" in working.columns
+        else pd.Series([math.nan] * len(working), index=working.index, dtype=float)
+    )
+    prev_missing = prev_series.fillna("").astype(str).str.strip().eq("")
+    first_seen_mask = prev_missing | days_since_prev_series.isna()
+    rolling_mask = (cadence_series == "rolling") & working["delta_abs_num"].notna()
+
+    selected = working[rolling_mask | first_seen_mask].copy()
+    if selected.empty:
+        return pd.DataFrame(columns=ROLLING_UPDATES_COLUMNS)
+
+    selected["date_utc"] = date_utc
+    selected["count"] = selected["count_num"]
+    selected["delta_abs"] = selected["delta_abs_num"]
+    selected["delta_pct"] = selected["delta_pct_num"]
+    selected["is_estimate"] = selected["is_estimate_bool"]
+    selected["cadence"] = (
+        selected["cadence"].astype(str).str.strip().str.lower().replace("", "legacy")
+        if "cadence" in selected.columns
+        else "legacy"
+    )
+    selected["status"] = (
+        selected["status"].astype(str).str.strip().str.lower()
+        if "status" in selected.columns
+        else "ok"
+    )
+    selected["is_first_seen"] = (
+        selected["prev_date_utc"].fillna("").astype(str).str.strip().eq("")
+        if "prev_date_utc" in selected.columns
+        else True
+    )
+    selected.loc[selected["is_first_seen"], ["prev_date_utc", "days_since_prev", "delta_abs", "delta_pct"]] = None
+    selected["abs_delta"] = selected["delta_abs_num"].abs()
+    selected = selected.sort_values(
+        ["is_first_seen", "abs_delta", "count_num", "tld"],
+        ascending=[True, False, False, True],
+        na_position="last",
+    )
+    return selected[ROLLING_UPDATES_COLUMNS]
 
 
 def _compute_volatility(growth_df: pd.DataFrame, day_df: pd.DataFrame, date_utc: str) -> pd.DataFrame:
@@ -436,6 +490,215 @@ def _counted_today_breakdown(settings: Settings, date_utc: str) -> dict[str, int
     }
 
 
+def _daily_ok_rows(day_df: pd.DataFrame) -> pd.DataFrame:
+    if day_df.empty:
+        return pd.DataFrame(columns=day_df.columns)
+    if "count_num" not in day_df.columns:
+        day_df = day_df.copy()
+        day_df["count_num"] = pd.to_numeric(day_df.get("count"), errors="coerce")
+    ok_rows = day_df[(day_df.get("status") == "ok") & day_df["count_num"].notna()].copy()
+    if ok_rows.empty:
+        return ok_rows
+
+    if "cadence" not in ok_rows.columns:
+        ok_rows["cadence"] = "legacy"
+    else:
+        ok_rows["cadence"] = (
+            ok_rows["cadence"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .replace("", "legacy")
+        )
+    if "is_estimate_bool" not in ok_rows.columns:
+        ok_rows["is_estimate_bool"] = ok_rows.get("is_estimate", "false").map(_to_bool)
+    return ok_rows
+
+
+def _top_tlds_rows(
+    *,
+    date_utc: str,
+    ok_rows: pd.DataFrame,
+    settings: Settings,
+    limit: int = 50,
+) -> pd.DataFrame:
+    if ok_rows.empty:
+        return pd.DataFrame(columns=TOP_TLDS_COLUMNS)
+
+    total = float(ok_rows["count_num"].sum())
+    sector_map = _load_sector_map(settings.sector_map_path)
+    out = ok_rows.copy()
+    out["sector"] = out["tld"].map(lambda t: _map_tld_to_sectors(str(t), sector_map)[0])
+    out["date_utc"] = date_utc
+    out["count"] = out["count_num"].round().astype(int)
+    out["share_pct"] = (
+        out["count_num"] / total * 100.0
+        if total > 0
+        else 0.0
+    )
+    out["is_estimate"] = out["is_estimate_bool"]
+    out = out.sort_values(["count_num", "tld"], ascending=[False, True]).head(limit)
+    return out[TOP_TLDS_COLUMNS]
+
+
+def _distribution_payload(
+    *,
+    date_utc: str,
+    ok_rows: pd.DataFrame,
+    approved_tlds_count: int,
+) -> dict[str, Any]:
+    counts = ok_rows["count_num"].astype(float) if not ok_rows.empty else pd.Series(dtype=float)
+    total = int(round(float(counts.sum()))) if not counts.empty else 0
+    p50 = int(round(float(counts.quantile(0.50)))) if not counts.empty else 0
+    p90 = int(round(float(counts.quantile(0.90)))) if not counts.empty else 0
+    p99 = int(round(float(counts.quantile(0.99)))) if not counts.empty else 0
+    max_count = int(round(float(counts.max()))) if not counts.empty else 0
+    min_count = int(round(float(counts.min()))) if not counts.empty else 0
+    tiny = int((counts < 100).sum()) if not counts.empty else 0
+    small = int((counts < 1000).sum()) if not counts.empty else 0
+    return {
+        "date_utc": date_utc,
+        "approved_tlds_count": int(approved_tlds_count),
+        "counted_today_ok": int(len(ok_rows)),
+        "total_delegated_counted_today": total,
+        "p50": p50,
+        "p90": p90,
+        "p99": p99,
+        "max": max_count,
+        "min": min_count,
+        "tiny_tlds_lt_100": tiny,
+        "small_tlds_lt_1000": small,
+    }
+
+
+def _concentration_payload(
+    *,
+    date_utc: str,
+    ok_rows: pd.DataFrame,
+) -> dict[str, Any]:
+    if ok_rows.empty:
+        return {
+            "date_utc": date_utc,
+            "total_delegated_counted_today": 0,
+            "top1_share_pct": 0.0,
+            "top3_share_pct": 0.0,
+            "top10_share_pct": 0.0,
+            "hhi": 0.0,
+        }
+
+    counts = ok_rows["count_num"].astype(float).sort_values(ascending=False)
+    total = float(counts.sum())
+    if total <= 0:
+        return {
+            "date_utc": date_utc,
+            "total_delegated_counted_today": 0,
+            "top1_share_pct": 0.0,
+            "top3_share_pct": 0.0,
+            "top10_share_pct": 0.0,
+            "hhi": 0.0,
+        }
+
+    shares = counts / total
+    return {
+        "date_utc": date_utc,
+        "total_delegated_counted_today": int(round(total)),
+        "top1_share_pct": float(shares.head(1).sum() * 100.0),
+        "top3_share_pct": float(shares.head(3).sum() * 100.0),
+        "top10_share_pct": float(shares.head(10).sum() * 100.0),
+        "hhi": float((shares * shares).sum()),
+    }
+
+
+def _load_approved_tlds_for_date(settings: Settings, date_utc: str) -> set[str]:
+    dated_path = settings.approved_dir / f"{date_utc}.json"
+    if dated_path.exists():
+        payload = read_json(dated_path)
+    else:
+        latest_path = settings.approved_dir / "latest.json"
+        payload = read_json(latest_path) if latest_path.exists() else {}
+    tlds = payload.get("tlds", []) if isinstance(payload, dict) else []
+    return {str(t).strip().lower() for t in tlds if str(t).strip()}
+
+
+def _approvals_diff_payload(settings: Settings, date_utc: str) -> dict[str, Any]:
+    current = _load_approved_tlds_for_date(settings, date_utc)
+    dated_files = sorted(path.stem for path in settings.approved_dir.glob("????-??-??.json"))
+    prev_dates = [stem for stem in dated_files if stem < date_utc]
+    prev_date_utc = prev_dates[-1] if prev_dates else ""
+
+    previous: set[str] = set()
+    if prev_date_utc:
+        prev_path = settings.approved_dir / f"{prev_date_utc}.json"
+        if prev_path.exists():
+            payload = read_json(prev_path)
+            if isinstance(payload, dict):
+                previous = {str(t).strip().lower() for t in payload.get("tlds", []) if str(t).strip()}
+
+    added = sorted(current - previous)
+    removed = sorted(previous - current)
+    return {
+        "date_utc": date_utc,
+        "prev_date_utc": prev_date_utc,
+        "added": added,
+        "removed": removed,
+        "added_count": len(added),
+        "removed_count": len(removed),
+    }
+
+
+def _write_cross_sectional_signals(
+    *,
+    date_utc: str,
+    day_df: pd.DataFrame,
+    approved_tlds_count: int,
+    settings: Settings,
+) -> dict[str, Any]:
+    ok_rows = _daily_ok_rows(day_df)
+    top_tlds_df = _top_tlds_rows(date_utc=date_utc, ok_rows=ok_rows, settings=settings, limit=50)
+
+    distribution_payload = _distribution_payload(
+        date_utc=date_utc,
+        ok_rows=ok_rows,
+        approved_tlds_count=approved_tlds_count,
+    )
+    concentration_payload = _concentration_payload(date_utc=date_utc, ok_rows=ok_rows)
+    approvals_diff = _approvals_diff_payload(settings, date_utc)
+
+    top_tlds_path = settings.signals_dir / f"{date_utc}_top_tlds.csv"
+    top_tlds_latest_path = settings.signals_dir / "top_tlds_latest.csv"
+    top_tlds_df.to_csv(top_tlds_path, index=False)
+    top_tlds_df.to_csv(top_tlds_latest_path, index=False)
+
+    distribution_path = settings.signals_dir / f"{date_utc}_distribution.json"
+    distribution_latest_path = settings.signals_dir / "distribution_latest.json"
+    concentration_path = settings.signals_dir / f"{date_utc}_concentration.json"
+    concentration_latest_path = settings.signals_dir / "concentration_latest.json"
+    approvals_diff_path = settings.signals_dir / f"{date_utc}_approvals_diff.json"
+    approvals_diff_latest_path = settings.signals_dir / "approvals_diff_latest.json"
+
+    write_json(distribution_path, distribution_payload)
+    write_json(distribution_latest_path, distribution_payload)
+    write_json(concentration_path, concentration_payload)
+    write_json(concentration_latest_path, concentration_payload)
+    write_json(approvals_diff_path, approvals_diff)
+    write_json(approvals_diff_latest_path, approvals_diff)
+
+    return {
+        "top_tlds_path": top_tlds_path,
+        "top_tlds_latest_path": top_tlds_latest_path,
+        "distribution_path": distribution_path,
+        "distribution_latest_path": distribution_latest_path,
+        "concentration_path": concentration_path,
+        "concentration_latest_path": concentration_latest_path,
+        "approvals_diff_path": approvals_diff_path,
+        "approvals_diff_latest_path": approvals_diff_latest_path,
+        "top_tlds_df": top_tlds_df,
+        "distribution_payload": distribution_payload,
+        "concentration_payload": concentration_payload,
+        "approvals_diff_payload": approvals_diff,
+    }
+
+
 def _top_rows_as_json(top_df: pd.DataFrame, leaderboard: str) -> list[dict[str, Any]]:
     subset = top_df[top_df["leaderboard"] == leaderboard].head(20)
     return [
@@ -444,6 +707,22 @@ def _top_rows_as_json(top_df: pd.DataFrame, leaderboard: str) -> list[dict[str, 
             "delta_abs": None if pd.isna(row["delta_abs"]) else float(row["delta_abs"]),
             "delta_pct": None if pd.isna(row["delta_pct"]) else float(row["delta_pct"]),
             "count": None if pd.isna(row["count"]) else int(row["count"]),
+        }
+        for _, row in subset.iterrows()
+    ]
+
+
+def _top_tlds_as_json(top_tlds_df: pd.DataFrame, limit: int = 10) -> list[dict[str, Any]]:
+    subset = top_tlds_df.head(limit)
+    return [
+        {
+            "tld": row["tld"],
+            "count": None if pd.isna(row["count"]) else int(row["count"]),
+            "share_pct": None if pd.isna(row["share_pct"]) else float(row["share_pct"]),
+            "sector": "" if pd.isna(row["sector"]) else str(row["sector"]),
+            "cadence": "" if pd.isna(row.get("cadence")) else str(row.get("cadence")),
+            "status": "" if pd.isna(row.get("status")) else str(row.get("status")),
+            "is_estimate": bool(row.get("is_estimate", False)),
         }
         for _, row in subset.iterrows()
     ]
@@ -459,6 +738,9 @@ def _rolling_rows_as_json(rolling_df: pd.DataFrame, limit: int = 20) -> list[dic
             "days_since_prev": None if pd.isna(row["days_since_prev"]) else int(row["days_since_prev"]),
             "delta_abs": None if pd.isna(row["delta_abs"]) else float(row["delta_abs"]),
             "delta_pct": None if pd.isna(row["delta_pct"]) else float(row["delta_pct"]),
+            "cadence": "" if pd.isna(row.get("cadence")) else str(row.get("cadence")),
+            "status": "" if pd.isna(row.get("status")) else str(row.get("status")),
+            "is_first_seen": bool(pd.isna(row["prev_date_utc"]) or str(row["prev_date_utc"]).strip() == ""),
         }
         for _, row in subset.iterrows()
     ]
@@ -509,11 +791,19 @@ def compute_signals_for_date(
     coverage_payload = coverage_meta["coverage_payload"]
     approved_tlds_count = int(coverage_payload.get("approved_tlds_count", 0))
 
+    daily_df = _load_daily_df(settings, date_utc)
+    cross_meta = _write_cross_sectional_signals(
+        date_utc=date_utc,
+        day_df=daily_df,
+        approved_tlds_count=approved_tlds_count,
+        settings=settings,
+    )
+
     breakdown = _counted_today_breakdown(settings, date_utc)
     counted_today_count = breakdown["counted_today_count"]
     counted_today_core_count = breakdown["counted_today_core_count"]
     counted_today_rolling_count = breakdown["counted_today_rolling_count"]
-    total_delegated_domains_today = breakdown["total_delegated_domains_today"]
+    total_delegated_domains_today = cross_meta["distribution_payload"]["total_delegated_counted_today"]
 
     coverage_pct_today = (
         float(counted_today_count) / float(approved_tlds_count)
@@ -556,7 +846,30 @@ def compute_signals_for_date(
             "processed_tlds_count_today": counted_today_count,
             "coverage_pct_today": coverage_pct_today,
             "note_if_partial": note_if_partial,
+            "total_delegated_counted_today": total_delegated_domains_today,
             "total_delegated_domains_today": total_delegated_domains_today,
+            "top_tlds": _top_tlds_as_json(cross_meta["top_tlds_df"], limit=10),
+            "distribution": {
+                "p50": int(cross_meta["distribution_payload"]["p50"]),
+                "p90": int(cross_meta["distribution_payload"]["p90"]),
+                "p99": int(cross_meta["distribution_payload"]["p99"]),
+                "max": int(cross_meta["distribution_payload"]["max"]),
+                "min": int(cross_meta["distribution_payload"]["min"]),
+                "tiny_tlds_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
+                "small_tlds_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
+            },
+            "concentration": {
+                "top1_share_pct": float(cross_meta["concentration_payload"]["top1_share_pct"]),
+                "top3_share_pct": float(cross_meta["concentration_payload"]["top3_share_pct"]),
+                "top10_share_pct": float(cross_meta["concentration_payload"]["top10_share_pct"]),
+                "hhi": float(cross_meta["concentration_payload"]["hhi"]),
+            },
+            "approvals_diff": {
+                "prev_date_utc": cross_meta["approvals_diff_payload"].get("prev_date_utc", ""),
+                "added_count": int(cross_meta["approvals_diff_payload"].get("added_count", 0)),
+                "removed_count": int(cross_meta["approvals_diff_payload"].get("removed_count", 0)),
+                "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
+            },
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
@@ -577,6 +890,14 @@ def compute_signals_for_date(
             "sector_indices_path": sector_indices_path,
             "latest_path": settings.latest_signals_path,
             "coverage_path": coverage_meta["coverage_path"],
+            "top_tlds_path": cross_meta["top_tlds_path"],
+            "top_tlds_latest_path": cross_meta["top_tlds_latest_path"],
+            "distribution_path": cross_meta["distribution_path"],
+            "distribution_latest_path": cross_meta["distribution_latest_path"],
+            "concentration_path": cross_meta["concentration_path"],
+            "concentration_latest_path": cross_meta["concentration_latest_path"],
+            "approvals_diff_path": cross_meta["approvals_diff_path"],
+            "approvals_diff_latest_path": cross_meta["approvals_diff_latest_path"],
             "latest_payload": latest_payload,
         }
 
@@ -605,7 +926,30 @@ def compute_signals_for_date(
             "processed_tlds_count_today": counted_today_count,
             "coverage_pct_today": coverage_pct_today,
             "note_if_partial": note_if_partial,
+            "total_delegated_counted_today": total_delegated_domains_today,
             "total_delegated_domains_today": total_delegated_domains_today,
+            "top_tlds": _top_tlds_as_json(cross_meta["top_tlds_df"], limit=10),
+            "distribution": {
+                "p50": int(cross_meta["distribution_payload"]["p50"]),
+                "p90": int(cross_meta["distribution_payload"]["p90"]),
+                "p99": int(cross_meta["distribution_payload"]["p99"]),
+                "max": int(cross_meta["distribution_payload"]["max"]),
+                "min": int(cross_meta["distribution_payload"]["min"]),
+                "tiny_tlds_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
+                "small_tlds_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
+            },
+            "concentration": {
+                "top1_share_pct": float(cross_meta["concentration_payload"]["top1_share_pct"]),
+                "top3_share_pct": float(cross_meta["concentration_payload"]["top3_share_pct"]),
+                "top10_share_pct": float(cross_meta["concentration_payload"]["top10_share_pct"]),
+                "hhi": float(cross_meta["concentration_payload"]["hhi"]),
+            },
+            "approvals_diff": {
+                "prev_date_utc": cross_meta["approvals_diff_payload"].get("prev_date_utc", ""),
+                "added_count": int(cross_meta["approvals_diff_payload"].get("added_count", 0)),
+                "removed_count": int(cross_meta["approvals_diff_payload"].get("removed_count", 0)),
+                "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
+            },
             "top_movers_abs": [],
             "top_movers_pct": [],
             "top_decliners_abs": [],
@@ -626,6 +970,14 @@ def compute_signals_for_date(
             "sector_indices_path": sector_indices_path,
             "latest_path": settings.latest_signals_path,
             "coverage_path": coverage_meta["coverage_path"],
+            "top_tlds_path": cross_meta["top_tlds_path"],
+            "top_tlds_latest_path": cross_meta["top_tlds_latest_path"],
+            "distribution_path": cross_meta["distribution_path"],
+            "distribution_latest_path": cross_meta["distribution_latest_path"],
+            "concentration_path": cross_meta["concentration_path"],
+            "concentration_latest_path": cross_meta["concentration_latest_path"],
+            "approvals_diff_path": cross_meta["approvals_diff_path"],
+            "approvals_diff_latest_path": cross_meta["approvals_diff_latest_path"],
             "latest_payload": latest_payload,
         }
 
@@ -657,7 +1009,30 @@ def compute_signals_for_date(
         "processed_tlds_count_today": counted_today_count,
         "coverage_pct_today": coverage_pct_today,
         "note_if_partial": note_if_partial,
+        "total_delegated_counted_today": total_delegated_domains_today,
         "total_delegated_domains_today": total_delegated_domains_today,
+        "top_tlds": _top_tlds_as_json(cross_meta["top_tlds_df"], limit=10),
+        "distribution": {
+            "p50": int(cross_meta["distribution_payload"]["p50"]),
+            "p90": int(cross_meta["distribution_payload"]["p90"]),
+            "p99": int(cross_meta["distribution_payload"]["p99"]),
+            "max": int(cross_meta["distribution_payload"]["max"]),
+            "min": int(cross_meta["distribution_payload"]["min"]),
+            "tiny_tlds_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
+            "small_tlds_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
+        },
+        "concentration": {
+            "top1_share_pct": float(cross_meta["concentration_payload"]["top1_share_pct"]),
+            "top3_share_pct": float(cross_meta["concentration_payload"]["top3_share_pct"]),
+            "top10_share_pct": float(cross_meta["concentration_payload"]["top10_share_pct"]),
+            "hhi": float(cross_meta["concentration_payload"]["hhi"]),
+        },
+        "approvals_diff": {
+            "prev_date_utc": cross_meta["approvals_diff_payload"].get("prev_date_utc", ""),
+            "added_count": int(cross_meta["approvals_diff_payload"].get("added_count", 0)),
+            "removed_count": int(cross_meta["approvals_diff_payload"].get("removed_count", 0)),
+            "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
+        },
         "top_movers_abs": _top_rows_as_json(core_movers_df, "top_abs_growers"),
         "top_movers_pct": _top_rows_as_json(core_movers_df, "top_pct_growers"),
         "top_decliners_abs": _top_rows_as_json(core_movers_df, "top_abs_decliners"),
@@ -688,5 +1063,13 @@ def compute_signals_for_date(
         "sector_indices_path": sector_indices_path,
         "latest_path": settings.latest_signals_path,
         "coverage_path": coverage_meta["coverage_path"],
+        "top_tlds_path": cross_meta["top_tlds_path"],
+        "top_tlds_latest_path": cross_meta["top_tlds_latest_path"],
+        "distribution_path": cross_meta["distribution_path"],
+        "distribution_latest_path": cross_meta["distribution_latest_path"],
+        "concentration_path": cross_meta["concentration_path"],
+        "concentration_latest_path": cross_meta["concentration_latest_path"],
+        "approvals_diff_path": cross_meta["approvals_diff_path"],
+        "approvals_diff_latest_path": cross_meta["approvals_diff_latest_path"],
         "latest_payload": latest_payload,
     }

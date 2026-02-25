@@ -9,6 +9,24 @@ from rootfetch.config import Settings, get_settings
 from rootfetch.core.io_utils import read_json
 
 
+def _fmt_int(value: Any) -> str:
+    try:
+        if value is None:
+            return "n/a"
+        return f"{int(float(value)):,}"
+    except Exception:
+        return "n/a"
+
+
+def _fmt_float(value: Any, *, digits: int = 2) -> str:
+    try:
+        if value is None:
+            return "n/a"
+        return f"{float(value):.{digits}f}"
+    except Exception:
+        return "n/a"
+
+
 def _safe_read_csv(path: Path) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame()
@@ -51,12 +69,14 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
     anomalies_path = settings.signals_dir / f"{date_utc}_anomalies.csv"
     rolling_updates_path = settings.signals_dir / f"{date_utc}_rolling_updates.csv"
     sector_snapshot_path = settings.signals_dir / f"{date_utc}_sector_snapshot.csv"
+    top_tlds_path = settings.signals_dir / f"{date_utc}_top_tlds.csv"
     daily_counts_path = settings.daily_counts_dir / f"{date_utc}.csv"
 
     movers_df = _safe_read_csv(movers_path)
     anomalies_df = _safe_read_csv(anomalies_path)
     rolling_df = _safe_read_csv(rolling_updates_path)
     sectors_df = _safe_read_csv(sector_snapshot_path)
+    top_tlds_df = _safe_read_csv(top_tlds_path)
     daily_df = _safe_read_csv(daily_counts_path)
 
     abs_growers = movers_df[movers_df.get("leaderboard", "") == "top_abs_growers"] if not movers_df.empty else pd.DataFrame()
@@ -81,6 +101,13 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
         elif core_rows > 0 or rolling_rows > 0:
             run_mode = "hybrid"
 
+    distribution = latest_payload.get("distribution", {}) if isinstance(latest_payload.get("distribution"), dict) else {}
+    concentration = latest_payload.get("concentration", {}) if isinstance(latest_payload.get("concentration"), dict) else {}
+    approvals_diff = latest_payload.get("approvals_diff", {}) if isinstance(latest_payload.get("approvals_diff"), dict) else {}
+    top_tlds_preview = approvals_diff.get("added_preview", [])
+    if not isinstance(top_tlds_preview, list):
+        top_tlds_preview = []
+
     digest_lines = [
         f"# RootFetch Daily Digest — {date_utc}",
         "",
@@ -89,6 +116,20 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
         f"- Approved TLDs observed: {latest_payload.get('approved_tlds_count', 'n/a')}",
         f"- Counted today: {latest_payload.get('counted_today_count', 'n/a')} (core={latest_payload.get('counted_today_core_count', 'n/a')}, rolling={latest_payload.get('counted_today_rolling_count', 'n/a')})",
         "",
+        "## Cross-Section Highlights",
+        f"- Total delegated counted today: {_fmt_int(latest_payload.get('total_delegated_counted_today', latest_payload.get('total_delegated_domains_today')))}",
+        f"- Distribution (p50 / p90 / p99 / max): {_fmt_int(distribution.get('p50'))} / {_fmt_int(distribution.get('p90'))} / {_fmt_int(distribution.get('p99'))} / {_fmt_int(distribution.get('max'))}",
+        f"- Concentration (Top1 / Top10 share): {_fmt_float(concentration.get('top1_share_pct'), digits=2)}% / {_fmt_float(concentration.get('top10_share_pct'), digits=2)}% (HHI={_fmt_float(concentration.get('hhi'), digits=4)})",
+        f"- New approvals vs {approvals_diff.get('prev_date_utc') or 'n/a'}: +{approvals_diff.get('added_count', 0)} / -{approvals_diff.get('removed_count', 0)}",
+        (
+            "- Added approvals (first 10): "
+            + ", ".join(top_tlds_preview[:10])
+            if top_tlds_preview
+            else "- Added approvals (first 10): none"
+        ),
+        "",
+        "## Top TLDs by Count (Today)",
+        _render_table(top_tlds_df, ["tld", "count", "share_pct", "sector", "cadence"], limit=10),
         "## Core Daily Movers (Absolute)",
         _render_table(abs_growers, ["tld", "count", "delta_abs", "delta_pct", "data_quality"]),
         "## Core Daily Movers (Percentage)",
