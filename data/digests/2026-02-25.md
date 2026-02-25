@@ -1,6 +1,6 @@
 # RootFetch Daily Digest — 2026-02-25
 
-- Run ID: 73a48c06-f7e4-45ee-a195-b3d7e90525c8
+- Run ID: b51f1396-410a-471b-aa2f-5cbca33d782a
 - Mode: hybrid
 - Approved TLDs observed: 841
 - Observed today: 68 (core=3, rolling=65)
@@ -12,6 +12,19 @@
 - Concentration (Top1 / Top10 share): 21.76% / 68.13% (HHI=0.0888)
 - New approvals vs 2026-02-24: +3 / -0
 - Added approvals (first 10): sakura, xn--55qx5d, xn--io0a7i
+
+## Daily Insights
+- [market/info] Top 10 TLDs hold 68.13% of delegations; median TLD has 1,482 names; 331 TLDs have <100.
+- [movers/positive] Core movers: .xyz +15,392, .app +1,893, .dev +980 (day-over-day).
+- [approvals/info] New approvals today: +3 (sakura, xn--55qx5d, xn--io0a7i).
+- [coverage/positive] Observed today: 68 (core+rolling) out of 841 approved TLDs; snapshot rows today: 841.
+
+## Security Status
+- Safe aggregates checks date: 2026-02-25
+- no_raw_zones_tracked: True
+- no_ai_dir_tracked: True
+- no_env_tracked: True
+- vercel_read_only: True
 
 ## Top TLDs by Count (Today)
 | tld | count | share_pct | sector | cadence |

@@ -1,14 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { CircleHelp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type StatCardProps = {
   label: string;
   value: number | string;
   hint?: string;
+  tooltip?: string;
   className?: string;
   dataTestId?: string;
 };
@@ -17,7 +20,7 @@ function formatInt(value: number): string {
   return new Intl.NumberFormat("en-US").format(Math.trunc(value));
 }
 
-export default function StatCard({ label, value, hint, className, dataTestId }: StatCardProps) {
+export default function StatCard({ label, value, hint, tooltip, className, dataTestId }: StatCardProps) {
   const numericValue = typeof value === "number" && Number.isFinite(value) ? value : null;
   const [display, setDisplay] = useState(numericValue ?? 0);
   const displayRef = useRef(display);
@@ -65,7 +68,21 @@ export default function StatCard({ label, value, hint, className, dataTestId }: 
       className={cn("rounded-xl border border-border/70 bg-card/80 p-4 shadow-sm", className)}
       data-testid={dataTestId}
     >
-      <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+      <div className="flex items-center gap-1.5">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+        {tooltip ? (
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label={`${label} explanation`} className="text-muted-foreground hover:text-foreground">
+                  <CircleHelp className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{tooltip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
+      </div>
       <p className="mt-2 font-display text-2xl font-semibold text-foreground">
         {numericValue === null ? value : formatInt(display)}
       </p>

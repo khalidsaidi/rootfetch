@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import math
+import re
+import subprocess
 import uuid
 from pathlib import Path
 from typing import Any
@@ -9,7 +11,7 @@ import pandas as pd
 import yaml
 
 from rootfetch.config import Settings, get_settings
-from rootfetch.core.io_utils import read_json, write_json
+from rootfetch.core.io_utils import read_json, utc_now_iso, write_json
 from rootfetch.signals.coverage import compute_coverage_latest
 
 
@@ -82,6 +84,9 @@ TOP_TLDS_COLUMNS = [
     "is_estimate",
     "status",
 ]
+
+
+ENV_TRACKED_PATTERN = re.compile(r"(^|/)\.env($|[./])")
 
 
 def _to_bool(value: Any) -> bool:
@@ -734,6 +739,168 @@ def _top_tlds_as_json(top_tlds_df: pd.DataFrame, limit: int = 10) -> list[dict[s
     ]
 
 
+def _fmt_signed_int(value: Any) -> str:
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return "n/a"
+    try:
+        number = int(round(float(value)))
+        sign = "+" if number > 0 else ""
+        return f"{sign}{number:,}"
+    except Exception:
+        return "n/a"
+
+
+def _build_insights(
+    *,
+    approved_tlds_count: int,
+    counted_today_count: int,
+    snapshot_rows_today: int,
+    missing_ever_count: int,
+    distribution_payload: dict[str, Any],
+    concentration_payload: dict[str, Any],
+    approvals_diff_payload: dict[str, Any],
+    core_movers_df: pd.DataFrame,
+) -> list[dict[str, str]]:
+    insights: list[dict[str, str]] = []
+
+    top10_share = float(concentration_payload.get("top10_share_pct") or 0.0)
+    median_size = int(distribution_payload.get("p50") or 0)
+    tiny_tlds = int(distribution_payload.get("tiny_tlds_lt_100") or 0)
+    insights.append(
+        {
+            "kind": "market",
+            "severity": "info",
+            "text": (
+                f"Top 10 TLDs hold {top10_share:.2f}% of delegations; "
+                f"median TLD has {median_size:,} names; {tiny_tlds:,} TLDs have <100."
+            ),
+        }
+    )
+
+    if not core_movers_df.empty:
+        movers = core_movers_df[core_movers_df["leaderboard"] == "top_abs_growers"].head(3)
+        if movers.empty:
+            mover_text = "Core movers are not available yet for today."
+            mover_severity = "neutral"
+        else:
+            mover_parts = [f".{row['tld']} {_fmt_signed_int(row['delta_abs'])}" for _, row in movers.iterrows()]
+            mover_text = f"Core movers: {', '.join(mover_parts)} (day-over-day)."
+            mover_severity = "positive"
+    else:
+        mover_text = "Core movers are not available yet; consecutive core observations are required."
+        mover_severity = "neutral"
+    insights.append(
+        {
+            "kind": "movers",
+            "severity": mover_severity,
+            "text": mover_text,
+        }
+    )
+
+    added_count = int(approvals_diff_payload.get("added_count") or 0)
+    removed_count = int(approvals_diff_payload.get("removed_count") or 0)
+    added_preview = list(approvals_diff_payload.get("added") or [])[:3]
+    approvals_text = f"New approvals today: +{added_count}"
+    if removed_count:
+        approvals_text += f", -{removed_count}"
+    if added_preview:
+        approvals_text += f" ({', '.join(added_preview)})"
+    approvals_text += "."
+    insights.append(
+        {
+            "kind": "approvals",
+            "severity": "info",
+            "text": approvals_text,
+        }
+    )
+
+    coverage_text = (
+        f"Observed today: {counted_today_count:,} (core+rolling) out of "
+        f"{approved_tlds_count:,} approved TLDs; snapshot rows today: {snapshot_rows_today:,}."
+    )
+    if missing_ever_count > 0:
+        coverage_text += f" Missing ever: {missing_ever_count:,}."
+    insights.append(
+        {
+            "kind": "coverage",
+            "severity": "positive" if missing_ever_count == 0 else "neutral",
+            "text": coverage_text,
+        }
+    )
+    return insights
+
+
+def _load_tracked_git_paths(settings: Settings) -> list[str]:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(settings.repo_root), "ls-files"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except Exception:
+        return []
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def _is_forbidden_env_path(path: str) -> bool:
+    normalized = path.strip().lower()
+    if normalized.endswith(".env.example"):
+        return False
+    return bool(ENV_TRACKED_PATTERN.search(normalized))
+
+
+def _security_status_payload(
+    *,
+    date_utc: str,
+    settings: Settings,
+    last_local_run_id: str,
+) -> dict[str, Any]:
+    tracked = _load_tracked_git_paths(settings)
+    tracked_lower = [item.lower() for item in tracked]
+
+    no_raw_zones_tracked = not any(
+        path.endswith(".zone")
+        or path.endswith(".zone.gz")
+        or path.endswith(".txt.gz")
+        for path in tracked_lower
+    )
+    no_ai_dir_tracked = not any(path == ".ai" or path.startswith(".ai/") for path in tracked_lower)
+    no_env_tracked = not any(_is_forbidden_env_path(path) for path in tracked_lower)
+
+    return {
+        "date_utc": date_utc,
+        "checked_at_utc": utc_now_iso(),
+        "no_raw_zones_tracked": bool(no_raw_zones_tracked),
+        "no_ai_dir_tracked": bool(no_ai_dir_tracked),
+        "no_env_tracked": bool(no_env_tracked),
+        "last_local_run_id": str(last_local_run_id),
+        "vercel_read_only": True,
+    }
+
+
+def _write_security_status(
+    *,
+    date_utc: str,
+    settings: Settings,
+    last_local_run_id: str,
+) -> dict[str, Any]:
+    payload = _security_status_payload(
+        date_utc=date_utc,
+        settings=settings,
+        last_local_run_id=last_local_run_id,
+    )
+    dated_path = settings.signals_dir / f"{date_utc}_security_status.json"
+    latest_path = settings.signals_dir / "security_status_latest.json"
+    write_json(dated_path, payload)
+    write_json(latest_path, payload)
+    return {
+        "payload": payload,
+        "dated_path": dated_path,
+        "latest_path": latest_path,
+    }
+
+
 def _rolling_rows_as_json(rolling_df: pd.DataFrame, limit: int = 20) -> list[dict[str, Any]]:
     subset = rolling_df.head(limit)
     return [
@@ -796,6 +963,13 @@ def compute_signals_for_date(
     coverage_meta = compute_coverage_latest(date_utc, settings=settings)
     coverage_payload = coverage_meta["coverage_payload"]
     approved_tlds_count = int(coverage_payload.get("approved_tlds_count", 0))
+    missing_ever_count = int(coverage_payload.get("missing_ever_count", 0))
+    resolved_run_id = run_id or str(uuid.uuid4())
+    security_meta = _write_security_status(
+        date_utc=date_utc,
+        settings=settings,
+        last_local_run_id=resolved_run_id,
+    )
 
     daily_df = _load_daily_df(settings, date_utc)
     cross_meta = _write_cross_sectional_signals(
@@ -843,9 +1017,19 @@ def compute_signals_for_date(
             sector_snapshot_path=sector_snapshot_path,
             sector_indices_path=sector_indices_path,
         )
+        insights = _build_insights(
+            approved_tlds_count=approved_tlds_count,
+            counted_today_count=counted_today_count,
+            snapshot_rows_today=snapshot_rows_today,
+            missing_ever_count=missing_ever_count,
+            distribution_payload=cross_meta["distribution_payload"],
+            concentration_payload=cross_meta["concentration_payload"],
+            approvals_diff_payload=cross_meta["approvals_diff_payload"],
+            core_movers_df=pd.DataFrame(columns=TOP_MOVERS_COLUMNS),
+        )
         latest_payload = {
             "date_utc": date_utc,
-            "run_id": run_id or str(uuid.uuid4()),
+            "run_id": resolved_run_id,
             "approved_tlds_count": approved_tlds_count,
             "counted_today_count": counted_today_count,
             "counted_today_core_count": counted_today_core_count,
@@ -889,6 +1073,8 @@ def compute_signals_for_date(
             "rolling_updates": [],
             "anomalies": [],
             "sector_snapshot": [],
+            "insights": insights,
+            "security_status": security_meta["payload"],
         }
         write_json(settings.latest_signals_path, latest_payload)
         return {
@@ -909,6 +1095,8 @@ def compute_signals_for_date(
             "concentration_latest_path": cross_meta["concentration_latest_path"],
             "approvals_diff_path": cross_meta["approvals_diff_path"],
             "approvals_diff_latest_path": cross_meta["approvals_diff_latest_path"],
+            "security_status_path": security_meta["dated_path"],
+            "security_status_latest_path": security_meta["latest_path"],
             "latest_payload": latest_payload,
         }
 
@@ -927,9 +1115,19 @@ def compute_signals_for_date(
             sector_snapshot_path=sector_snapshot_path,
             sector_indices_path=sector_indices_path,
         )
+        insights = _build_insights(
+            approved_tlds_count=approved_tlds_count,
+            counted_today_count=counted_today_count,
+            snapshot_rows_today=snapshot_rows_today,
+            missing_ever_count=missing_ever_count,
+            distribution_payload=cross_meta["distribution_payload"],
+            concentration_payload=cross_meta["concentration_payload"],
+            approvals_diff_payload=cross_meta["approvals_diff_payload"],
+            core_movers_df=pd.DataFrame(columns=TOP_MOVERS_COLUMNS),
+        )
         latest_payload = {
             "date_utc": date_utc,
-            "run_id": run_id or str(uuid.uuid4()),
+            "run_id": resolved_run_id,
             "approved_tlds_count": approved_tlds_count,
             "counted_today_count": counted_today_count,
             "counted_today_core_count": counted_today_core_count,
@@ -973,6 +1171,8 @@ def compute_signals_for_date(
             "rolling_updates": [],
             "anomalies": [],
             "sector_snapshot": [],
+            "insights": insights,
+            "security_status": security_meta["payload"],
         }
         write_json(settings.latest_signals_path, latest_payload)
         return {
@@ -993,6 +1193,8 @@ def compute_signals_for_date(
             "concentration_latest_path": cross_meta["concentration_latest_path"],
             "approvals_diff_path": cross_meta["approvals_diff_path"],
             "approvals_diff_latest_path": cross_meta["approvals_diff_latest_path"],
+            "security_status_path": security_meta["dated_path"],
+            "security_status_latest_path": security_meta["latest_path"],
             "latest_payload": latest_payload,
         }
 
@@ -1013,10 +1215,20 @@ def compute_signals_for_date(
     sector_all = _upsert_sector_indices(sector_rows, settings)
     sector_snapshot = sector_all[sector_all["date_utc"] == date_utc].copy()
     sector_snapshot.to_csv(sector_snapshot_path, index=False)
+    insights = _build_insights(
+        approved_tlds_count=approved_tlds_count,
+        counted_today_count=counted_today_count,
+        snapshot_rows_today=snapshot_rows_today,
+        missing_ever_count=missing_ever_count,
+        distribution_payload=cross_meta["distribution_payload"],
+        concentration_payload=cross_meta["concentration_payload"],
+        approvals_diff_payload=cross_meta["approvals_diff_payload"],
+        core_movers_df=core_movers_df,
+    )
 
     latest_payload = {
         "date_utc": date_utc,
-        "run_id": run_id or str(uuid.uuid4()),
+        "run_id": resolved_run_id,
         "approved_tlds_count": approved_tlds_count,
         "counted_today_count": counted_today_count,
         "counted_today_core_count": counted_today_core_count,
@@ -1069,6 +1281,8 @@ def compute_signals_for_date(
             for _, row in anomalies_df.iterrows()
         ],
         "sector_snapshot": _sector_snapshot_json(sector_snapshot),
+        "insights": insights,
+        "security_status": security_meta["payload"],
     }
     write_json(settings.latest_signals_path, latest_payload)
 
@@ -1090,5 +1304,7 @@ def compute_signals_for_date(
         "concentration_latest_path": cross_meta["concentration_latest_path"],
         "approvals_diff_path": cross_meta["approvals_diff_path"],
         "approvals_diff_latest_path": cross_meta["approvals_diff_latest_path"],
+        "security_status_path": security_meta["dated_path"],
+        "security_status_latest_path": security_meta["latest_path"],
         "latest_payload": latest_payload,
     }

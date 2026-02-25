@@ -104,6 +104,23 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
     distribution = latest_payload.get("distribution", {}) if isinstance(latest_payload.get("distribution"), dict) else {}
     concentration = latest_payload.get("concentration", {}) if isinstance(latest_payload.get("concentration"), dict) else {}
     approvals_diff = latest_payload.get("approvals_diff", {}) if isinstance(latest_payload.get("approvals_diff"), dict) else {}
+    security_status = latest_payload.get("security_status", {}) if isinstance(latest_payload.get("security_status"), dict) else {}
+    insights_raw = latest_payload.get("insights", [])
+    insights: list[dict[str, Any]] = []
+    if isinstance(insights_raw, list):
+        for item in insights_raw:
+            if not isinstance(item, dict):
+                continue
+            text = str(item.get("text") or "").strip()
+            if not text:
+                continue
+            insights.append(
+                {
+                    "kind": str(item.get("kind") or "insight"),
+                    "severity": str(item.get("severity") or "info"),
+                    "text": text,
+                }
+            )
     top_tlds_preview = approvals_diff.get("added_preview", [])
     if not isinstance(top_tlds_preview, list):
         top_tlds_preview = []
@@ -128,6 +145,25 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
             if top_tlds_preview
             else "- Added approvals (first 10): none"
         ),
+        "",
+        "## Daily Insights",
+        (
+            "\n".join(
+                [
+                    f"- [{item['kind']}/{item['severity']}] {item['text']}"
+                    for item in insights
+                ]
+            )
+            if insights
+            else "- No generated insight lines for this run."
+        ),
+        "",
+        "## Security Status",
+        f"- Safe aggregates checks date: {security_status.get('date_utc', 'n/a')}",
+        f"- no_raw_zones_tracked: {security_status.get('no_raw_zones_tracked', 'n/a')}",
+        f"- no_ai_dir_tracked: {security_status.get('no_ai_dir_tracked', 'n/a')}",
+        f"- no_env_tracked: {security_status.get('no_env_tracked', 'n/a')}",
+        f"- vercel_read_only: {security_status.get('vercel_read_only', 'n/a')}",
         "",
         "## Top TLDs by Count (Today)",
         _render_table(top_tlds_df, ["tld", "count", "share_pct", "sector", "cadence"], limit=10),

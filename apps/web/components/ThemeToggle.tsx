@@ -22,6 +22,7 @@ export default function ThemeToggle({ className }: { className?: string }) {
         setTheme(next);
         track("rf_market_filter", {
           filter_key: "theme",
+          filter_value: next,
           value: next,
         });
       }}

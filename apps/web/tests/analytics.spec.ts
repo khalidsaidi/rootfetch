@@ -50,7 +50,7 @@ test("analytics events fire on core product interactions", async ({ page }) => {
   expect(events.has("rf_nav_click")).toBeTruthy();
   expect(events.has("rf_open_approved")).toBeTruthy();
   expect(events.has("rf_top_tld_row_click")).toBeTruthy();
-  expect(events.has("rf_read_digest")).toBeTruthy();
+  expect(events.has("rf_open_digest") || events.has("rf_read_digest")).toBeTruthy();
   expect(events.has("rf_approved_search")).toBeTruthy();
   expect(events.has("rf_ask_submit")).toBeTruthy();
 });

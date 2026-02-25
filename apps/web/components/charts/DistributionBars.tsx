@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { track } from "@/lib/analytics/ga";
 
 type DistributionBar = {
   bucket: string;
@@ -32,7 +33,15 @@ export default function DistributionBars({ rows }: { rows: DistributionBar[] }) 
             border: "1px solid hsl(var(--border))",
             backgroundColor: "hsl(var(--card))",
           }} />
-          <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+          <Bar
+            dataKey="count"
+            fill="hsl(var(--primary))"
+            radius={[8, 8, 0, 0]}
+            onClick={(entry) => {
+              const bucket = String((entry as { bucket?: string })?.bucket || "unknown");
+              track("rf_distribution_view", { bucket });
+            }}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

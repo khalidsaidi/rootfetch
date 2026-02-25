@@ -10,6 +10,7 @@ type TrackedLinkProps = LinkProps & {
   label: string;
   pageType?: string;
   eventName?: string;
+  extraEventNames?: string[];
   eventParams?: Record<string, string | number | boolean>;
 };
 
@@ -19,6 +20,7 @@ export default function TrackedLink({
   label,
   pageType = "dashboard",
   eventName = "rf_nav_click",
+  extraEventNames,
   eventParams,
   ...props
 }: TrackedLinkProps) {
@@ -27,12 +29,14 @@ export default function TrackedLink({
       {...props}
       className={className}
       onClick={() => {
-        track(eventName, {
+        const payload = {
           label,
           href: typeof props.href === "string" ? props.href : "object_href",
           page_type: pageType,
           ...(eventParams || {}),
-        });
+        };
+        track(eventName, payload);
+        (extraEventNames || []).forEach((name) => track(name, payload));
       }}
     >
       {children}

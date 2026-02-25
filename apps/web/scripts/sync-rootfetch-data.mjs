@@ -42,6 +42,10 @@ const requiredCopies = [
     dest: path.join(appRoot, "public", "rootfetch", "approvals_diff_latest.json"),
   },
   {
+    source: path.join(repoRoot, "data", "signals", "security_status_latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "security_status_latest.json"),
+  },
+  {
     source: path.join(repoRoot, "data", "rag", "rag_chunks.json"),
     dest: path.join(appRoot, "public", "rootfetch", "rag_chunks.json"),
   },
@@ -131,7 +135,7 @@ async function generateSeoTextArtifacts() {
   const topTlds = parseCsvTlds(topTldsCsv, 200);
   const lastmod = new Date().toISOString();
 
-  const baseRoutes = ["/", "/approved", "/about", "/sectors", "/compare", "/ask"];
+  const baseRoutes = ["/", "/approved", "/about", "/methodology", "/security", "/sectors", "/compare", "/ask", "/docs/mcp"];
   const urls = [...baseRoutes, ...topTlds.map((tld) => `/tld/${encodeURIComponent(tld)}`)];
   const sitemapBody = urls
     .map((route) => `  <url><loc>${escapeXml(`${siteUrl}${route}`)}</loc><lastmod>${lastmod}</lastmod></url>`)
@@ -157,6 +161,7 @@ async function generateSeoTextArtifacts() {
     `- ${siteUrl}/rootfetch/top_tlds_latest.csv\n` +
     `- ${siteUrl}/rootfetch/distribution_latest.json\n` +
     `- ${siteUrl}/rootfetch/concentration_latest.json\n` +
+    `- ${siteUrl}/rootfetch/security_status_latest.json\n` +
     `- ${siteUrl}/rootfetch/coverage_latest.json\n` +
     `- ${siteUrl}/rootfetch/latest.md\n\n` +
     `## Metric definitions\n` +

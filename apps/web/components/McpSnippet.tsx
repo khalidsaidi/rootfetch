@@ -38,6 +38,7 @@ export default function McpSnippet({ siteUrl }: { siteUrl?: string }) {
           className="inline-flex items-center gap-1 rounded-md border border-border/60 px-3 py-1.5 text-xs hover:border-primary/40"
           onClick={async () => {
             await navigator.clipboard.writeText(snippet);
+            track("rf_copy_mcp_snippet", {});
             track("rf_mcp_snippet_copy", {});
           }}
         >
@@ -55,7 +56,17 @@ export default function McpSnippet({ siteUrl }: { siteUrl?: string }) {
         >
           <Link2 className="h-3.5 w-3.5" /> Open endpoint
         </a>
+        <a
+          href="/docs/mcp"
+          className="inline-flex items-center gap-1 rounded-md border border-border/60 px-3 py-1.5 text-xs hover:border-primary/40"
+          onClick={() => track("rf_mcp_doc_open", {})}
+        >
+          <Link2 className="h-3.5 w-3.5" /> Test MCP
+        </a>
       </div>
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        MCP requires server-side token + allowed-origin checks. Browser clients should not embed tokens.
+      </p>
     </div>
   );
 }

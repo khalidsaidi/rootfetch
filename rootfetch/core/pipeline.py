@@ -765,6 +765,7 @@ def _build_outputs(
             "distribution": str(signal_meta.get("distribution_path", "")),
             "concentration": str(signal_meta.get("concentration_path", "")),
             "approvals_diff": str(signal_meta.get("approvals_diff_path", "")),
+            "security_status": str(signal_meta.get("security_status_path", "")),
             "latest": str(signal_meta.get("latest_path", "")),
             "coverage": str(signal_meta.get("coverage_path", "")),
             "digest": str(digest_meta.get("dated_digest_path", "")),

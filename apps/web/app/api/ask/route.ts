@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { loadLatest } from "@/lib/rootfetch-data";
 import { deterministicAnswerFromHits, ragSearch } from "@/lib/rag";
 
 type AskPayload = {
@@ -103,6 +104,18 @@ export async function POST(request: Request) {
     const deterministic = deterministicAnswerFromHits(question, citations);
     const llmAnswer = await maybeGenerateLlmAnswer({ question, citations });
     const answerDraft = llmAnswer || deterministic;
+    const latest = await loadLatest().catch(() => null);
+    const computedFacts = latest
+      ? {
+          date_utc: latest.date_utc,
+          approved_tlds_count: latest.approved_tlds_count,
+          observed_today_count: latest.counted_today_count,
+          snapshot_rows_today: latest.snapshot_rows_today,
+          top10_share_pct: latest.concentration?.top10_share_pct ?? null,
+          hhi: latest.concentration?.hhi ?? null,
+          new_approvals_added_count: latest.approvals_diff?.added_count ?? null,
+        }
+      : {};
 
     return NextResponse.json({
       query: question,
@@ -110,8 +123,10 @@ export async function POST(request: Request) {
       hits_count: citations.length,
       latency_ms: Date.now() - started,
       mode: llmAnswer ? "llm" : "deterministic",
+      answer: answerDraft,
       answer_draft: answerDraft,
       citations,
+      computed_facts: computedFacts,
     });
   } catch {
     return NextResponse.json(

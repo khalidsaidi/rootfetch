@@ -53,6 +53,8 @@ export default function TopTldTableClient({ rows }: { rows: TopRow[] }) {
     setDirection(nextDirection);
     track("rf_market_sort", {
       table: "top_tlds",
+      key: nextSort,
+      dir: nextDirection,
       sort_key: nextSort,
       direction: nextDirection,
     });
@@ -90,6 +92,7 @@ export default function TopTldTableClient({ rows }: { rows: TopRow[] }) {
             setSectorFilter(value);
             track("rf_market_filter", {
               filter_key: "sector",
+              filter_value: value,
               value,
             });
           }}

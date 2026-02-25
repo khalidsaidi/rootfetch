@@ -172,7 +172,15 @@ export default function SectorsClient() {
               <tbody>
                 {latestRows.map((row) => (
                   <tr key={row.sector} className="border-b border-border/50">
-                    <td className="py-2 font-medium">{row.sector}</td>
+                    <td className="py-2 font-medium">
+                      <button
+                        type="button"
+                        className="hover:text-primary"
+                        onClick={() => track("rf_sector_row_click", { sector: row.sector })}
+                      >
+                        {row.sector}
+                      </button>
+                    </td>
                     <td className="py-2">{fmtInt(row.sector_count)}</td>
                     <td className="py-2">{Number.isFinite(row.sector_delta_pct) ? `${(row.sector_delta_pct * 100).toFixed(2)}%` : "n/a"}</td>
                   </tr>

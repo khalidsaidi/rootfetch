@@ -35,12 +35,33 @@ export type LatestSignals = {
     added_count?: number;
     removed_count?: number;
     added_preview?: string[];
+    added_first_10?: string[];
+  };
+  insights?: Array<{ kind: string; severity: string; text: string }>;
+  security_status?: {
+    date_utc?: string;
+    checked_at_utc?: string;
+    no_raw_zones_tracked?: boolean;
+    no_ai_dir_tracked?: boolean;
+    no_env_tracked?: boolean;
+    last_local_run_id?: string;
+    vercel_read_only?: boolean;
   };
   top_movers_abs?: Array<{ tld: string; count: number; delta_abs: number; delta_pct: number }>;
   top_movers_pct?: Array<{ tld: string; count: number; delta_abs: number; delta_pct: number }>;
   core_movers_abs?: Array<{ tld: string; count: number; delta_abs: number; delta_pct: number }>;
   core_movers_pct?: Array<{ tld: string; count: number; delta_abs: number; delta_pct: number }>;
-  rolling_updates?: Array<{ tld: string; count: number; prev_date_utc: string; days_since_prev: number; delta_abs: number }>;
+  rolling_updates?: Array<{
+    tld: string;
+    count: number;
+    prev_date_utc: string;
+    days_since_prev: number;
+    delta_abs: number;
+    delta_pct?: number;
+    cadence?: string;
+    status?: string;
+    is_first_seen?: boolean;
+  }>;
   anomalies?: Array<{ tld: string; reason: string; delta_pct: number; z: number; robust_z: number }>;
   sector_snapshot?: Array<{ sector: string; sector_count: number; sector_delta_pct?: number }>;
 };
@@ -159,6 +180,8 @@ export async function loadLatest(): Promise<LatestSignals> {
     distribution: {},
     concentration: {},
     approvals_diff: {},
+    insights: [],
+    security_status: {},
     top_movers_abs: [],
     top_movers_pct: [],
     core_movers_abs: [],
@@ -287,4 +310,8 @@ export async function loadConcentrationLatest() {
 
 export async function loadApprovalsDiffLatest() {
   return readJson<Record<string, unknown>>("approvals_diff_latest.json", {});
+}
+
+export async function loadSecurityStatusLatest() {
+  return readJson<Record<string, unknown>>("security_status_latest.json", {});
 }

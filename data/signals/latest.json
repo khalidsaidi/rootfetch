@@ -1,6 +1,6 @@
 {
   "date_utc": "2026-02-25",
-  "run_id": "73a48c06-f7e4-45ee-a195-b3d7e90525c8",
+  "run_id": "b51f1396-410a-471b-aa2f-5cbca33d782a",
   "approved_tlds_count": 841,
   "counted_today_count": 68,
   "counted_today_core_count": 3,
@@ -489,5 +489,36 @@
       "sector_count": 47384195,
       "sector_delta_pct": 0.001394346705836359
     }
-  ]
+  ],
+  "insights": [
+    {
+      "kind": "market",
+      "severity": "info",
+      "text": "Top 10 TLDs hold 68.13% of delegations; median TLD has 1,482 names; 331 TLDs have <100."
+    },
+    {
+      "kind": "movers",
+      "severity": "positive",
+      "text": "Core movers: .xyz +15,392, .app +1,893, .dev +980 (day-over-day)."
+    },
+    {
+      "kind": "approvals",
+      "severity": "info",
+      "text": "New approvals today: +3 (sakura, xn--55qx5d, xn--io0a7i)."
+    },
+    {
+      "kind": "coverage",
+      "severity": "positive",
+      "text": "Observed today: 68 (core+rolling) out of 841 approved TLDs; snapshot rows today: 841."
+    }
+  ],
+  "security_status": {
+    "date_utc": "2026-02-25",
+    "checked_at_utc": "2026-02-25T06:49:06.457583+00:00",
+    "no_raw_zones_tracked": true,
+    "no_ai_dir_tracked": true,
+    "no_env_tracked": true,
+    "last_local_run_id": "b51f1396-410a-471b-aa2f-5cbca33d782a",
+    "vercel_read_only": true
+  }
 }

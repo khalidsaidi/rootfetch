@@ -93,6 +93,10 @@ export default function AskClient() {
         hits_count: payload.hits_count,
         latency_ms: Math.round(performance.now() - started),
       });
+      track("rf_ask_result", {
+        hits_count: payload.hits_count,
+        latency_ms: Math.round(performance.now() - started),
+      });
       track("rf_rag_search", {
         q_len: value.length,
         k,
