@@ -195,6 +195,15 @@ function toNumber(value: string | undefined): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+export function parseJsonArtifact<T>(raw: string): T {
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    const normalized = raw.replace(/\b-?Infinity\b/g, "null").replace(/\bNaN\b/g, "null");
+    return JSON.parse(normalized) as T;
+  }
+}
+
 export function parseCsv(raw: string): CsvRow[] {
   const lines = raw
     .split(/\r?\n/)
@@ -245,7 +254,7 @@ async function readJson<T>(filename: string, fallback: T): Promise<T> {
   const filePath = path.join(ROOTFETCH_PUBLIC, filename);
   try {
     const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw) as T;
+    return parseJsonArtifact<T>(raw);
   } catch {
     return fallback;
   }

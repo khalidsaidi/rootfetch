@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadLatest } from "@/lib/rootfetch-data";
+import { loadLatest, parseJsonArtifact } from "@/lib/rootfetch-data";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,8 @@ export async function GET(request: Request) {
       cache: "no-store",
     });
     if (staticArtifact.ok) {
-      return NextResponse.json(await staticArtifact.json());
+      const raw = await staticArtifact.text();
+      return NextResponse.json(parseJsonArtifact(raw));
     }
 
     return NextResponse.json({ error: "latest.json missing" }, { status: 404 });
