@@ -44,7 +44,7 @@ export const metadata: Metadata = {
       "Read-only dashboard for approved TLD coverage, market concentration, movers, and daily digests generated from local ingestion.",
     images: [
       {
-        url: `${siteUrl}/opengraph-image`,
+        url: `${siteUrl}/api/og`,
         width: 1200,
         height: 630,
         alt: "RootFetch market structure snapshot",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: "RootFetch | Delegation Intelligence",
     description:
       "Approved TLD coverage, top TLD concentration, movers, and AI-native daily summaries.",
-    images: [`${siteUrl}/twitter-image`],
+    images: [`${siteUrl}/api/og`],
   },
   robots: {
     index: true,
