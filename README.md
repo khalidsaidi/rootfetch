@@ -71,6 +71,8 @@ rootfetch rag build
 rootfetch rag build-static
 rootfetch rag search "count_ns_sld"
 rootfetch mcp serve --transport stdio
+rootfetch alerts run --date YYYY-MM-DD
+rootfetch alerts run --date YYYY-MM-DD --recover-corrupt-state
 ```
 
 ## Local Automation
@@ -112,6 +114,7 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)
 - Signals: [docs/signal_spec.md](docs/signal_spec.md)
 - Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)
+- Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
 - RAG: [docs/rag.md](docs/rag.md)
 - Local runner: [docs/local_runner.md](docs/local_runner.md)

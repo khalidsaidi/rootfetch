@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from rootfetch.alerts.runner import AlertItem, _dedup_key, run_alerts
+from rootfetch.alerts.runner import AlertItem, _dedup_key, _snapshot_date_bucket, run_alerts
 
 
 def _write_approvals_diff(temp_settings, *, date_utc: str, added: list[str]) -> None:
@@ -175,7 +175,7 @@ def test_dead_letter_contains_payload_and_error_context(temp_settings, monkeypat
     assert rows[-1]["error_class"] == "RuntimeError"
 
 
-def test_corrupt_state_is_quarantined_and_recreated(temp_settings, monkeypatch) -> None:
+def test_corrupt_state_requires_explicit_recover(temp_settings, monkeypatch) -> None:
     date_utc = "2026-02-25"
     _write_approvals_diff(temp_settings, date_utc=date_utc, added=["foo"])
     monkeypatch.setenv("ROOTFETCH_SLACK_WEBHOOK_URL", "https://example.test/slack")
@@ -196,11 +196,23 @@ def test_corrupt_state_is_quarantined_and_recreated(temp_settings, monkeypatch) 
 
     monkeypatch.setattr("rootfetch.alerts.runner._send_channel", _ok_send)
     result = run_alerts(date_utc=date_utc, dry_run=False, settings=temp_settings)
-    assert result["delivery"]["sent_attempts"] == 1
-    assert state_path.exists()
+    assert result["skipped_due_to_corrupt_state"] is True
+    assert "requires explicit recovery" in result["error"]
+    assert not state_path.exists()
 
-    quarantined = list(state_path.parent.glob("state.json.corrupt-*"))
+    quarantined = list(state_path.parent.glob("state.corrupt.*.json"))
     assert quarantined, "expected invalid state snapshot to be quarantined"
+
+    state_path.write_text("{still-bad", encoding="utf-8")
+    recovered = run_alerts(
+        date_utc=date_utc,
+        dry_run=False,
+        recover_corrupt_state=True,
+        settings=temp_settings,
+    )
+    assert recovered["delivery"]["sent_attempts"] == 1
+    assert recovered["recovered_from_corrupt_state"]
+    assert state_path.exists()
     loaded = json.loads(state_path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
 
@@ -245,3 +257,10 @@ def test_dedup_key_is_stable_for_identical_alert_inputs() -> None:
         trigger_signature="z=3.5000;threshold=3.0",
     )
     assert _dedup_key("2026-02-25", item) != _dedup_key("2026-02-25", changed)
+
+
+def test_snapshot_bucket_uses_utc_date_component() -> None:
+    assert _snapshot_date_bucket("2026-02-25") == "2026-02-25"
+    assert _snapshot_date_bucket("2026-02-25T23:59:59+00:00") == "2026-02-25"
+    with pytest.raises(ValueError):
+        _snapshot_date_bucket("not-a-date")

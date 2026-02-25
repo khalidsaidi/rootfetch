@@ -188,7 +188,11 @@ def _cmd_mcp_serve(args: argparse.Namespace) -> int:
 
 def _cmd_alerts_run(args: argparse.Namespace) -> int:
     date_utc = args.date or utc_today_str()
-    payload = run_alerts(date_utc=date_utc, dry_run=args.dry_run)
+    payload = run_alerts(
+        date_utc=date_utc,
+        dry_run=args.dry_run,
+        recover_corrupt_state=bool(args.recover_corrupt_state),
+    )
     print(json.dumps(payload, indent=2))
     return 0
 
@@ -256,6 +260,11 @@ def build_parser() -> argparse.ArgumentParser:
     alerts_run = alerts_sub.add_parser("run", help="Evaluate and send RootFetch alerts")
     _add_common_flags(alerts_run)
     alerts_run.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
+    alerts_run.add_argument(
+        "--recover-corrupt-state",
+        action="store_true",
+        help="Allow recovering from a corrupted alerts state by resetting queue state",
+    )
     alerts_run.set_defaults(func=_cmd_alerts_run)
 
     return parser

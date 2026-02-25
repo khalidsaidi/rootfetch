@@ -44,6 +44,7 @@ Optional local alerting and delivery-reliability overrides:
 - `ROOTFETCH_ALERT_RETRY_JITTER_PCT`
 - `ROOTFETCH_ALERT_LOCK_TIMEOUT_SECONDS`
 - `ROOTFETCH_ALERT_DEDUP_HOURS`
+- `ROOTFETCH_ALERT_RECOVER_CORRUPT_STATE` (default `false`; requires explicit opt-in)
 
 ## Daily Local Command
 
@@ -75,6 +76,11 @@ Alert delivery is local-only and persistent:
 - delivery attempts are append-logged at `.ai/alerts/delivery_log.jsonl`
 - failed notifications are retried with exponential backoff
 - exhausted retries are retained in `dead_letters` for operator review
+- dedup keys are bucketed by snapshot UTC date (`YYYY-MM-DD`), not wall-clock runtime
+- if `state.json` is corrupt, it is quarantined to `.ai/alerts/state.corrupt.<run_id>.<timestamp>.json`
+- by default, runner halts on corrupt state and requires explicit recovery:
+  - CLI: `rootfetch alerts run --date <YYYY-MM-DD> --recover-corrupt-state`
+  - env: `ROOTFETCH_ALERT_RECOVER_CORRUPT_STATE=true`
 
 ## Scheduling
 

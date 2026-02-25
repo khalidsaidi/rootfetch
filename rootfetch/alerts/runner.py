@@ -8,7 +8,7 @@ import random
 import tempfile
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +29,14 @@ MODEL_VERSION_DEFAULT = "rootfetch_model_v1"
 STATE_SCHEMA_VERSION = 2
 
 
+class CorruptStateError(RuntimeError):
+    def __init__(self, *, state_path: Path, quarantine_path: Path, reason: str):
+        super().__init__(reason)
+        self.state_path = state_path
+        self.quarantine_path = quarantine_path
+        self.reason = reason
+
+
 @dataclass(frozen=True)
 class AlertItem:
     code: str
@@ -46,17 +54,12 @@ def _safe_read_csv(path: Path) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-def _safe_read_json(path: Path, *, quarantine_on_error: bool = False) -> dict[str, Any]:
+def _safe_read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
         payload = read_json(path)
     except Exception:
-        if quarantine_on_error:
-            stamp = _now_utc().strftime("%Y%m%dT%H%M%SZ")
-            quarantine = path.with_name(f"{path.name}.corrupt-{stamp}")
-            with contextlib.suppress(Exception):
-                path.replace(quarantine)
         return {}
     return payload if isinstance(payload, dict) else {}
 
@@ -79,6 +82,18 @@ def _int_env(name: str, default: int) -> int:
         return int(raw)
     except Exception:
         return default
+
+
+def _bool_env(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    value = str(raw).strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    return default
 
 
 def _now_utc() -> datetime:
@@ -117,6 +132,25 @@ def _lock_path(settings: Settings) -> Path:
 
 def _delivery_log_path(settings: Settings) -> Path:
     return _alerts_dir(settings) / "delivery_log.jsonl"
+
+
+def _state_quarantine_path(settings: Settings, *, run_id: str, now: datetime) -> Path:
+    stamp = now.strftime("%Y%m%dT%H%M%SZ")
+    safe_run_id = "".join(ch for ch in run_id if ch.isalnum() or ch in {"-", "_"})
+    return _alerts_dir(settings) / f"state.corrupt.{safe_run_id}.{stamp}.json"
+
+
+def _snapshot_date_bucket(value: str) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        raise ValueError("snapshot date must be provided")
+    if "T" in raw:
+        raw = raw.split("T", 1)[0]
+    try:
+        parsed = date.fromisoformat(raw)
+    except Exception as exc:
+        raise ValueError(f"invalid snapshot date '{value}' (expected YYYY-MM-DD)") from exc
+    return parsed.isoformat()
 
 
 def _state_template() -> dict[str, Any]:
@@ -168,6 +202,7 @@ def _normalize_state(payload: dict[str, Any]) -> dict[str, Any]:
                 "model_version": str(item.get("model_version") or MODEL_VERSION_DEFAULT),
                 "dedup_key": dedup_key,
                 "fingerprint": dedup_key,
+                "dedup_bucket_utc": str(item.get("dedup_bucket_utc") or item.get("date_utc") or ""),
                 "created_at_utc": str(item.get("created_at_utc") or _iso(_now_utc())),
                 "next_attempt_at_utc": str(item.get("next_attempt_at_utc") or _iso(_now_utc())),
                 "max_attempts": int(item.get("max_attempts") or 1),
@@ -184,14 +219,44 @@ def _normalize_state(payload: dict[str, Any]) -> dict[str, Any]:
     return state
 
 
-def _load_state(settings: Settings) -> dict[str, Any]:
+def _load_state(
+    settings: Settings,
+    *,
+    run_id: str,
+    now: datetime,
+    recover_corrupt_state: bool,
+) -> tuple[dict[str, Any], Path | None]:
     path = _state_path(settings)
     if not path.exists():
-        return _state_template()
-    payload = _safe_read_json(path, quarantine_on_error=True)
-    if not payload:
-        return _state_template()
-    return _normalize_state(payload)
+        return _state_template(), None
+
+    try:
+        payload = read_json(path)
+    except Exception as exc:
+        quarantine = _state_quarantine_path(settings, run_id=run_id, now=now)
+        with contextlib.suppress(Exception):
+            path.replace(quarantine)
+        if not recover_corrupt_state:
+            raise CorruptStateError(
+                state_path=path,
+                quarantine_path=quarantine,
+                reason=f"alerts state is corrupt and requires explicit recovery: {exc}",
+            ) from exc
+        return _state_template(), quarantine
+
+    if not isinstance(payload, dict):
+        quarantine = _state_quarantine_path(settings, run_id=run_id, now=now)
+        with contextlib.suppress(Exception):
+            path.replace(quarantine)
+        if not recover_corrupt_state:
+            raise CorruptStateError(
+                state_path=path,
+                quarantine_path=quarantine,
+                reason="alerts state is not a JSON object and requires explicit recovery",
+            )
+        return _state_template(), quarantine
+
+    return _normalize_state(payload), None
 
 
 def _fsync_dir(path: Path) -> None:
@@ -369,13 +434,13 @@ def _collect_alerts(date_utc: str, settings: Settings) -> list[AlertItem]:
     return alerts
 
 
-def _dedup_key(date_utc: str, item: AlertItem) -> str:
+def _dedup_key(snapshot_date_bucket_utc: str, item: AlertItem) -> str:
     raw = "|".join(
         [
             item.model_version,
             item.rule_id,
             item.entity_id,
-            date_utc,
+            snapshot_date_bucket_utc,
             item.code,
             item.severity,
             item.trigger_signature,
@@ -487,7 +552,7 @@ def _enqueue_alerts(
     *,
     state: dict[str, Any],
     alerts: list[AlertItem],
-    date_utc: str,
+    snapshot_date_bucket_utc: str,
     now: datetime,
     enabled_channels: list[str],
     dedup_hours: int,
@@ -502,7 +567,7 @@ def _enqueue_alerts(
     skipped_no_destinations = 0
 
     for alert in alerts:
-        dedup_key = _dedup_key(date_utc, alert)
+        dedup_key = _dedup_key(snapshot_date_bucket_utc, alert)
         if dedup_key in active_keys:
             skipped_duplicate += 1
             continue
@@ -529,8 +594,9 @@ def _enqueue_alerts(
 
         active.append(
             {
-                "id": f"{date_utc}:{dedup_key[:12]}",
-                "date_utc": date_utc,
+                "id": f"{snapshot_date_bucket_utc}:{dedup_key[:12]}",
+                "date_utc": snapshot_date_bucket_utc,
+                "dedup_bucket_utc": snapshot_date_bucket_utc,
                 "code": alert.code,
                 "severity": alert.severity,
                 "message": alert.message,
@@ -641,6 +707,7 @@ def _process_queue(
                         "destination": channel,
                         "alert_id": str(item.get("id") or ""),
                         "date_utc": str(item.get("date_utc") or ""),
+                        "dedup_bucket_utc": str(item.get("dedup_bucket_utc") or item.get("date_utc") or ""),
                         "code": str(item.get("code") or ""),
                         "severity": str(item.get("severity") or ""),
                         "rule_id": str(item.get("rule_id") or ""),
@@ -670,6 +737,7 @@ def _process_queue(
                         "destination": channel,
                         "alert_id": str(item.get("id") or ""),
                         "date_utc": str(item.get("date_utc") or ""),
+                        "dedup_bucket_utc": str(item.get("dedup_bucket_utc") or item.get("date_utc") or ""),
                         "code": str(item.get("code") or ""),
                         "severity": str(item.get("severity") or ""),
                         "rule_id": str(item.get("rule_id") or ""),
@@ -729,6 +797,7 @@ def _process_queue(
                 {
                     "id": str(item.get("id") or ""),
                     "date_utc": str(item.get("date_utc") or ""),
+                    "dedup_bucket_utc": str(item.get("dedup_bucket_utc") or item.get("date_utc") or ""),
                     "dedup_key": dedup_key,
                     "code": str(item.get("code") or ""),
                     "severity": str(item.get("severity") or ""),
@@ -737,6 +806,7 @@ def _process_queue(
                     "message": str(item.get("message") or ""),
                     "payload": {
                         "date_utc": str(item.get("date_utc") or ""),
+                        "dedup_bucket_utc": str(item.get("dedup_bucket_utc") or item.get("date_utc") or ""),
                         "code": str(item.get("code") or ""),
                         "severity": str(item.get("severity") or ""),
                         "rule_id": str(item.get("rule_id") or ""),
@@ -770,14 +840,19 @@ def run_alerts(
     *,
     date_utc: str,
     dry_run: bool = False,
+    recover_corrupt_state: bool | None = None,
     settings: Settings | None = None,
 ) -> dict[str, Any]:
     settings = settings or get_settings()
-    alerts = _collect_alerts(date_utc, settings)
+    snapshot_date_utc = _snapshot_date_bucket(date_utc)
+    if recover_corrupt_state is None:
+        recover_corrupt_state = _bool_env("ROOTFETCH_ALERT_RECOVER_CORRUPT_STATE", False)
+    alerts = _collect_alerts(snapshot_date_utc, settings)
 
     targets = _enabled_targets()
     enabled_channels = sorted(targets.keys())
     now = _now_utc()
+    run_id = f"alerts-{now.strftime('%Y%m%dT%H%M%SZ')}-{os.getpid()}"
     retry_max = max(1, _int_env("ROOTFETCH_ALERT_RETRY_MAX", 5))
     retry_base_seconds = max(5, _int_env("ROOTFETCH_ALERT_RETRY_BASE_SECONDS", 30))
     retry_max_seconds = max(retry_base_seconds, _int_env("ROOTFETCH_ALERT_RETRY_MAX_SECONDS", 3600))
@@ -786,19 +861,26 @@ def run_alerts(
     lock_timeout_seconds = max(0, _int_env("ROOTFETCH_ALERT_LOCK_TIMEOUT_SECONDS", 30))
 
     if dry_run:
-        state = _load_state(settings)
+        state_warning = ""
+        state_payload = _safe_read_json(_state_path(settings))
+        if state_payload:
+            state = _normalize_state(state_payload)
+        else:
+            state = _state_template()
+            if _state_path(settings).exists():
+                state_warning = "state_read_failed_in_dry_run"
         active_before = len(state.get("active") or [])
         queue_stats = _enqueue_alerts(
             state=state,
             alerts=alerts,
-            date_utc=date_utc,
+            snapshot_date_bucket_utc=snapshot_date_utc,
             now=now,
             enabled_channels=enabled_channels,
             dedup_hours=dedup_hours,
             max_attempts=retry_max,
         )
         return {
-            "date_utc": date_utc,
+            "date_utc": snapshot_date_utc,
             "alerts_count": len(alerts),
             "alerts": [asdict(item) for item in alerts],
             "dry_run": True,
@@ -806,6 +888,8 @@ def run_alerts(
                 "slack": "slack" in targets,
                 "discord": "discord" in targets,
             },
+            "run_id": run_id,
+            "state_warning": state_warning,
             "queue": {
                 "active_before": active_before,
                 "enqueued": queue_stats["enqueued"],
@@ -819,17 +903,23 @@ def run_alerts(
                 "retry_jitter_pct": retry_jitter_pct,
                 "dedup_hours": dedup_hours,
                 "lock_timeout_seconds": lock_timeout_seconds,
+                "recover_corrupt_state": recover_corrupt_state,
             },
         }
 
     try:
         with _state_lock(settings, timeout_seconds=lock_timeout_seconds):
-            state = _load_state(settings)
+            state, recovered_from = _load_state(
+                settings,
+                run_id=run_id,
+                now=now,
+                recover_corrupt_state=bool(recover_corrupt_state),
+            )
             active_before = len(state.get("active") or [])
             queue_stats = _enqueue_alerts(
                 state=state,
                 alerts=alerts,
-                date_utc=date_utc,
+                snapshot_date_bucket_utc=snapshot_date_utc,
                 now=now,
                 enabled_channels=enabled_channels,
                 dedup_hours=dedup_hours,
@@ -846,14 +936,18 @@ def run_alerts(
             )
             _save_state(settings, state)
             _append_delivery_log(settings, process_stats["attempts_log"])
-    except TimeoutError as exc:
+    except CorruptStateError as exc:
         return {
-            "date_utc": date_utc,
+            "date_utc": snapshot_date_utc,
             "alerts_count": len(alerts),
             "alerts": [asdict(item) for item in alerts],
             "dry_run": False,
-            "skipped_due_to_lock": True,
-            "error": str(exc),
+            "skipped_due_to_corrupt_state": True,
+            "error": exc.reason,
+            "state_path": str(exc.state_path),
+            "quarantine_path": str(exc.quarantine_path),
+            "recover_hint": "rerun with --recover-corrupt-state to rebuild an empty queue",
+            "run_id": run_id,
             "channels_enabled": enabled_channels,
             "queue": {
                 "active_count": 0,
@@ -877,14 +971,52 @@ def run_alerts(
                 "retry_jitter_pct": retry_jitter_pct,
                 "dedup_hours": dedup_hours,
                 "lock_timeout_seconds": lock_timeout_seconds,
+                "recover_corrupt_state": recover_corrupt_state,
+            },
+        }
+    except TimeoutError as exc:
+        return {
+            "date_utc": snapshot_date_utc,
+            "alerts_count": len(alerts),
+            "alerts": [asdict(item) for item in alerts],
+            "dry_run": False,
+            "skipped_due_to_lock": True,
+            "error": str(exc),
+            "run_id": run_id,
+            "channels_enabled": enabled_channels,
+            "queue": {
+                "active_count": 0,
+                "active_before": 0,
+                "enqueued": 0,
+                "skipped_duplicate": 0,
+                "skipped_no_destinations": 0,
+                "dead_letters": 0,
+            },
+            "delivery": {
+                "sent_attempts": 0,
+                "failed_attempts": 0,
+                "retried_items": 0,
+                "delivered_items": 0,
+                "dead_letter_items": 0,
+            },
+            "policy": {
+                "retry_max": retry_max,
+                "retry_base_seconds": retry_base_seconds,
+                "retry_max_seconds": retry_max_seconds,
+                "retry_jitter_pct": retry_jitter_pct,
+                "dedup_hours": dedup_hours,
+                "lock_timeout_seconds": lock_timeout_seconds,
+                "recover_corrupt_state": recover_corrupt_state,
             },
         }
 
     return {
-        "date_utc": date_utc,
+        "date_utc": snapshot_date_utc,
         "alerts_count": len(alerts),
         "alerts": [asdict(item) for item in alerts],
         "dry_run": False,
+        "run_id": run_id,
+        "recovered_from_corrupt_state": str(recovered_from) if recovered_from else "",
         "channels_enabled": enabled_channels,
         "queue": {
             "active_count": len(state.get("active") or []),
@@ -908,5 +1040,6 @@ def run_alerts(
             "retry_jitter_pct": retry_jitter_pct,
             "dedup_hours": dedup_hours,
             "lock_timeout_seconds": lock_timeout_seconds,
+            "recover_corrupt_state": recover_corrupt_state,
         },
     }
