@@ -120,6 +120,7 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - Signals: [docs/signal_spec.md](docs/signal_spec.md)
 - Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)
 - Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)
+- Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
 - RAG: [docs/rag.md](docs/rag.md)
 - Local runner: [docs/local_runner.md](docs/local_runner.md)

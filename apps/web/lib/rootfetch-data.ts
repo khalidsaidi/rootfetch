@@ -4,6 +4,8 @@ import path from "node:path";
 export type LatestSignals = {
   date_utc: string;
   run_id: string;
+  model_version?: string;
+  methodology_version?: string;
   approved_tlds_count: number;
   counted_today_count: number;
   counted_today_core_count: number;

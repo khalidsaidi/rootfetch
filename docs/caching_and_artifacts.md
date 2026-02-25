@@ -94,3 +94,9 @@ Latest pointer:
 - Local runner performs ingestion + heavy compute.
 - Vercel is strictly read-only for committed artifacts.
 - No CZDS downloads or secret-based ingestion tasks run on Vercel.
+- Web sync copies new artifacts without deleting previously published run folders.
+
+## UI Consistency Rule
+
+- Fetch `latest.json` once, capture `run_id`, and resolve all other panels from that run-scoped path.
+- Do not mix per-panel reads from mutable pointers.

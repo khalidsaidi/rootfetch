@@ -23,8 +23,8 @@ import {
 import StructuralAnalysisLayer from "@/components/home/StructuralAnalysisLayer";
 import {
   loadCoverage,
-  loadDigestSnippetForRun,
   loadDigestSnippet,
+  loadDigestSnippetForRun,
   loadLatest,
   loadPublishedRunBundle,
 } from "@/lib/rootfetch-data";
@@ -233,6 +233,19 @@ export default async function Home() {
     : Array.isArray(approvalsDiff.added_first_10)
       ? approvalsDiff.added_first_10
       : [];
+  const activeRunId = String(published?.pointer.run_id || latest.run_id || "n/a");
+  const modelVersion = String(
+    (published?.pointer.model_version as string | undefined) || (latest.model_version as string | undefined) || "n/a",
+  );
+  const manifestFiles = Array.isArray((published?.manifest as { files?: Array<Record<string, unknown>> } | undefined)?.files)
+    ? ((published?.manifest as { files: Array<Record<string, unknown>> }).files)
+    : [];
+  const manifestVerified =
+    manifestFiles.length > 0 &&
+    manifestFiles.every((entry) => typeof entry.sha256 === "string" && String(entry.sha256).length === 64);
+  const manifestHref = activeRunId && activeRunId !== "n/a"
+    ? `/rootfetch/artifacts/runs/${encodeURIComponent(activeRunId)}/manifest.json`
+    : "/rootfetch/artifacts/latest.json";
 
   const jsonLdSoftware = {
     "@context": "https://schema.org",
@@ -269,6 +282,52 @@ export default async function Home() {
           anomalyRows={anomalyRows}
           marketMapRows={marketMapRows}
         />
+
+        <section className="rounded-2xl border border-cyan-300/25 bg-cyan-500/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Methodology &amp; Guarantees (v1)</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Deterministic model + immutable artifacts + run-anchored rendering.
+              </p>
+            </div>
+            <TrackedLink
+              href="/methodology#operational-guarantees"
+              label="open_methodology_guarantees"
+              pageType="home"
+              className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            >
+              Open methodology
+            </TrackedLink>
+          </div>
+          <div className="mt-3 grid gap-2 text-xs md:grid-cols-2 xl:grid-cols-4">
+            <p className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
+              <span className="text-muted-foreground">Model</span>
+              <span className="rf-mono-digits">{modelVersion}</span>
+            </p>
+            <p className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
+              <span className="text-muted-foreground">Artifact run</span>
+              <span className="rf-mono-digits">{activeRunId}</span>
+              <CopyValueButton value={activeRunId} keyName="artifact_run_id" context="guarantees_panel" />
+            </p>
+            <p className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
+              <span className="text-muted-foreground">Manifest</span>
+              <TrackedLink
+                href={manifestHref}
+                label="open_manifest_json"
+                pageType="home"
+                eventName="rf_open_json_api"
+                className="text-primary hover:text-primary/80"
+              >
+                {manifestVerified ? "verified (sha256)" : "unverified"}
+              </TrackedLink>
+            </p>
+            <p className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
+              <span className="text-muted-foreground">Delivery</span>
+              <span>at-least-once + dedup</span>
+            </p>
+          </div>
+        </section>
 
         <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
 

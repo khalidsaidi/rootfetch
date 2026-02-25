@@ -63,6 +63,19 @@ export default function MethodologyPage() {
         </ul>
       </Section>
 
+      <Section
+        title="Operational Guarantees"
+        subtitle="Runtime and artifact guarantees exposed by RootFetch v1."
+      >
+        <ul id="operational-guarantees" className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
+          <li>Determinism: same snapshot inputs produce the same snapshot hash and run-scoped model outputs.</li>
+          <li>Consistency: each page load anchors to one artifact run pointer (`data/artifacts/latest.json`).</li>
+          <li>Immutability: `data/artifacts/runs/&lt;run_id&gt;/*` is append-only and hash-audited via `manifest.json`.</li>
+          <li>Caching: run artifacts use 1-year immutable caching, while `latest` and replay index use short SWR windows.</li>
+          <li>Alerts: at-least-once delivery with durable dedup, audit log, and dead-letter retention.</li>
+        </ul>
+      </Section>
+
       <TrackedLink href="/" label="back_home_methodology" pageType="methodology" className="text-sm text-primary hover:text-primary/80">
         Back to dashboard
       </TrackedLink>
