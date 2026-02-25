@@ -2,7 +2,7 @@
 
 ## Determinism
 
-- Same snapshot inputs produce the same snapshot hash.
+- Identical snapshot inputs produce identical outputs under the same `model_version`.
 - Model outputs (`DVI`, `regime`, confidence fields) are deterministic for a given run input set.
 
 ## Consistency
@@ -28,3 +28,7 @@
 - Append-only delivery audit log.
 - Dead-letter retention after bounded retry exhaustion.
 
+## Replay Integrity
+
+- Replay resolves stored artifacts by `run_id`.
+- Historical runs are not recomputed in-place.

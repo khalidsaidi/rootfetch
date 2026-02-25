@@ -263,25 +263,84 @@ export default async function Home() {
       <HomeViewTracker />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }} />
 
+      <section className="rf-glass rounded-3xl p-5 md:p-7">
+        <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">RootFetch</p>
+        <h1 className="mt-1 font-display text-3xl font-semibold leading-tight md:text-4xl">
+          Delegation intelligence from DNS-visible evidence.
+        </h1>
+        <p className="mt-3 max-w-4xl text-sm text-muted-foreground md:text-base">
+          RootFetch ingests CZDS zone snapshots locally, computes a versioned volatility index and structural regime
+          classification, then publishes immutable, auditable artifacts for humans and agents.
+        </p>
+        <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-3">
+          <p>• DVI: instability from dispersion, concentration shifts, and anomaly clustering.</p>
+          <p>• Regime: Stable, Elevated, Consolidating, Fragmenting, Turbulent with hysteresis + confidence.</p>
+          <p>• Immutable runs: run-scoped artifacts with manifest SHA256 integrity proofs.</p>
+        </div>
+        <div className="mt-4 grid gap-2 text-xs text-muted-foreground md:grid-cols-3">
+          <p><span className="text-foreground">Analysts:</span> monitor structure, concentration, and volatility.</p>
+          <p><span className="text-foreground">Operators:</span> alert on regime changes, anomalies, and concentration shifts.</p>
+          <p><span className="text-foreground">Builders:</span> consume immutable artifacts via JSON/MCP.</p>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <TrackedLink
+            href="#live-zone"
+            label="hero_live_zone"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            View Live Zone
+          </TrackedLink>
+          <TrackedLink
+            href="/methodology#operational-guarantees"
+            label="hero_methodology"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Read Methodology
+          </TrackedLink>
+          <TrackedLink
+            href="/rootfetch/artifacts/latest.json"
+            label="hero_fetch_latest_artifact"
+            pageType="home"
+            eventName="rf_open_json_api"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Fetch Latest Artifact
+          </TrackedLink>
+          <TrackedLink
+            href="/docs/mcp"
+            label="hero_connect_mcp"
+            pageType="home"
+            eventName="rf_mcp_doc_open"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Connect via MCP
+          </TrackedLink>
+        </div>
+      </section>
+
       <ReplayTimelineProvider initialDays={0}>
-        <LiveIntelligenceZoneClient
-          dateUtc={latest.date_utc}
-          approved={approved}
-          observedToday={observedToday}
-          totalDelegated={totalDelegated}
-          deltaTodayAbs={deltaTodayAbs}
-          delta7dAbs={delta7dAbs}
-          delta7dPct={delta7dPct}
-          pulseSeries={pulseSeries as Array<{ date_utc: string; total_delegated_count: number }>}
-          dvi={dvi}
-          top10SharePct={top10SharePct}
-          marketRisk={marketRisk}
-          distributionP50={asNumber(distribution.p50)}
-          approvalsAddedCount={asNumber(approvalsDiff.added_count)}
-          approvalsAddedPreview={approvalsAdded}
-          anomalyRows={anomalyRows}
-          marketMapRows={marketMapRows}
-        />
+        <div id="live-zone">
+          <LiveIntelligenceZoneClient
+            dateUtc={latest.date_utc}
+            approved={approved}
+            observedToday={observedToday}
+            totalDelegated={totalDelegated}
+            deltaTodayAbs={deltaTodayAbs}
+            delta7dAbs={delta7dAbs}
+            delta7dPct={delta7dPct}
+            pulseSeries={pulseSeries as Array<{ date_utc: string; total_delegated_count: number }>}
+            dvi={dvi}
+            top10SharePct={top10SharePct}
+            marketRisk={marketRisk}
+            distributionP50={asNumber(distribution.p50)}
+            approvalsAddedCount={asNumber(approvalsDiff.added_count)}
+            approvalsAddedPreview={approvalsAdded}
+            anomalyRows={anomalyRows}
+            marketMapRows={marketMapRows}
+          />
+        </div>
 
         <section className="rounded-2xl border border-cyan-300/25 bg-cyan-500/5 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -516,7 +575,7 @@ state=${state}
       </section>
 
       <footer className="flex flex-wrap items-center justify-between gap-3 pb-4 text-xs text-muted-foreground">
-        <p>RootFetch runs local ingestion only. Vercel serves read-only committed intelligence artifacts.</p>
+        <p>RootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.</p>
         <div className="flex items-center gap-3">
           <Link href="/about" className="hover:text-foreground">
             about

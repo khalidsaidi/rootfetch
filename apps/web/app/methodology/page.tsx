@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function MethodologyPage() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
-      <Section title="Methodology" subtitle="How RootFetch computes delegation intelligence.">
+      <Section title="Methodology" subtitle="How RootFetch computes delegation intelligence from DNS-visible evidence.">
         <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
           <li>
             Primary count metric: <code>count_ns_sld</code>, delegated SLD-owner count inferred from NS records.
@@ -28,6 +28,18 @@ export default function MethodologyPage() {
           <li>
             Snapshot rows keep full visibility; observed rows track what was freshly recounted today.
           </li>
+          <li>
+            Raw zone files are never published. Public surfaces expose aggregate metrics and immutable run artifacts only.
+          </li>
+        </ul>
+      </Section>
+
+      <Section title="Model Contract Metadata">
+        <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
+          <li><code>model_version</code>: locked model contract identifier (for example, <code>rootfetch_model_v1</code>).</li>
+          <li><code>methodology_version</code>: methodology publication version.</li>
+          <li>Normalization and percentile windows are explicitly versioned with the model contract.</li>
+          <li>Weight/policy changes require a version bump and backward-compatible historical artifacts.</li>
         </ul>
       </Section>
 
@@ -60,6 +72,33 @@ export default function MethodologyPage() {
           <li>DVI_v1 = weighted normalized combination of dispersion, concentration shift, and anomaly clustering.</li>
           <li>Regime_v1 uses a hysteresis state machine with minimum-duration enforcement to prevent flapping.</li>
           <li>All model fields are versioned in artifacts (`model_version`, `methodology_version`).</li>
+        </ul>
+      </Section>
+
+      <Section title="DVI_v1" subtitle="Delegation Volatility Index (0-100).">
+        <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
+          <li>Component A: cross-sectional dispersion of delegation deltas.</li>
+          <li>Component B: concentration shift pressure from delta-HHI and top-share movement.</li>
+          <li>Component C: anomaly clustering intensity from outlier density.</li>
+          <li>Output is bounded to 0-100 and banded for operational interpretation.</li>
+        </ul>
+      </Section>
+
+      <Section title="Regime_v1" subtitle="State classification with hysteresis.">
+        <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
+          <li>States: Stable, Elevated, Consolidating, Fragmenting, Turbulent.</li>
+          <li>Overrides use concentration direction and top-share drift.</li>
+          <li>Hysteresis and minimum-duration rules reduce regime flapping.</li>
+          <li>Each regime includes a confidence score derived from signal agreement.</li>
+        </ul>
+      </Section>
+
+      <Section title="Reproducibility" subtitle="How to verify outputs independently.">
+        <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
+          <li>Inputs: committed snapshot aggregates + model contract version.</li>
+          <li>Script: <code>python compute_model_v1.py snapshot.json</code>.</li>
+          <li>Regression tests enforce output stability and transition correctness.</li>
+          <li>Published runs are immutable and hash-verifiable via manifest SHA-256 records.</li>
         </ul>
       </Section>
 

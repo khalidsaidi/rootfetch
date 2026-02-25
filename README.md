@@ -1,7 +1,21 @@
 # RootFetch
 
-RootFetch is a CZDS trend engine that measures DNS-visible delegated domain activity
-from zone snapshots and publishes safe aggregate artifacts for product surfaces.
+Delegation intelligence from DNS-visible evidence, not marketing claims.
+
+RootFetch computes structural movement in the global namespace from CZDS zone snapshots. It runs locally (no raw zone publishing), produces versioned model outputs (DVI + regime classification), and publishes immutable read-only artifacts for analysis, replay, alerting, and AI agents.
+
+## Core Outputs
+
+- `DVI_v1`: bounded 0-100 volatility index (dispersion + concentration delta + anomaly clustering)
+- `Regime_v1`: state machine with thresholds + hysteresis + minimum duration + confidence score
+- Immutable artifacts: `data/artifacts/runs/<run_id>/...` with `manifest.json` (size + sha256)
+
+## Guarantees
+
+- Immutable run artifacts (cacheable for 1 year)
+- Atomic `latest.json` pointer (no mixed reads)
+- Auditable alert delivery (at-least-once + durable dedup + dead-letter)
+- Read-only serving on Vercel
 
 ## Operating Model
 
@@ -124,6 +138,8 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
 - RAG: [docs/rag.md](docs/rag.md)
 - Local runner: [docs/local_runner.md](docs/local_runner.md)
+
+RootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.
 
 ## GitHub Actions
 
