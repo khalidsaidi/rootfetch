@@ -93,6 +93,9 @@ fi
 echo "[rootfetch] compute-signals ${RUN_DATE}"
 rootfetch compute-signals --date "${RUN_DATE}"
 
+echo "[rootfetch] alerts run ${RUN_DATE}"
+rootfetch alerts run --date "${RUN_DATE}" || true
+
 echo "[rootfetch] build static rag"
 rootfetch rag build-static
 

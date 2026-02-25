@@ -14,6 +14,7 @@ from rootfetch.core.pipeline import (
     run_discovery_only,
     run_hybrid,
 )
+from rootfetch.alerts import run_alerts
 from rootfetch.signals.compute import compute_signals_for_date
 from rootfetch.signals.digest import write_daily_digest
 from rootfetch.rag.static_build import build_static_rag
@@ -184,6 +185,13 @@ def _cmd_mcp_serve(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_alerts_run(args: argparse.Namespace) -> int:
+    date_utc = args.date or utc_today_str()
+    payload = run_alerts(date_utc=date_utc, dry_run=args.dry_run)
+    print(json.dumps(payload, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="rootfetch")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -241,6 +249,13 @@ def build_parser() -> argparse.ArgumentParser:
     mcp_serve.add_argument("--transport", choices=["stdio", "streamable-http"], default="stdio")
     mcp_serve.add_argument("--port", type=int, default=8000)
     mcp_serve.set_defaults(func=_cmd_mcp_serve)
+
+    alerts = subparsers.add_parser("alerts", help="Alerting utilities")
+    alerts_sub = alerts.add_subparsers(dest="alerts_command", required=True)
+    alerts_run = alerts_sub.add_parser("run", help="Evaluate and send RootFetch alerts")
+    _add_common_flags(alerts_run)
+    alerts_run.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
+    alerts_run.set_defaults(func=_cmd_alerts_run)
 
     return parser
 

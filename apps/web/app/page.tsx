@@ -1,654 +1,386 @@
 import Link from "next/link";
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import McpSnippet from "./components/McpSnippet";
-import styles from "./page.module.css";
 
-type Mover = {
-  tld?: string;
-  delta_abs?: number;
-  delta_pct?: number;
-  count?: number;
-};
+import Callout from "@/components/Callout";
+import DownloadLinkButton from "@/components/DownloadLinkButton";
+import McpSnippet from "@/components/McpSnippet";
+import NewApprovalsPanel from "@/components/NewApprovalsPanel";
+import Section from "@/components/Section";
+import StatCard from "@/components/StatCard";
+import ThemeToggle from "@/components/ThemeToggle";
+import TopTldTableClient from "@/components/TopTldTableClient";
+import DistributionBars from "@/components/charts/DistributionBars";
+import TrackedLink from "@/components/TrackedLink";
+import {
+  loadApprovalsDiffLatest,
+  loadConcentrationLatest,
+  loadCoverage,
+  loadDigestSnippet,
+  loadDistributionLatest,
+  loadLatest,
+  loadTopTldsCsv,
+} from "@/lib/rootfetch-data";
 
-type RollingUpdate = {
-  tld?: string;
-  count?: number;
-  prev_date_utc?: string;
-  days_since_prev?: number;
-  delta_abs?: number;
-  delta_pct?: number;
-  cadence?: string;
-  status?: string;
-  is_first_seen?: boolean;
-};
-
-type Anomaly = {
-  tld?: string;
-  reason?: string;
-  delta_pct?: number;
-  z?: number;
-  robust_z?: number;
-};
-
-type Sector = {
-  sector?: string;
-  sector_count?: number;
-  sector_delta_pct?: number;
-};
-
-type TopTld = {
-  tld?: string;
-  count?: number;
-  share_pct?: number;
-  sector?: string;
-  cadence?: string;
-  status?: string;
-  is_estimate?: boolean;
-};
-
-type Distribution = {
-  p50?: number;
-  p90?: number;
-  p99?: number;
-  max?: number;
-  min?: number;
-  tiny_tlds_lt_100?: number;
-  small_tlds_lt_1000?: number;
-  tiny_lt_100?: number;
-  small_lt_1000?: number;
-};
-
-type Concentration = {
-  top1_share_pct?: number;
-  top3_share_pct?: number;
-  top10_share_pct?: number;
-  hhi?: number;
-};
-
-type ApprovalsDiff = {
-  prev_date_utc?: string;
-  added_count?: number;
-  removed_count?: number;
-  added_preview?: string[];
-  added_first_10?: string[];
-  added?: string[];
-};
-
-type LatestSignals = {
-  date_utc: string;
-  run_id: string;
-  approved_tlds_count: number;
-  counted_today_count?: number;
-  counted_today_core_count?: number;
-  counted_today_rolling_count?: number;
-  snapshot_rows_today?: number;
-  processed_tlds_count_today?: number;
-  coverage_pct_today?: number;
-  note_if_partial?: string;
-  total_delegated_domains_today?: number;
-  total_delegated_counted_today?: number;
-  top_tlds?: TopTld[];
-  distribution?: Distribution;
-  concentration?: Concentration;
-  approvals_diff?: ApprovalsDiff;
-  top_movers_abs: Mover[];
-  top_movers_pct: Mover[];
-  top_decliners_abs: Mover[];
-  core_movers_abs?: Mover[];
-  core_movers_pct?: Mover[];
-  rolling_updates?: RollingUpdate[];
-  anomalies: Anomaly[];
-  sector_snapshot: Sector[];
-};
-
-type CoverageLatest = {
-  date_utc: string;
-  approved_tlds_count: number;
-  approved_tlds: string[];
-  counted_today_tlds: string[];
-  counted_today_count: number;
-  counted_today_core_count?: number;
-  counted_today_rolling_count?: number;
-  counted_ever_tlds: string[];
-  counted_ever_count: number;
-  missing_ever_tlds: string[];
-  missing_ever_count: number;
-};
-
-const EMPTY_SIGNALS: LatestSignals = {
-  date_utc: "n/a",
-  run_id: "n/a",
-  approved_tlds_count: 0,
-  counted_today_count: 0,
-  counted_today_core_count: 0,
-  counted_today_rolling_count: 0,
-  snapshot_rows_today: 0,
-  processed_tlds_count_today: 0,
-  coverage_pct_today: 0,
-  note_if_partial: "",
-  total_delegated_domains_today: 0,
-  total_delegated_counted_today: 0,
-  top_tlds: [],
-  distribution: {},
-  concentration: {},
-  approvals_diff: {},
-  top_movers_abs: [],
-  top_movers_pct: [],
-  top_decliners_abs: [],
-  core_movers_abs: [],
-  core_movers_pct: [],
-  rolling_updates: [],
-  anomalies: [],
-  sector_snapshot: [],
-};
-
-const EMPTY_COVERAGE: CoverageLatest = {
-  date_utc: "n/a",
-  approved_tlds_count: 0,
-  approved_tlds: [],
-  counted_today_tlds: [],
-  counted_today_count: 0,
-  counted_today_core_count: 0,
-  counted_today_rolling_count: 0,
-  counted_ever_tlds: [],
-  counted_ever_count: 0,
-  missing_ever_tlds: [],
-  missing_ever_count: 0,
-};
-
-const EMPTY_DISTRIBUTION: Distribution = {};
-const EMPTY_CONCENTRATION: Concentration = {};
-const EMPTY_APPROVALS_DIFF: ApprovalsDiff = {};
-
-function fmtInt(value: number | undefined): string {
+function fmtInt(value: number | undefined | null): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "n/a";
   }
   return new Intl.NumberFormat("en-US").format(Math.trunc(value));
 }
 
-function fmtRatioPct(value: number | undefined): string {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return "n/a";
-  }
-  return `${(value * 100).toFixed(2)}%`;
-}
-
-function fmtPctPoints(value: number | undefined): string {
+function fmtPct(value: number | undefined | null): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "n/a";
   }
   return `${value.toFixed(2)}%`;
 }
 
-function parseCsvRecord(line: string): string[] {
-  const out: string[] = [];
-  let current = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i += 1) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i += 1;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
-    }
-    if (ch === "," && !inQuotes) {
-      out.push(current);
-      current = "";
-      continue;
-    }
-    current += ch;
+function fmtRatio(value: number | undefined | null): string {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "n/a";
   }
-  out.push(current);
-  return out;
-}
-
-async function loadLatestSignals(): Promise<LatestSignals> {
-  const latestPath = path.join(process.cwd(), "public", "rootfetch", "latest.json");
-  try {
-    const payload = await fs.readFile(latestPath, "utf-8");
-    const parsed = JSON.parse(payload) as Partial<LatestSignals>;
-    return {
-      ...EMPTY_SIGNALS,
-      ...parsed,
-      top_tlds: parsed.top_tlds ?? [],
-      distribution: parsed.distribution ?? {},
-      concentration: parsed.concentration ?? {},
-      approvals_diff: parsed.approvals_diff ?? {},
-      top_movers_abs: parsed.top_movers_abs ?? [],
-      top_movers_pct: parsed.top_movers_pct ?? [],
-      top_decliners_abs: parsed.top_decliners_abs ?? [],
-      core_movers_abs: parsed.core_movers_abs ?? parsed.top_movers_abs ?? [],
-      core_movers_pct: parsed.core_movers_pct ?? parsed.top_movers_pct ?? [],
-      rolling_updates: parsed.rolling_updates ?? [],
-      anomalies: parsed.anomalies ?? [],
-      sector_snapshot: parsed.sector_snapshot ?? [],
-    };
-  } catch {
-    return EMPTY_SIGNALS;
-  }
-}
-
-async function loadCoverage(): Promise<CoverageLatest> {
-  const coveragePath = path.join(process.cwd(), "public", "rootfetch", "coverage_latest.json");
-  try {
-    const payload = await fs.readFile(coveragePath, "utf-8");
-    const parsed = JSON.parse(payload) as Partial<CoverageLatest>;
-    return {
-      ...EMPTY_COVERAGE,
-      ...parsed,
-      approved_tlds: parsed.approved_tlds ?? [],
-      counted_today_tlds: parsed.counted_today_tlds ?? [],
-      counted_ever_tlds: parsed.counted_ever_tlds ?? [],
-      missing_ever_tlds: parsed.missing_ever_tlds ?? [],
-    };
-  } catch {
-    return EMPTY_COVERAGE;
-  }
-}
-
-async function loadTopTldsCsv(): Promise<TopTld[]> {
-  const csvPath = path.join(process.cwd(), "public", "rootfetch", "top_tlds_latest.csv");
-  try {
-    const raw = await fs.readFile(csvPath, "utf-8");
-    const lines = raw.split("\n").map((line) => line.trim()).filter(Boolean);
-    if (lines.length <= 1) {
-      return [];
-    }
-    const header = parseCsvRecord(lines[0]);
-    const idx = Object.fromEntries(header.map((name, i) => [name, i]));
-    const rows: TopTld[] = [];
-    for (const line of lines.slice(1)) {
-      const fields = parseCsvRecord(line);
-      rows.push({
-        tld: fields[idx.tld] ?? "",
-        count: Number(fields[idx.count] ?? ""),
-        share_pct: Number(fields[idx.share_pct] ?? ""),
-        sector: fields[idx.sector] ?? "",
-        cadence: fields[idx.cadence] ?? "",
-        status: fields[idx.status] ?? "",
-      });
-    }
-    return rows.filter((row) => row.tld);
-  } catch {
-    return [];
-  }
-}
-
-async function loadDistribution(): Promise<Distribution> {
-  const filePath = path.join(process.cwd(), "public", "rootfetch", "distribution_latest.json");
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw) as Distribution;
-  } catch {
-    return EMPTY_DISTRIBUTION;
-  }
-}
-
-async function loadConcentration(): Promise<Concentration> {
-  const filePath = path.join(process.cwd(), "public", "rootfetch", "concentration_latest.json");
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(raw) as Concentration;
-  } catch {
-    return EMPTY_CONCENTRATION;
-  }
-}
-
-async function loadApprovalsDiff(): Promise<ApprovalsDiff> {
-  const filePath = path.join(process.cwd(), "public", "rootfetch", "approvals_diff_latest.json");
-  try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    const parsed = JSON.parse(raw) as ApprovalsDiff;
-    const addedList = Array.isArray(parsed.added) ? parsed.added : [];
-    const firstTen = Array.isArray(parsed.added_first_10) ? parsed.added_first_10 : [];
-    const preview = Array.isArray(parsed.added_preview) && parsed.added_preview.length > 0
-      ? parsed.added_preview
-      : firstTen.length > 0
-        ? firstTen
-      : addedList.slice(0, 10);
-    return {
-      ...parsed,
-      added_preview: preview,
-      added: addedList,
-    };
-  } catch {
-    return EMPTY_APPROVALS_DIFF;
-  }
-}
-
-async function loadDigestSnippet(): Promise<string> {
-  const digestPath = path.join(process.cwd(), "public", "rootfetch", "latest.md");
-  try {
-    const raw = await fs.readFile(digestPath, "utf-8");
-    return raw
-      .split("\n")
-      .slice(0, 20)
-      .join("\n")
-      .trim();
-  } catch {
-    return "Latest digest is unavailable. Run `rootfetch run-baseline --resume` or `rootfetch run-hybrid` first.";
-  }
-}
-
-function MoverList({ title, items }: { title: string; items: Mover[] }) {
-  return (
-    <section className={styles.panel}>
-      <h2>{title}</h2>
-      {items.length === 0 ? (
-        <p className={styles.empty}>Top movers appear after we have yesterday&apos;s baseline.</p>
-      ) : (
-        <ul className={styles.rankList}>
-          {items.slice(0, 8).map((item) => (
-            <li key={`${title}-${item.tld}-${item.delta_abs}`}>
-              <span className={styles.tld}>{item.tld ?? "unknown"}</span>
-              <span>{fmtInt(item.delta_abs)}</span>
-              <span>{fmtRatioPct(item.delta_pct)}</span>
-              <span>{fmtInt(item.count)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function RollingList({ items }: { items: RollingUpdate[] }) {
-  const firstSeenCount = items.filter((item) => !item.prev_date_utc || item.is_first_seen).length;
-  return (
-    <section className={styles.panel}>
-      <h2>Rolling Updates</h2>
-      {firstSeenCount > 0 ? (
-        <p className={styles.panelSub}>First observations today: {fmtInt(firstSeenCount)}</p>
-      ) : null}
-      {items.length === 0 ? (
-        <p className={styles.empty}>No rolling updates or first-seen rows for this run.</p>
-      ) : (
-        <ul className={styles.rankList}>
-          {items.slice(0, 8).map((item) => {
-            const isFirstSeen = !item.prev_date_utc || item.is_first_seen;
-            return (
-              <li key={`${item.tld}-${item.prev_date_utc}-${item.delta_abs}`}>
-                <span className={styles.tld}>{item.tld ?? "unknown"}</span>
-                <span>{isFirstSeen ? "First seen today (baseline)" : item.prev_date_utc}</span>
-                <span>{isFirstSeen ? "new" : typeof item.days_since_prev === "number" ? `${item.days_since_prev}d` : "n/a"}</span>
-                <span>{isFirstSeen ? "n/a" : fmtInt(item.delta_abs)}</span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function TopTldsTable({ items }: { items: TopTld[] }) {
-  return (
-    <article className={styles.panel}>
-      <h2>Top TLDs by size</h2>
-      {items.length === 0 ? (
-        <p className={styles.empty}>No cross-sectional ranking available yet.</p>
-      ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>TLD</th>
-              <th>Count</th>
-              <th>Share</th>
-              <th>Sector</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.slice(0, 20).map((item, idx) => (
-              <tr key={`${item.tld}-${idx}`}>
-                <td>{idx + 1}</td>
-                <td className={styles.tld}>{item.tld ?? "n/a"}</td>
-                <td>{fmtInt(item.count)}</td>
-                <td>{fmtPctPoints(item.share_pct)}</td>
-                <td>{item.sector || "other"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </article>
-  );
+  return `${(value * 100).toFixed(2)}%`;
 }
 
 export default async function Home() {
-  const [latest, coverage, digestSnippet, topTldsFallback, distributionFallback, concentrationFallback, approvalsDiffFallback] = await Promise.all([
-    loadLatestSignals(),
-    loadCoverage(),
-    loadDigestSnippet(),
-    loadTopTldsCsv(),
-    loadDistribution(),
-    loadConcentration(),
-    loadApprovalsDiff(),
-  ]);
+  const [latest, coverage, topCsv, distributionFallback, concentrationFallback, approvalsFallback, digestSnippet] =
+    await Promise.all([
+      loadLatest(),
+      loadCoverage(),
+      loadTopTldsCsv(),
+      loadDistributionLatest(),
+      loadConcentrationLatest(),
+      loadApprovalsDiffLatest(),
+      loadDigestSnippet(22),
+    ]);
 
-  const approvedCount = coverage.approved_tlds_count || latest.approved_tlds_count;
+  const approved = coverage.approved_tlds_count || latest.approved_tlds_count || 0;
   const observedToday = latest.counted_today_count ?? 0;
-  const countedCore = latest.counted_today_core_count ?? coverage.counted_today_core_count ?? 0;
-  const countedRolling = latest.counted_today_rolling_count ?? coverage.counted_today_rolling_count ?? 0;
-  const snapshotRowsToday = latest.snapshot_rows_today ?? latest.processed_tlds_count_today ?? coverage.counted_today_count ?? 0;
+  const coreToday = latest.counted_today_core_count ?? coverage.counted_today_core_count ?? 0;
+  const rollingToday = latest.counted_today_rolling_count ?? coverage.counted_today_rolling_count ?? 0;
+  const snapshotRowsToday =
+    latest.snapshot_rows_today ?? latest.processed_tlds_count_today ?? coverage.counted_today_count ?? 0;
   const countedEver = coverage.counted_ever_count ?? 0;
-  const missingEver = coverage.missing_ever_count ?? Math.max(0, approvedCount - countedEver);
-  const coveragePct =
-    typeof latest.coverage_pct_today === "number"
-      ? latest.coverage_pct_today
-      : approvedCount > 0
-        ? observedToday / approvedCount
-        : 0;
+  const missingEver = coverage.missing_ever_count ?? Math.max(0, approved - countedEver);
+  const coveragePct = approved > 0 ? observedToday / approved : 0;
 
-  const coreAbs = latest.core_movers_abs ?? latest.top_movers_abs;
-  const corePct = latest.core_movers_pct ?? latest.top_movers_pct;
-  const rollingUpdates = latest.rolling_updates ?? [];
-  const topTlds = (latest.top_tlds && latest.top_tlds.length > 0 ? latest.top_tlds : topTldsFallback) ?? [];
-  const distribution: Distribution = { ...distributionFallback, ...(latest.distribution ?? {}) };
-  const concentration: Concentration = { ...concentrationFallback, ...(latest.concentration ?? {}) };
-  const approvalsDiff: ApprovalsDiff = { ...approvalsDiffFallback, ...(latest.approvals_diff ?? {}) };
-  const approvalsAdded = approvalsDiff.added_preview ?? [];
-  const totalDelegated = latest.total_delegated_counted_today ?? latest.total_delegated_domains_today;
+  const topRows = latest.top_tlds && latest.top_tlds.length > 0 ? latest.top_tlds : topCsv;
+
+  const distribution = {
+    ...distributionFallback,
+    ...(latest.distribution || {}),
+  } as Record<string, number>;
+
+  const concentration = {
+    ...concentrationFallback,
+    ...(latest.concentration || {}),
+  } as Record<string, number>;
+
+  const approvalsDiff = {
+    ...approvalsFallback,
+    ...(latest.approvals_diff || {}),
+  } as Record<string, unknown>;
+
+  const tiny = Number(distribution.tiny_tlds_lt_100 || distribution.tiny_lt_100 || 0);
+  const small = Number(distribution.small_tlds_lt_1000 || distribution.small_lt_1000 || 0);
+  const medium = Math.max(snapshotRowsToday - small, 0);
+
+  const distributionBars = [
+    { bucket: "tiny <100", count: tiny },
+    { bucket: "small <1k", count: Math.max(small - tiny, 0) },
+    { bucket: "1k+", count: medium },
+  ];
+
+  const jsonLdSoftware = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "RootFetch",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.vercel.app",
+    description:
+      "Read-only analytics dashboard for CZDS-approved TLD delegation counts, movers, concentration, and coverage.",
+  };
+
+  const jsonLdDataset = {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: "RootFetch Delegation Snapshot",
+    description: "Daily delegated-domain counts per approved TLD derived from local CZDS ingestion.",
+    creator: {
+      "@type": "Organization",
+      name: "RootFetch",
+    },
+    distribution: [
+      {
+        "@type": "DataDownload",
+        contentUrl: "/rootfetch/latest.json",
+        encodingFormat: "application/json",
+      },
+      {
+        "@type": "DataDownload",
+        contentUrl: "/rootfetch/top_tlds_latest.csv",
+        encodingFormat: "text/csv",
+      },
+    ],
+  };
 
   return (
-    <main className={styles.page}>
-      <section className={styles.hero}>
-        <p className={styles.kicker}>RootFetch Daily Dashboard</p>
-        <h1>Hybrid delegation signals from committed aggregates</h1>
-        <p className={styles.subtitle}>
-          Ingestion runs on your local machine (day-1 full baseline, then core daily + rolling long tail). Vercel serves read-only artifacts.
-        </p>
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-16 pt-8 md:px-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdDataset) }} />
 
-        <div className={styles.metaGrid}>
-          <article>
-            <p>Latest date (UTC)</p>
-            <strong>{latest.date_utc}</strong>
-          </article>
-          <article>
-            <p>Approved TLDs</p>
-            <strong>{fmtInt(approvedCount)}</strong>
-          </article>
-          <article>
-            <p>Observed today</p>
-            <strong>{fmtInt(observedToday)}</strong>
-          </article>
-          <article>
-            <p>Snapshot rows today</p>
-            <strong>{fmtInt(snapshotRowsToday)}</strong>
-          </article>
-          <article>
-            <p>Counted ever</p>
-            <strong>{fmtInt(countedEver)}</strong>
-          </article>
-          <article>
-            <p>Missing ever</p>
-            <strong>{fmtInt(missingEver)}</strong>
-          </article>
-          <article>
-            <p>Core counted today</p>
-            <strong>{fmtInt(countedCore)}</strong>
-          </article>
-          <article>
-            <p>Rolling counted today</p>
-            <strong>{fmtInt(countedRolling)}</strong>
-          </article>
-          <article>
-            <p>Observed coverage today</p>
-            <strong>{fmtRatioPct(coveragePct)}</strong>
-          </article>
-          <article>
-            <p>Total delegated counted today</p>
-            <strong>{fmtInt(totalDelegated)}</strong>
-          </article>
-          <article>
-            <p>Run ID</p>
-            <strong className={styles.mono}>{latest.run_id}</strong>
-          </article>
+      <section className="relative overflow-hidden rounded-3xl border border-border/60 bg-card/80 p-6 shadow-glow md:p-8">
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-28 w-28 rounded-full bg-accent/20 blur-3xl" />
+
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">RootFetch Delegation Intelligence</p>
+            <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight md:text-4xl">
+              Baseline-to-hybrid coverage with market-structure signals
+            </h1>
+            <p className="mt-3 max-w-3xl text-sm text-muted-foreground md:text-base">
+              Ingestion runs locally only. Vercel serves committed artifacts: coverage, top TLD concentration,
+              sector indices, digest summaries, and static RAG chunks.
+            </p>
+          </div>
+          <ThemeToggle />
         </div>
 
-        {latest.note_if_partial ? <p className={styles.note}>{latest.note_if_partial}</p> : null}
-
-        <div className={styles.links}>
-          <Link href="/approved">Approved TLDs</Link>
-          <Link href="/rootfetch/latest.md">Read digest</Link>
-          <Link href="/api/latest">JSON API</Link>
-          <Link href="/api/mcp">MCP endpoint</Link>
-          <Link href="/about">About metrics</Link>
-        </div>
-
-        <div className={styles.mcpBox}>
-          <p>
-            MCP endpoint: <code>/api/mcp</code>
-          </p>
-          <McpSnippet siteUrl={process.env.NEXT_PUBLIC_SITE_URL} />
+        <div className="relative z-10 mt-5 flex flex-wrap items-center gap-2">
+          <TrackedLink
+            href="/approved"
+            label="open_approved"
+            pageType="home"
+            eventName="rf_open_approved"
+            className="rounded-full border border-border/70 bg-background/70 px-4 py-1.5 text-sm hover:border-primary/50"
+          >
+            Approved TLDs
+          </TrackedLink>
+          <TrackedLink
+            href="/sectors"
+            label="open_sectors"
+            pageType="home"
+            className="rounded-full border border-border/70 bg-background/70 px-4 py-1.5 text-sm hover:border-primary/50"
+          >
+            Sectors
+          </TrackedLink>
+          <TrackedLink
+            href="/compare"
+            label="open_compare"
+            pageType="home"
+            className="rounded-full border border-border/70 bg-background/70 px-4 py-1.5 text-sm hover:border-primary/50"
+          >
+            Compare TLDs
+          </TrackedLink>
+          <TrackedLink
+            href="/ask"
+            label="open_ask"
+            pageType="home"
+            className="rounded-full border border-border/70 bg-background/70 px-4 py-1.5 text-sm hover:border-primary/50"
+          >
+            Ask RootFetch
+          </TrackedLink>
+          <TrackedLink
+            href="/api/latest"
+            label="open_json_api"
+            pageType="home"
+            eventName="rf_open_json_api"
+            className="rounded-full border border-border/70 bg-background/70 px-4 py-1.5 text-sm hover:border-primary/50"
+          >
+            JSON API
+          </TrackedLink>
+          <TrackedLink
+            href="/rootfetch/latest.md"
+            label="read_digest"
+            pageType="home"
+            eventName="rf_read_digest"
+            className="rounded-full border border-border/70 bg-background/70 px-4 py-1.5 text-sm hover:border-primary/50"
+          >
+            Read Digest
+          </TrackedLink>
         </div>
       </section>
 
-      <section className={styles.marketSection}>
-        <h2 className={styles.sectionHeading}>Market Structure</h2>
-        <div className={styles.grid2}>
-        <TopTldsTable items={topTlds} />
-        <article className={styles.panel}>
-          <h2>Distribution</h2>
-          <div className={styles.metricTiles}>
-            <div>
-              <p>Median (p50)</p>
-              <strong>{fmtInt(distribution.p50)}</strong>
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <StatCard label="Approved TLDs" value={approved} dataTestId="stat-approved" />
+        <StatCard
+          label="Observed today"
+          value={observedToday}
+          hint={`core ${fmtInt(coreToday)} + rolling ${fmtInt(rollingToday)}`}
+          dataTestId="stat-observed"
+        />
+        <StatCard label="Snapshot rows today" value={snapshotRowsToday} />
+        <StatCard label="Counted ever" value={countedEver} />
+        <StatCard
+          label="Missing ever"
+          value={missingEver}
+          hint={missingEver === 0 ? "coverage complete" : "baseline catch-up required"}
+          dataTestId="stat-missing"
+        />
+      </section>
+
+      <Section title="Market Structure" subtitle="Cross-sectional signals generated from today’s committed counts.">
+        <div className="grid gap-5 lg:grid-cols-[1.6fr,1fr]">
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="font-display text-lg font-semibold">Top TLDs by size</h3>
+              <DownloadLinkButton
+                href="/rootfetch/top_tlds_latest.csv"
+                filename="rootfetch_top_tlds_latest.csv"
+                label="Download CSV"
+                kind="top_tlds"
+              />
             </div>
-            <div>
-              <p>p90</p>
-              <strong>{fmtInt(distribution.p90)}</strong>
-            </div>
-            <div>
-              <p>p99</p>
-              <strong>{fmtInt(distribution.p99)}</strong>
-            </div>
-            <div>
-              <p>Tiny (&lt;100)</p>
-              <strong>{fmtInt(distribution.tiny_tlds_lt_100 ?? distribution.tiny_lt_100)}</strong>
-            </div>
+            {topRows.length > 0 ? <TopTldTableClient rows={topRows} /> : <Callout>Top-TLD artifacts are not generated yet.</Callout>}
           </div>
 
-          <h3 className={styles.subHeading}>Concentration</h3>
-          <div className={styles.metricTiles}>
+          <div className="space-y-4">
             <div>
-              <p>Top 1 share</p>
-              <strong>{fmtPctPoints(concentration.top1_share_pct)}</strong>
+              <h3 className="mb-3 font-display text-lg font-semibold">Distribution</h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <StatCard label="Median (p50)" value={Number(distribution.p50 || 0)} />
+                <StatCard label="p90" value={Number(distribution.p90 || 0)} />
+                <StatCard label="p99" value={Number(distribution.p99 || 0)} />
+                <StatCard
+                  label="Tiny (<100)"
+                  value={Number(distribution.tiny_tlds_lt_100 || distribution.tiny_lt_100 || 0)}
+                />
+              </div>
+              <div className="mt-3">
+                <DistributionBars rows={distributionBars} />
+              </div>
             </div>
-            <div>
-              <p>Top 3 share</p>
-              <strong>{fmtPctPoints(concentration.top3_share_pct)}</strong>
-            </div>
-            <div>
-              <p>Top 10 share</p>
-              <strong>{fmtPctPoints(concentration.top10_share_pct)}</strong>
-            </div>
-            <div>
-              <p>HHI</p>
-              <strong>{typeof concentration.hhi === "number" ? concentration.hhi.toFixed(4) : "n/a"}</strong>
-            </div>
-          </div>
 
-          <div className={styles.approvalsBox}>
-            <h3 className={styles.subHeading}>New approvals today</h3>
-            <p className={styles.approvalsTitle}>+{fmtInt(approvalsDiff.added_count)} / -{fmtInt(approvalsDiff.removed_count)}</p>
-            {approvalsAdded.length > 0 ? (
-              <p className={styles.approvalsList}>{approvalsAdded.slice(0, 10).join(", ")}</p>
-            ) : (
-              <p className={styles.empty}>No newly approved TLDs in this snapshot diff.</p>
-            )}
+            <div>
+              <h3 className="mb-3 font-display text-lg font-semibold">Concentration</h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <StatCard label="Top 1 share" value={fmtPct(Number(concentration.top1_share_pct || 0))} />
+                <StatCard
+                  label="Top 10 share"
+                  value={fmtPct(Number(concentration.top10_share_pct || 0))}
+                  dataTestId="tile-top10-share"
+                />
+                <StatCard label="Top 3 share" value={fmtPct(Number(concentration.top3_share_pct || 0))} />
+                <StatCard label="HHI" value={Number(concentration.hhi || 0).toFixed(4)} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-display text-lg font-semibold">New approvals today</h3>
+              <NewApprovalsPanel approvals={approvalsDiff} />
+            </div>
           </div>
-        </article>
         </div>
-      </section>
+      </Section>
 
-      <section className={styles.grid3}>
-        <MoverList title="Core Daily Movers (abs)" items={coreAbs} />
-        <MoverList title="Core Daily Movers (pct)" items={corePct} />
-        <RollingList items={rollingUpdates} />
-      </section>
-
-      <section className={styles.grid2}>
-        <article className={styles.panel}>
-          <h2>Sector snapshot</h2>
-          {latest.sector_snapshot.length === 0 ? (
-            <p className={styles.empty}>No sector data available yet.</p>
-          ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Sector</th>
-                  <th>Count</th>
-                  <th>Delta %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latest.sector_snapshot.map((row) => (
-                  <tr key={row.sector}>
-                    <td>{row.sector ?? "other"}</td>
-                    <td>{fmtInt(row.sector_count)}</td>
-                    <td>{fmtRatioPct(row.sector_delta_pct)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </article>
-
-        <article className={styles.panel}>
-          <h2>Anomalies</h2>
-          {latest.anomalies.length === 0 ? (
-            <p className={styles.empty}>No anomalies flagged for this run.</p>
-          ) : (
-            <ul className={styles.anomalyList}>
-              {latest.anomalies.slice(0, 10).map((item) => (
-                <li key={`${item.tld}-${item.reason}`}>
-                  <div>
-                    <strong>{item.tld ?? "unknown"}</strong>
-                    <span>{item.reason ?? "n/a"}</span>
-                  </div>
-                  <div>
-                    <span>{fmtRatioPct(item.delta_pct)}</span>
-                    <span>z:{typeof item.z === "number" ? item.z.toFixed(2) : "n/a"}</span>
-                    <span>rz:{typeof item.robust_z === "number" ? item.robust_z.toFixed(2) : "n/a"}</span>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Section title="Core Movers (Absolute)">
+          {latest.core_movers_abs && latest.core_movers_abs.length > 0 ? (
+            <ul className="space-y-2">
+              {latest.core_movers_abs.slice(0, 8).map((row) => (
+                <li
+                  key={`${row.tld}-${row.delta_abs}`}
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm"
+                >
+                  <TrackedLink
+                    href={`/tld/${row.tld}`}
+                    label={`mover_abs_${row.tld}`}
+                    pageType="home"
+                    className="font-medium hover:text-primary"
+                  >
+                    {row.tld}
+                  </TrackedLink>
+                  <div className="text-right">
+                    <p>{fmtInt(row.delta_abs)}</p>
+                    <p className="text-xs text-muted-foreground">{fmtRatio(row.delta_pct)}</p>
                   </div>
                 </li>
               ))}
             </ul>
+          ) : (
+            <Callout>Movers populate when prior-day comparable observations exist.</Callout>
           )}
-        </article>
-      </section>
+        </Section>
 
-      <section className={styles.panel}>
-        <h2>Digest preview</h2>
-        <pre className={styles.digest}>{digestSnippet}</pre>
-      </section>
+        <Section title="Rolling Updates">
+          {latest.rolling_updates && latest.rolling_updates.length > 0 ? (
+            <ul className="space-y-2">
+              {latest.rolling_updates.slice(0, 8).map((row) => (
+                <li
+                  key={`${row.tld}-${row.prev_date_utc || "first"}`}
+                  className="rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <TrackedLink
+                      href={`/tld/${row.tld}`}
+                      label={`rolling_${row.tld}`}
+                      pageType="home"
+                      className="font-medium hover:text-primary"
+                    >
+                      {row.tld}
+                    </TrackedLink>
+                    <span className="text-xs text-muted-foreground">{fmtInt(row.count)}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {row.prev_date_utc ? `Last seen ${row.prev_date_utc}` : "First seen today (baseline)"}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Callout>No rolling updates or first-seen entries today.</Callout>
+          )}
+        </Section>
+
+        <Section title="Coverage + API">
+          <div className="space-y-2 text-sm">
+            <p>
+              <span className="text-muted-foreground">Observed coverage:</span> {fmtRatio(coveragePct)}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Total delegated counted today:</span>{" "}
+              {fmtInt(latest.total_delegated_counted_today || latest.total_delegated_domains_today || 0)}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Run ID:</span>{" "}
+              <span className="font-mono text-xs">{latest.run_id}</span>
+            </p>
+          </div>
+          <div className="mt-4">
+            <McpSnippet siteUrl={process.env.NEXT_PUBLIC_SITE_URL} />
+          </div>
+        </Section>
+      </div>
+
+      <Section title="Digest Preview" subtitle="Daily summary generated from committed artifacts.">
+        <pre className="max-h-[420px] overflow-auto rounded-lg border border-border/70 bg-background/70 p-4 font-mono text-xs leading-relaxed">
+          {digestSnippet}
+        </pre>
+        <div className="mt-3">
+          <TrackedLink
+            href="/rootfetch/latest.md"
+            label="read_digest_bottom"
+            pageType="home"
+            eventName="rf_read_digest"
+            className="text-sm text-primary hover:text-primary/80"
+          >
+            Open full digest
+          </TrackedLink>
+        </div>
+      </Section>
+
+      <footer className="flex flex-wrap items-center justify-between gap-3 pb-4 text-xs text-muted-foreground">
+        <p>RootFetch keeps ingestion local only. Vercel remains read-only.</p>
+        <div className="flex items-center gap-3">
+          <Link href="/about" className="hover:text-foreground">
+            About metrics
+          </Link>
+          <Link href="/llms.txt" className="hover:text-foreground">
+            llms.txt
+          </Link>
+        </div>
+      </footer>
     </main>
   );
 }

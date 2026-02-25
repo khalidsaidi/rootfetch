@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
+import { loadRagChunks, ragSearch } from "@/lib/rag";
 
 type ApprovedLatest = {
   date_utc: string;
@@ -27,23 +28,7 @@ type CoverageLatest = {
   missing_ever_count: number;
 };
 
-type RagChunk = {
-  id: string;
-  source_path: string;
-  source_type: string;
-  date_utc?: string | null;
-  title?: string | null;
-  text: string;
-  resource_uri?: string;
-};
-
-type RagChunksFile = {
-  chunks: RagChunk[];
-};
-
 const ROOTFETCH_PUBLIC_DIR = path.join(process.cwd(), "public", "rootfetch");
-
-let ragChunksCache: RagChunk[] | null = null;
 
 function textContent(payload: unknown) {
   return {
@@ -63,51 +48,6 @@ async function loadApprovedLatest(): Promise<ApprovedLatest> {
 
 async function loadCoverageLatest(): Promise<CoverageLatest> {
   return readJsonFile<CoverageLatest>("coverage_latest.json");
-}
-
-function tokenize(text: string): string[] {
-  return text
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .map((part) => part.trim())
-    .filter(Boolean);
-}
-
-function excerptFor(text: string, queryTokens: string[]): string {
-  const lower = text.toLowerCase();
-  let idx = -1;
-  for (const token of queryTokens) {
-    idx = lower.indexOf(token);
-    if (idx >= 0) break;
-  }
-  if (idx < 0) {
-    return text.slice(0, 240);
-  }
-  const start = Math.max(0, idx - 80);
-  const end = Math.min(text.length, idx + 180);
-  return text.slice(start, end).replace(/\s+/g, " ").trim();
-}
-
-function lexicalScore(query: string, queryTokens: string[], text: string): number {
-  const haystack = text.toLowerCase();
-  const textTokens = new Set(tokenize(haystack));
-  let overlap = 0;
-  for (const token of queryTokens) {
-    if (textTokens.has(token)) {
-      overlap += 1;
-    }
-  }
-  const phraseBoost = haystack.includes(query.toLowerCase()) ? 2 : 0;
-  return overlap + phraseBoost;
-}
-
-async function loadRagChunks(): Promise<RagChunk[]> {
-  if (ragChunksCache) {
-    return ragChunksCache;
-  }
-  const payload = await readJsonFile<RagChunksFile>("rag_chunks.json");
-  ragChunksCache = Array.isArray(payload?.chunks) ? payload.chunks : [];
-  return ragChunksCache;
 }
 
 function parseAllowedOrigins(): string[] {
@@ -264,38 +204,8 @@ const mcpHandler = createMcpHandler(
         },
       },
       async ({ query, k = 8, source_types }) => {
-        const chunks = await loadRagChunks();
-        const queryTokens = tokenize(query);
-        const sourceFilter = Array.isArray(source_types)
-          ? new Set(source_types.map((item) => item.toLowerCase()))
-          : null;
-
-        const scored = chunks
-          .filter((chunk) => {
-            if (!sourceFilter || sourceFilter.size === 0) {
-              return true;
-            }
-            return sourceFilter.has((chunk.source_type || "").toLowerCase());
-          })
-          .map((chunk) => {
-            const score = lexicalScore(query, queryTokens, chunk.text || "");
-            return { chunk, score };
-          })
-          .filter((item) => item.score > 0)
-          .sort((a, b) => b.score - a.score || a.chunk.id.localeCompare(b.chunk.id))
-          .slice(0, k)
-          .map(({ chunk, score }) => ({
-            id: chunk.id,
-            score,
-            source_path: chunk.source_path,
-            source_type: chunk.source_type,
-            date_utc: chunk.date_utc || null,
-            title: chunk.title || null,
-            excerpt: excerptFor(chunk.text || "", queryTokens),
-            resource_uri: chunk.resource_uri || "",
-          }));
-
-        return textContent({ query, k, hits: scored });
+        const result = await ragSearch({ query, k, sourceTypes: source_types });
+        return textContent({ query: result.query, k: result.k, hits: result.hits });
       }
     );
 

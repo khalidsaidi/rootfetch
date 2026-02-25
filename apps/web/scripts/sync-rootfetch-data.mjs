@@ -56,6 +56,10 @@ const optionalCopies = [
     source: path.join(repoRoot, "data", "signals", "sector_indices.csv"),
     dest: path.join(appRoot, "public", "rootfetch", "sector_indices.csv"),
   },
+  {
+    source: path.join(repoRoot, "data", "growth_trends.csv"),
+    dest: path.join(appRoot, "public", "rootfetch", "growth_trends.csv"),
+  },
 ];
 
 async function exists(filePath) {

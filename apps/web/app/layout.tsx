@@ -1,21 +1,74 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
+import { Inter, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+
+import Providers from "./providers";
 import "./globals.css";
 
-const headingFont = Space_Grotesk({
-  variable: "--font-heading",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-body",
 });
 
-const monoFont = IBM_Plex_Mono({
-  variable: "--font-mono",
+const display = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
+const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
+  variable: "--font-mono",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.vercel.app";
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
+
 export const metadata: Metadata = {
-  title: "RootFetch Dashboard",
-  description: "Daily CZDS delegation signals, anomalies, and sector trends.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "RootFetch | Delegation Intelligence",
+    template: "%s | RootFetch",
+  },
+  description:
+    "RootFetch tracks CZDS-approved TLD delegation activity with baseline + hybrid coverage, market structure analytics, and AI-ready artifacts.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName: "RootFetch",
+    title: "RootFetch | Delegation Intelligence",
+    description:
+      "Read-only dashboard for approved TLD coverage, market concentration, movers, and daily digests generated from local ingestion.",
+    images: [
+      {
+        url: `${siteUrl}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "RootFetch market structure snapshot",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RootFetch | Delegation Intelligence",
+    description:
+      "Approved TLD coverage, top TLD concentration, movers, and AI-native daily summaries.",
+    images: [`${siteUrl}/opengraph-image`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -24,8 +77,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${headingFont.variable} ${monoFont.variable}`}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${display.variable} ${mono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}>
+        {gaMeasurementId ? (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} strategy="afterInteractive" />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('js', new Date());
+                gtag('config', '${gaMeasurementId}', { send_page_view: false });
+              `}
+            </Script>
+          </>
+        ) : null}
+        <Providers>
+          <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,hsl(var(--primary)/0.2),transparent_42%),radial-gradient(circle_at_88%_5%,hsl(var(--accent)/0.24),transparent_36%),linear-gradient(130deg,hsl(var(--background))_0%,hsl(var(--background))_45%,hsl(var(--muted)/0.16)_100%)]" />
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }
