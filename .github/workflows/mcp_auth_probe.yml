@@ -12,13 +12,7 @@ jobs:
       - name: Probe MCP auth with GitHub secret token
         run: |
           set -euo pipefail
-          TOKEN_SHA="$(python3 - <<'PY'
-import hashlib
-import os
-token=os.environ.get("ROOTFETCH_MCP_TOKEN","")
-print(hashlib.sha256(token.encode("utf-8")).hexdigest())
-PY
-)"
+          TOKEN_SHA="$(printf '%s' "${ROOTFETCH_MCP_TOKEN}" | sha256sum | awk '{print $1}')"
           echo "token_sha256=${TOKEN_SHA}"
           STATUS="$(curl -sS -o /tmp/mcp_body.json -w '%{http_code}' \
             -X POST "https://rootfetch.vercel.app/api/mcp" \
