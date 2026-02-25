@@ -46,18 +46,19 @@ export default function VolatilityGauge({ dvi }: { dvi: DviPayload }) {
       </div>
 
       <div className="relative mt-2 flex items-center justify-center">
+        <div className="pointer-events-none absolute h-64 w-64 rounded-full bg-cyan-400/10 blur-3xl" />
         <div
-          className="relative h-40 w-40 rounded-full"
+          className="relative h-52 w-52 rounded-full"
           style={{
             background:
               "conic-gradient(from 210deg, #00ff85 0deg, #00ff85 60deg, #ffb800 120deg, #ff8a00 180deg, #ff4d4d 240deg, rgba(35,42,52,0.7) 240deg)",
           }}
         >
           <div className="absolute inset-[10px] rounded-full bg-[#0f141b] shadow-[inset_0_0_0_1px_rgba(95,115,140,0.28)]" />
-          <div className="absolute left-1/2 top-1/2 h-[54px] w-[2px] -translate-x-1/2 -translate-y-[90%] origin-bottom rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.35)] transition-transform duration-700 ease-[cubic-bezier(.4,0,.2,1)]" style={{ transform: `translate(-50%, -90%) rotate(${angle}deg)` }} />
+          <div className="absolute left-1/2 top-1/2 h-[70px] w-[2px] -translate-x-1/2 -translate-y-[90%] origin-bottom rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.35)] transition-transform duration-700 ease-[cubic-bezier(.4,0,.2,1)]" style={{ transform: `translate(-50%, -90%) rotate(${angle}deg)` }} />
           <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/70 bg-cyan-300/60 shadow-[0_0_12px_rgba(0,212,255,0.4)]" />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="rf-mono-digits text-3xl font-semibold">{score.toFixed(1)}</p>
+            <p className="rf-mono-digits text-4xl font-semibold">{score.toFixed(1)}</p>
             <p className={`mt-0.5 text-[11px] uppercase tracking-[0.18em] ${labelClass}`}>{level}</p>
           </div>
         </div>

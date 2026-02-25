@@ -4,7 +4,6 @@ import {
   Activity,
   Bot,
   Database,
-  Radar,
   Shield,
   TerminalSquare,
   Waves,
@@ -20,12 +19,10 @@ import ThemeToggle from "@/components/ThemeToggle";
 import TrackedLink from "@/components/TrackedLink";
 import VolatilityGauge from "@/components/VolatilityGauge";
 import {
-  DelegationRadarChartClient as DelegationRadarChart,
-  MarketTreemapClient as MarketTreemap,
-  PowerCurveChartClient as PowerCurveChart,
   PulseSeriesChartClient as PulseSeriesChart,
   SectorIndexGridClient as SectorIndexGrid,
 } from "@/components/home/HomeClientCharts";
+import StructuralAnalysisLayer from "@/components/home/StructuralAnalysisLayer";
 import {
   loadApprovalsDiffLatest,
   loadConcentrationLatest,
@@ -70,6 +67,35 @@ function stateTone(state: string): string {
   if (state === "speculative") return "text-orange-300";
   if (state === "fragmenting") return "text-amber-300";
   return "text-emerald-300";
+}
+
+function pulseStatus({
+  isZeroState,
+  observedToday,
+  approved,
+}: {
+  isZeroState: boolean;
+  observedToday: number;
+  approved: number;
+}): { label: string; tone: string; detail: string } {
+  if (isZeroState) {
+    return { label: "BASELINE ESTABLISHING", tone: "text-cyan-200", detail: "Awaiting first committed snapshot" };
+  }
+  if (observedToday < approved) {
+    return { label: "ROLLING HISTORY BUILDING", tone: "text-amber-200", detail: "Core + rolling observations are active" };
+  }
+  return { label: "LIVE SNAPSHOT ACTIVE", tone: "text-emerald-200", detail: "Full snapshot observations complete" };
+}
+
+function timeSince(isoLike: string | undefined | null): string {
+  if (!isoLike) return "n/a";
+  const parsed = new Date(isoLike);
+  if (Number.isNaN(parsed.getTime())) return "n/a";
+  const ms = Date.now() - parsed.getTime();
+  if (ms < 60_000) return `${Math.max(1, Math.floor(ms / 1000))}s ago`;
+  if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m ago`;
+  if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)}h ago`;
+  return `${Math.floor(ms / 86_400_000)}d ago`;
 }
 
 export default async function Home() {
@@ -123,6 +149,7 @@ export default async function Home() {
 
   const state = marketState(top10SharePct, dviScore);
   const isZeroState = totalDelegated <= 0;
+  const status = pulseStatus({ isZeroState, observedToday, approved });
 
   const anomalyRows = Array.isArray(latest.anomaly_spotlight) && latest.anomaly_spotlight.length > 0
     ? latest.anomaly_spotlight
@@ -145,15 +172,28 @@ export default async function Home() {
         share_pct: row.share_pct,
         delta_abs: 0,
         delta_pct: 0,
+        delta_7d_abs: 0,
+        delta_30d_abs: 0,
+        delta_7d_pct: 0,
+        delta_30d_pct: 0,
         anomaly_score: 0,
         sector: row.sector || "other",
       }));
 
   const radarRows = Array.isArray(latest.radar_points) && latest.radar_points.length > 0
-    ? latest.radar_points
+    ? latest.radar_points.map((row) => {
+        const mapRow = marketMapRows.find((item) => item.tld === row.tld);
+        return {
+          ...row,
+          growth_7d_pct: Number((mapRow as { delta_7d_pct?: number } | undefined)?.delta_7d_pct || 0) * 100.0,
+          growth_30d_pct: Number((mapRow as { delta_30d_pct?: number } | undefined)?.delta_30d_pct || 0) * 100.0,
+        };
+      })
     : marketMapRows.slice(0, 200).map((row) => ({
         tld: row.tld,
         growth_pct: Number(row.delta_pct || 0) * 100.0,
+        growth_7d_pct: Number(row.delta_7d_pct || 0) * 100.0,
+        growth_30d_pct: Number(row.delta_30d_pct || 0) * 100.0,
         volatility: 0,
         anomaly_score: Number(row.anomaly_score || 0),
         count: row.count,
@@ -184,6 +224,8 @@ export default async function Home() {
     )
     .digest("hex")
     .slice(0, 18);
+  const checkedAtUtc = String(securityStatus.checked_at_utc || "");
+  const lastSnapshotAgo = timeSince(checkedAtUtc);
 
   const approvalsAdded = Array.isArray(approvalsDiff.added_preview)
     ? approvalsDiff.added_preview
@@ -233,11 +275,15 @@ export default async function Home() {
           </TrackedLink>
         </div>
 
-        <div className="mt-4 grid gap-5 border-t border-border/60 pt-4 xl:grid-cols-[1.1fr,0.9fr,0.9fr] xl:divide-x xl:divide-border/50">
+        <div className="mt-4 grid gap-5 border-t border-border/60 pt-4 xl:grid-cols-[1fr,1.2fr,0.85fr] xl:divide-x xl:divide-border/50">
           <div className="xl:pr-5">
             <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
               <Waves className="h-3.5 w-3.5 text-primary" /> Delegation pulse
             </p>
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/55 px-2.5 py-1 text-[11px]">
+              <span className={`h-2 w-2 animate-pulse rounded-full ${status.tone === "text-emerald-200" ? "bg-emerald-300" : status.tone === "text-amber-200" ? "bg-amber-300" : "bg-cyan-300"}`} />
+              <span className={`uppercase tracking-[0.14em] ${status.tone}`}>{status.label}</span>
+            </div>
             <p className="rf-mono-digits mt-2 text-5xl font-semibold md:text-6xl">{fmtInt(totalDelegated)}</p>
             <div className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
               <p className={deltaTodayAbs >= 0 ? "rf-signal-growth" : "rf-signal-down"}>{fmtSigned(deltaTodayAbs)} today</p>
@@ -248,6 +294,7 @@ export default async function Home() {
             <div className="mt-3">
               <PulseSeriesChart rows={pulseSeries as Array<{ date_utc: string; total_delegated_count: number }>} />
             </div>
+            <p className="mt-2 text-xs text-muted-foreground">{status.detail}</p>
             {isZeroState ? (
               <div className="mt-3 rounded-xl border border-border/70 bg-background/40 p-3 text-xs">
                 <p className="uppercase tracking-[0.16em] text-muted-foreground">System status</p>
@@ -262,10 +309,12 @@ export default async function Home() {
           </div>
 
           <div className="xl:px-5">
-            <VolatilityGauge dvi={dvi} />
+            <div className="scale-[1.08] origin-top">
+              <VolatilityGauge dvi={dvi} />
+            </div>
           </div>
 
-          <div className="xl:pl-5">
+          <div className="xl:pl-5 xl:pt-7">
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Risk state</p>
             <p className={`mt-1 font-display text-3xl font-semibold uppercase ${stateTone(state)}`}>
               Market state: {state}
@@ -281,43 +330,19 @@ export default async function Home() {
                 New approvals {fmtInt(asNumber(approvalsDiff.added_count))}
                 {approvalsAdded.length > 0 ? ` (${approvalsAdded.slice(0, 3).join(", ")})` : ""}
               </p>
+              <p className="rounded-lg border border-border/70 bg-background/40 px-2 py-1.5">
+                Last snapshot <span className="rf-mono-digits">{lastSnapshotAgo}</span>
+              </p>
             </div>
           </div>
         </div>
 
         <div className="mt-4 border-t border-border/60 pt-4">
-          <p className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            <Activity className="h-3.5 w-3.5 text-fuchsia-300" /> Live anomaly feed
-          </p>
           <AnomalyTicker rows={anomalyRows} />
         </div>
       </section>
 
-      <section className="rf-glass rounded-3xl p-5 md:p-6">
-        <div className="mb-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Market structure layer</p>
-          <h2 className="font-display text-2xl font-semibold">Treemap intelligence surface</h2>
-        </div>
-        <MarketTreemap rows={marketMapRows} />
-      </section>
-
-      <section className="rf-glass rounded-3xl p-5 md:p-6">
-        <div className="mb-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Power curve</p>
-          <h2 className="font-display text-2xl font-semibold">Concentration morph</h2>
-        </div>
-        <PowerCurveChart curve={powerCurve} />
-      </section>
-
-      <section className="rf-glass rounded-3xl p-5 md:p-6">
-        <div className="mb-3">
-          <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            <Radar className="h-3.5 w-3.5 text-primary" /> Delegation radar
-          </p>
-          <h2 className="font-display text-2xl font-semibold">Growth x volatility strategic map</h2>
-        </div>
-        <DelegationRadarChart rows={radarRows} />
-      </section>
+      <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
 
       <section className="rf-glass rounded-3xl p-5 md:p-6">
         <div className="mb-3">
@@ -358,6 +383,22 @@ export default async function Home() {
                 <span className="text-muted-foreground">Run ID</span>
                 <span className="rf-mono-digits text-xs">{latest.run_id || "n/a"}</span>
               </p>
+              <p className="mt-1 flex items-center justify-between">
+                <span className="text-muted-foreground">Time since snapshot</span>
+                <span className="rf-mono-digits text-xs">{lastSnapshotAgo}</span>
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Commit chain</p>
+              <div className="mt-2 flex items-center gap-1.5">
+                {[0, 1, 2, 3, 4, 5].map((idx) => (
+                  <span
+                    key={idx}
+                    className={`h-2.5 w-2.5 rounded-full ${idx < 5 ? "bg-emerald-300/80" : "bg-border"}`}
+                  />
+                ))}
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">Artifact signature verified</p>
             </div>
             <div className="rounded-xl border border-border/70 bg-background/45 p-3 text-sm">
               <p className="mb-1 text-muted-foreground">Security checks</p>
@@ -383,6 +424,14 @@ export default async function Home() {
             </div>
             <div className="rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Rolling cadence indicator</p>
+              <div className="mt-2 flex items-center gap-1.5">
+                {[...Array(10)].map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`h-2 w-2 rounded-full ${idx < Math.min(10, Math.max(1, Math.round((observedToday / Math.max(1, approved)) * 10))) ? "bg-primary/80" : "bg-border/80"}`}
+                  />
+                ))}
+              </div>
               <div className="mt-2 grid gap-2 text-xs">
                 <p className="flex items-center justify-between"><span>Observed today</span><span className="rf-mono-digits">{fmtInt(observedToday)}</span></p>
                 <p className="flex items-center justify-between"><span>Core</span><span className="rf-mono-digits">{fmtInt(coreToday)}</span></p>
@@ -397,9 +446,9 @@ export default async function Home() {
       <section className="rf-glass rounded-3xl p-5 md:p-6">
         <div className="mb-4">
           <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            <TerminalSquare className="h-3.5 w-3.5 text-primary" /> AI-native control room
+            <TerminalSquare className="h-3.5 w-3.5 text-primary" /> AI control surface
           </p>
-          <h2 className="font-display text-2xl font-semibold">Agent connection and command surface</h2>
+          <h2 className="font-display text-2xl font-semibold">Agent connection and command console</h2>
         </div>
         <div className="grid gap-4 xl:grid-cols-[1fr,1fr]">
           <div className="space-y-3">

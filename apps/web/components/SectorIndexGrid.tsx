@@ -26,9 +26,19 @@ function fmtPct(value?: number): string {
 
 export default function SectorIndexGrid({ rows }: { rows: SectorIndex[] }) {
   if (!rows.length) {
+    const placeholders = ["ai/tech", "commerce", "finance", "geo", "media", "other"];
     return (
-      <div className="rf-glass rounded-2xl p-4 text-sm text-muted-foreground">
-        Sector indices are building. First three cycles establish volatility baselines.
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {placeholders.map((sector, idx) => (
+          <div key={sector} className="rf-glass rounded-2xl border-dashed p-3">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{sector} index</p>
+            <p className="mt-2 font-display text-lg text-foreground/80">Baseline establishing</p>
+            <p className="mt-1 text-xs text-muted-foreground">Cycle {Math.min(3, idx + 1)}/3</p>
+            <div className="mt-3 h-2 rounded-full bg-muted/40">
+              <div className="h-full rounded-full bg-gradient-to-r from-primary/70 to-cyan-300/70" style={{ width: `${Math.min(100, (idx + 1) * 30)}%` }} />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

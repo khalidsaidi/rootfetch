@@ -36,6 +36,7 @@ export default function JsonArtifactPreview({ payload }: { payload: PreviewPaylo
   );
 
   const [visible, setVisible] = useState("");
+  const [streamMode, setStreamMode] = useState(false);
   useEffect(() => {
     let active = true;
     let idx = 0;
@@ -54,10 +55,35 @@ export default function JsonArtifactPreview({ payload }: { payload: PreviewPaylo
     };
   }, [source]);
 
+  const streamLines = useMemo(
+    () => [
+      `{"event":"snapshot_loaded","date_utc":"${payload.date_utc || "n/a"}"}`,
+      `{"event":"market_state","state":"${payload.market_state || "stable"}","dvi":${Number(payload.dvi_score || 0).toFixed(2)}}`,
+      `{"event":"delegation_total","value":${Math.trunc(Number(payload.total_delegated_counted_today || 0))}}`,
+      `{"event":"top10_share","pct":${Number(payload.top10_share_pct || 0).toFixed(2)}}`,
+      `{"event":"observed_today","count":${Math.trunc(Number(payload.counted_today_count || 0))}}`,
+    ],
+    [payload],
+  );
+
   return (
-    <pre className="max-h-[300px] overflow-auto rounded-xl border border-border/70 bg-black/60 p-3 font-mono text-xs leading-relaxed text-emerald-300">
-      {visible}
-      <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-emerald-300/80 align-middle" />
-    </pre>
+    <div>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Live artifact stream</p>
+        <button
+          type="button"
+          className={`rounded border px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] ${
+            streamMode ? "border-primary/60 bg-primary/15 text-foreground" : "border-border/70 bg-background/45 text-muted-foreground"
+          }`}
+          onClick={() => setStreamMode((prev) => !prev)}
+        >
+          {streamMode ? "stream mode on" : "stream mode off"}
+        </button>
+      </div>
+      <pre className="max-h-[300px] overflow-auto rounded-xl border border-border/70 bg-black/60 p-3 font-mono text-xs leading-relaxed text-emerald-300">
+        {streamMode ? streamLines.map((line, idx) => <div key={idx}>{line}</div>) : visible}
+        <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-emerald-300/80 align-middle" />
+      </pre>
+    </div>
   );
 }

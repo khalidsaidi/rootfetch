@@ -21,8 +21,15 @@ function fmtInt(value: number): string {
   return new Intl.NumberFormat("en-US").format(Math.trunc(value));
 }
 
-export default function PowerCurveChart({ curve }: { curve: PowerCurvePayload }) {
+export default function PowerCurveChart({
+  curve,
+  forcedFocus,
+}: {
+  curve: PowerCurvePayload;
+  forcedFocus?: Focus;
+}) {
   const [focus, setFocus] = useState<Focus>("today");
+  const effectiveFocus: Focus = forcedFocus || focus;
 
   const data = useMemo(() => {
     const today = curve.today || [];
@@ -49,34 +56,40 @@ export default function PowerCurveChart({ curve }: { curve: PowerCurvePayload })
     );
   }
 
-  const key = focus;
-  const subtitle = focus === "today" ? curve.date_utc_today || "today" : focus === "d30" ? curve.date_utc_d30 || "d-30" : curve.date_utc_d90 || "d-90";
+  const key = effectiveFocus;
+  const subtitle = effectiveFocus === "today" ? curve.date_utc_today || "today" : effectiveFocus === "d30" ? curve.date_utc_d30 || "d-30" : curve.date_utc_d90 || "d-90";
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex overflow-hidden rounded-lg border border-border/70 text-xs">
-          {(
-            [
-              ["today", `Today (${curve.date_utc_today || "latest"})`],
-              ["d30", `30d ago (${curve.date_utc_d30 || "n/a"})`],
-              ["d90", `90d ago (${curve.date_utc_d90 || "n/a"})`],
-            ] as Array<[Focus, string]>
-          ).map(([val, label]) => (
-            <button
-              key={val}
-              type="button"
-              className={`px-3 py-1.5 ${focus === val ? "bg-primary/20 text-foreground" : "bg-background/60 text-muted-foreground hover:bg-muted/40"}`}
-              onClick={() => {
-                setFocus(val);
-                track("volatility_toggle", { chart: "power_curve", range_days: val });
-                track("rf_chart_range_change", { chart: "power_curve", range_days: val });
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {forcedFocus ? (
+          <div className="rounded-lg border border-border/70 bg-background/60 px-3 py-1.5 text-xs text-muted-foreground">
+            Replay-linked view: {effectiveFocus === "today" ? "Today" : effectiveFocus === "d30" ? "30d ago" : "90d ago"}
+          </div>
+        ) : (
+          <div className="inline-flex overflow-hidden rounded-lg border border-border/70 text-xs">
+            {(
+              [
+                ["today", `Today (${curve.date_utc_today || "latest"})`],
+                ["d30", `30d ago (${curve.date_utc_d30 || "n/a"})`],
+                ["d90", `90d ago (${curve.date_utc_d90 || "n/a"})`],
+              ] as Array<[Focus, string]>
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                type="button"
+                className={`px-3 py-1.5 ${effectiveFocus === val ? "bg-primary/20 text-foreground" : "bg-background/60 text-muted-foreground hover:bg-muted/40"}`}
+                onClick={() => {
+                  setFocus(val);
+                  track("volatility_toggle", { chart: "power_curve", range_days: val });
+                  track("rf_chart_range_change", { chart: "power_curve", range_days: val });
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="text-xs text-muted-foreground">rendering profile: {subtitle}</p>
       </div>
 
@@ -119,8 +132,8 @@ export default function PowerCurveChart({ curve }: { curve: PowerCurvePayload })
             <Area
               type="monotone"
               dataKey={key}
-              stroke={focus === "today" ? "#00d4ff" : focus === "d30" ? "#ffb800" : "#a855f7"}
-              fill={focus === "today" ? "url(#curveFillCyan)" : focus === "d30" ? "url(#curveFillAmber)" : "url(#curveFillPurple)"}
+              stroke={effectiveFocus === "today" ? "#00d4ff" : effectiveFocus === "d30" ? "#ffb800" : "#a855f7"}
+              fill={effectiveFocus === "today" ? "url(#curveFillCyan)" : effectiveFocus === "d30" ? "url(#curveFillAmber)" : "url(#curveFillPurple)"}
               strokeWidth={2.6}
               isAnimationActive
               animationDuration={520}

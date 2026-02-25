@@ -54,11 +54,11 @@ function valueForMode(row: MarketMapRow, mode: Mode): number {
 }
 
 function colorForDelta(delta: number): string {
-  if (delta >= 0.05) return "#00ff85";
-  if (delta >= 0.015) return "#14d898";
-  if (delta <= -0.05) return "#ff4d4d";
-  if (delta <= -0.015) return "#ff7861";
-  return "#00d4ff";
+  const magnitude = Math.min(1, Math.abs(delta) / 0.08);
+  const hue = delta >= 0 ? 150 : 5;
+  const saturation = 62 + magnitude * 30;
+  const lightness = 35 + magnitude * 20;
+  return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
 function glowForAnomaly(anomaly: number): number {

@@ -18,6 +18,8 @@ import { track } from "@/lib/analytics/ga";
 type RadarPoint = {
   tld: string;
   growth_pct: number;
+  growth_7d_pct?: number;
+  growth_30d_pct?: number;
   volatility?: number;
   anomaly_score?: number;
   count: number;
@@ -30,7 +32,13 @@ function bubbleColor(score: number): string {
   return "#00d4ff";
 }
 
-export default function DelegationRadarChart({ rows }: { rows: RadarPoint[] }) {
+export default function DelegationRadarChart({
+  rows,
+  windowLabel = "now",
+}: {
+  rows: RadarPoint[];
+  windowLabel?: "now" | "d7" | "d30" | "d90";
+}) {
   if (!rows.length) {
     return (
       <div className="rf-glass rounded-2xl p-4 text-sm text-muted-foreground">
@@ -83,6 +91,12 @@ export default function DelegationRadarChart({ rows }: { rows: RadarPoint[] }) {
               domain={xDomain}
               tick={{ fontSize: 10 }}
               stroke="hsl(var(--muted-foreground))"
+              label={{
+                value: "30d cross-sectional volatility",
+                position: "insideBottom",
+                offset: -1,
+                style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" },
+              }}
             />
             <YAxis
               type="number"
@@ -90,6 +104,12 @@ export default function DelegationRadarChart({ rows }: { rows: RadarPoint[] }) {
               domain={yDomain}
               tick={{ fontSize: 10 }}
               stroke="hsl(var(--muted-foreground))"
+              label={{
+                value: "normalized growth (%)",
+                angle: -90,
+                position: "insideLeft",
+                style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" },
+              }}
             />
             <ZAxis type="number" dataKey="z" range={[70, 430]} />
             <ReferenceLine x={0} stroke="hsl(var(--border))" strokeWidth={1.2} />
@@ -146,6 +166,11 @@ export default function DelegationRadarChart({ rows }: { rows: RadarPoint[] }) {
         <p className="rounded border border-border/70 bg-background/40 px-2 py-1">Expansion</p>
         <p className="rounded border border-border/70 bg-background/40 px-2 py-1">Declining</p>
         <p className="rounded border border-border/70 bg-background/40 px-2 py-1">Mature</p>
+      </div>
+      <div className="grid gap-2 text-[11px] text-muted-foreground sm:grid-cols-3">
+        <p className="rounded border border-border/60 bg-background/35 px-2 py-1">Window: {windowLabel}</p>
+        <p className="rounded border border-border/60 bg-background/35 px-2 py-1">Bubble size = delegated size</p>
+        <p className="rounded border border-border/60 bg-background/35 px-2 py-1">Glow = anomaly score</p>
       </div>
     </div>
   );
