@@ -12,6 +12,7 @@ jobs:
       - name: Probe MCP auth with GitHub secret token
         run: |
           set -euo pipefail
+          echo "token_len=${#ROOTFETCH_MCP_TOKEN}"
           TOKEN_SHA="$(printf '%s' "${ROOTFETCH_MCP_TOKEN}" | sha256sum | awk '{print $1}')"
           echo "token_sha256=${TOKEN_SHA}"
           STATUS="$(curl -sS -o /tmp/mcp_body.json -w '%{http_code}' \
