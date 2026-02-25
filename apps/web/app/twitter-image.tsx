@@ -18,7 +18,15 @@ function fmt(value: number | undefined) {
 }
 
 export default async function TwitterImage() {
-  const latest = await loadLatest();
+  const fallbackLatest = {
+    date_utc: "n/a",
+    approved_tlds_count: 0,
+    counted_today_count: 0,
+    total_delegated_counted_today: 0,
+    total_delegated_domains_today: 0,
+    concentration: { top1_share_pct: 0 },
+  };
+  const latest = await loadLatest().catch(() => fallbackLatest);
   return new ImageResponse(
     (
       <div
