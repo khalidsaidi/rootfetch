@@ -30,6 +30,19 @@ Optional hybrid overrides:
 - `ROOTFETCH_RETRY_MAX`
 - `ROOTFETCH_LOG_EVERY`
 
+Optional local alerting and delivery-reliability overrides:
+
+- `ROOTFETCH_SLACK_WEBHOOK_URL`
+- `ROOTFETCH_DISCORD_WEBHOOK_URL`
+- `ROOTFETCH_ALERT_MOVER_ABS_THRESHOLD`
+- `ROOTFETCH_ALERT_MOVER_PCT_THRESHOLD`
+- `ROOTFETCH_ALERT_ANOMALY_Z_THRESHOLD`
+- `ROOTFETCH_ALERT_FAILURE_THRESHOLD`
+- `ROOTFETCH_ALERT_RETRY_MAX`
+- `ROOTFETCH_ALERT_RETRY_BASE_SECONDS`
+- `ROOTFETCH_ALERT_RETRY_MAX_SECONDS`
+- `ROOTFETCH_ALERT_DEDUP_HOURS`
+
 ## Daily Local Command
 
 Run:
@@ -53,6 +66,13 @@ The script does:
 5. `rootfetch compute-signals --date <run_date>`
 6. `rootfetch rag build-static`
 7. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json`)
+
+Alert delivery is local-only and persistent:
+
+- queue state is stored at `.ai/alerts/state.json`
+- delivery attempts are append-logged at `.ai/alerts/delivery_log.jsonl`
+- failed notifications are retried with exponential backoff
+- exhausted retries are retained in `dead_letters` for operator review
 
 ## Scheduling
 
