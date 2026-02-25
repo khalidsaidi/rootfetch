@@ -55,6 +55,8 @@ type Distribution = {
   min?: number;
   tiny_tlds_lt_100?: number;
   small_tlds_lt_1000?: number;
+  tiny_lt_100?: number;
+  small_lt_1000?: number;
 };
 
 type Concentration = {
@@ -69,6 +71,7 @@ type ApprovalsDiff = {
   added_count?: number;
   removed_count?: number;
   added_preview?: string[];
+  added_first_10?: string[];
   added?: string[];
 };
 
@@ -79,6 +82,7 @@ type LatestSignals = {
   counted_today_count?: number;
   counted_today_core_count?: number;
   counted_today_rolling_count?: number;
+  snapshot_rows_today?: number;
   processed_tlds_count_today?: number;
   coverage_pct_today?: number;
   note_if_partial?: string;
@@ -119,6 +123,7 @@ const EMPTY_SIGNALS: LatestSignals = {
   counted_today_count: 0,
   counted_today_core_count: 0,
   counted_today_rolling_count: 0,
+  snapshot_rows_today: 0,
   processed_tlds_count_today: 0,
   coverage_pct_today: 0,
   note_if_partial: "",
@@ -301,8 +306,11 @@ async function loadApprovalsDiff(): Promise<ApprovalsDiff> {
     const raw = await fs.readFile(filePath, "utf-8");
     const parsed = JSON.parse(raw) as ApprovalsDiff;
     const addedList = Array.isArray(parsed.added) ? parsed.added : [];
+    const firstTen = Array.isArray(parsed.added_first_10) ? parsed.added_first_10 : [];
     const preview = Array.isArray(parsed.added_preview) && parsed.added_preview.length > 0
       ? parsed.added_preview
+      : firstTen.length > 0
+        ? firstTen
       : addedList.slice(0, 10);
     return {
       ...parsed,
@@ -382,7 +390,7 @@ function RollingList({ items }: { items: RollingUpdate[] }) {
 function TopTldsTable({ items }: { items: TopTld[] }) {
   return (
     <article className={styles.panel}>
-      <h2>Top TLDs by Size</h2>
+      <h2>Top TLDs by size</h2>
       {items.length === 0 ? (
         <p className={styles.empty}>No cross-sectional ranking available yet.</p>
       ) : (
@@ -425,16 +433,17 @@ export default async function Home() {
   ]);
 
   const approvedCount = coverage.approved_tlds_count || latest.approved_tlds_count;
-  const countedToday = latest.counted_today_count ?? coverage.counted_today_count ?? latest.processed_tlds_count_today ?? 0;
+  const observedToday = latest.counted_today_count ?? 0;
   const countedCore = latest.counted_today_core_count ?? coverage.counted_today_core_count ?? 0;
   const countedRolling = latest.counted_today_rolling_count ?? coverage.counted_today_rolling_count ?? 0;
+  const snapshotRowsToday = latest.snapshot_rows_today ?? latest.processed_tlds_count_today ?? coverage.counted_today_count ?? 0;
   const countedEver = coverage.counted_ever_count ?? 0;
   const missingEver = coverage.missing_ever_count ?? Math.max(0, approvedCount - countedEver);
   const coveragePct =
     typeof latest.coverage_pct_today === "number"
       ? latest.coverage_pct_today
       : approvedCount > 0
-        ? countedToday / approvedCount
+        ? observedToday / approvedCount
         : 0;
 
   const coreAbs = latest.core_movers_abs ?? latest.top_movers_abs;
@@ -466,8 +475,12 @@ export default async function Home() {
             <strong>{fmtInt(approvedCount)}</strong>
           </article>
           <article>
-            <p>Counted today</p>
-            <strong>{fmtInt(countedToday)}</strong>
+            <p>Observed today</p>
+            <strong>{fmtInt(observedToday)}</strong>
+          </article>
+          <article>
+            <p>Snapshot rows today</p>
+            <strong>{fmtInt(snapshotRowsToday)}</strong>
           </article>
           <article>
             <p>Counted ever</p>
@@ -486,7 +499,7 @@ export default async function Home() {
             <strong>{fmtInt(countedRolling)}</strong>
           </article>
           <article>
-            <p>Coverage today</p>
+            <p>Observed coverage today</p>
             <strong>{fmtRatioPct(coveragePct)}</strong>
           </article>
           <article>
@@ -517,10 +530,12 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className={styles.grid2}>
+      <section className={styles.marketSection}>
+        <h2 className={styles.sectionHeading}>Market Structure</h2>
+        <div className={styles.grid2}>
         <TopTldsTable items={topTlds} />
         <article className={styles.panel}>
-          <h2>Distribution + Concentration</h2>
+          <h2>Distribution</h2>
           <div className={styles.metricTiles}>
             <div>
               <p>Median (p50)</p>
@@ -535,8 +550,20 @@ export default async function Home() {
               <strong>{fmtInt(distribution.p99)}</strong>
             </div>
             <div>
+              <p>Tiny (&lt;100)</p>
+              <strong>{fmtInt(distribution.tiny_tlds_lt_100 ?? distribution.tiny_lt_100)}</strong>
+            </div>
+          </div>
+
+          <h3 className={styles.subHeading}>Concentration</h3>
+          <div className={styles.metricTiles}>
+            <div>
               <p>Top 1 share</p>
               <strong>{fmtPctPoints(concentration.top1_share_pct)}</strong>
+            </div>
+            <div>
+              <p>Top 3 share</p>
+              <strong>{fmtPctPoints(concentration.top3_share_pct)}</strong>
             </div>
             <div>
               <p>Top 10 share</p>
@@ -549,9 +576,8 @@ export default async function Home() {
           </div>
 
           <div className={styles.approvalsBox}>
-            <p className={styles.approvalsTitle}>
-              New approvals today: +{fmtInt(approvalsDiff.added_count)} / -{fmtInt(approvalsDiff.removed_count)}
-            </p>
+            <h3 className={styles.subHeading}>New approvals today</h3>
+            <p className={styles.approvalsTitle}>+{fmtInt(approvalsDiff.added_count)} / -{fmtInt(approvalsDiff.removed_count)}</p>
             {approvalsAdded.length > 0 ? (
               <p className={styles.approvalsList}>{approvalsAdded.slice(0, 10).join(", ")}</p>
             ) : (
@@ -559,6 +585,7 @@ export default async function Home() {
             )}
           </div>
         </article>
+        </div>
       </section>
 
       <section className={styles.grid3}>

@@ -1,11 +1,12 @@
 # RootFetch Daily Digest — 2026-02-25
 
-- Run ID: ef77038d-ebf4-4fe8-945f-5ea79d8fa133
+- Run ID: 106e4242-6ae4-49bc-8392-f34eb16a4e6d
 - Mode: hybrid
 - Approved TLDs observed: 841
-- Counted today: 841 (core=3, rolling=65)
+- Observed today: 68 (core=3, rolling=65)
+- Snapshot rows today: 841
 
-## Cross-Section Highlights
+## Cross-sectional highlights
 - Total delegated counted today: 53,590,335
 - Distribution (p50 / p90 / p99 / max): 1,482 / 41,687 / 1,065,656 / 11,661,771
 - Concentration (Top1 / Top10 share): 21.76% / 68.13% (HHI=0.0888)

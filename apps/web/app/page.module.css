@@ -130,6 +130,17 @@
   gap: 12px;
 }
 
+.marketSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeading {
+  margin-left: 4px;
+  font-size: 1.16rem;
+}
+
 .grid3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -144,6 +155,11 @@
 
 .panel h2 {
   font-size: 1.04rem;
+}
+
+.subHeading {
+  margin-top: 14px;
+  font-size: 0.98rem;
 }
 
 .panelSub {

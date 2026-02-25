@@ -466,6 +466,7 @@ def _counted_today_breakdown(settings: Settings, date_utc: str) -> dict[str, int
             "counted_today_count": 0,
             "counted_today_core_count": 0,
             "counted_today_rolling_count": 0,
+            "snapshot_rows_today": 0,
             "total_delegated_domains_today": 0,
         }
 
@@ -475,17 +476,22 @@ def _counted_today_breakdown(settings: Settings, date_utc: str) -> dict[str, int
             "counted_today_count": 0,
             "counted_today_core_count": 0,
             "counted_today_rolling_count": 0,
+            "snapshot_rows_today": 0,
             "total_delegated_domains_today": 0,
         }
 
     cadence = ok_rows.get("cadence", "").astype(str).str.lower()
     core_count = int((cadence == "core").sum())
     rolling_count = int((cadence == "rolling").sum())
+    observed_today_count = core_count + rolling_count
+    snapshot_rows_today = int(len(ok_rows))
 
     return {
-        "counted_today_count": int(len(ok_rows)),
+        # Semantics: counted_today_count means observed today (core + rolling).
+        "counted_today_count": observed_today_count,
         "counted_today_core_count": core_count,
         "counted_today_rolling_count": rolling_count,
+        "snapshot_rows_today": snapshot_rows_today,
         "total_delegated_domains_today": int(ok_rows["count_num"].sum()),
     }
 
@@ -803,6 +809,7 @@ def compute_signals_for_date(
     counted_today_count = breakdown["counted_today_count"]
     counted_today_core_count = breakdown["counted_today_core_count"]
     counted_today_rolling_count = breakdown["counted_today_rolling_count"]
+    snapshot_rows_today = breakdown["snapshot_rows_today"]
     total_delegated_domains_today = cross_meta["distribution_payload"]["total_delegated_counted_today"]
 
     coverage_pct_today = (
@@ -811,8 +818,8 @@ def compute_signals_for_date(
         else 0.0
     )
     note_if_partial = (
-        "Approved != counted. See /approved for full list."
-        if counted_today_count != approved_tlds_count
+        "Snapshot rows are incomplete. See /approved for full list."
+        if snapshot_rows_today != approved_tlds_count
         else ""
     )
 
@@ -843,7 +850,8 @@ def compute_signals_for_date(
             "counted_today_count": counted_today_count,
             "counted_today_core_count": counted_today_core_count,
             "counted_today_rolling_count": counted_today_rolling_count,
-            "processed_tlds_count_today": counted_today_count,
+            "snapshot_rows_today": snapshot_rows_today,
+            "processed_tlds_count_today": snapshot_rows_today,
             "coverage_pct_today": coverage_pct_today,
             "note_if_partial": note_if_partial,
             "total_delegated_counted_today": total_delegated_domains_today,
@@ -857,6 +865,8 @@ def compute_signals_for_date(
                 "min": int(cross_meta["distribution_payload"]["min"]),
                 "tiny_tlds_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
                 "small_tlds_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
+                "tiny_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
+                "small_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
             },
             "concentration": {
                 "top1_share_pct": float(cross_meta["concentration_payload"]["top1_share_pct"]),
@@ -869,6 +879,7 @@ def compute_signals_for_date(
                 "added_count": int(cross_meta["approvals_diff_payload"].get("added_count", 0)),
                 "removed_count": int(cross_meta["approvals_diff_payload"].get("removed_count", 0)),
                 "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
+                "added_first_10": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
             },
             "top_movers_abs": [],
             "top_movers_pct": [],
@@ -923,7 +934,8 @@ def compute_signals_for_date(
             "counted_today_count": counted_today_count,
             "counted_today_core_count": counted_today_core_count,
             "counted_today_rolling_count": counted_today_rolling_count,
-            "processed_tlds_count_today": counted_today_count,
+            "snapshot_rows_today": snapshot_rows_today,
+            "processed_tlds_count_today": snapshot_rows_today,
             "coverage_pct_today": coverage_pct_today,
             "note_if_partial": note_if_partial,
             "total_delegated_counted_today": total_delegated_domains_today,
@@ -937,6 +949,8 @@ def compute_signals_for_date(
                 "min": int(cross_meta["distribution_payload"]["min"]),
                 "tiny_tlds_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
                 "small_tlds_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
+                "tiny_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
+                "small_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
             },
             "concentration": {
                 "top1_share_pct": float(cross_meta["concentration_payload"]["top1_share_pct"]),
@@ -949,6 +963,7 @@ def compute_signals_for_date(
                 "added_count": int(cross_meta["approvals_diff_payload"].get("added_count", 0)),
                 "removed_count": int(cross_meta["approvals_diff_payload"].get("removed_count", 0)),
                 "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
+                "added_first_10": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
             },
             "top_movers_abs": [],
             "top_movers_pct": [],
@@ -1006,7 +1021,8 @@ def compute_signals_for_date(
         "counted_today_count": counted_today_count,
         "counted_today_core_count": counted_today_core_count,
         "counted_today_rolling_count": counted_today_rolling_count,
-        "processed_tlds_count_today": counted_today_count,
+        "snapshot_rows_today": snapshot_rows_today,
+        "processed_tlds_count_today": snapshot_rows_today,
         "coverage_pct_today": coverage_pct_today,
         "note_if_partial": note_if_partial,
         "total_delegated_counted_today": total_delegated_domains_today,
@@ -1020,6 +1036,8 @@ def compute_signals_for_date(
             "min": int(cross_meta["distribution_payload"]["min"]),
             "tiny_tlds_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
             "small_tlds_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
+            "tiny_lt_100": int(cross_meta["distribution_payload"]["tiny_tlds_lt_100"]),
+            "small_lt_1000": int(cross_meta["distribution_payload"]["small_tlds_lt_1000"]),
         },
         "concentration": {
             "top1_share_pct": float(cross_meta["concentration_payload"]["top1_share_pct"]),
@@ -1032,6 +1050,7 @@ def compute_signals_for_date(
             "added_count": int(cross_meta["approvals_diff_payload"].get("added_count", 0)),
             "removed_count": int(cross_meta["approvals_diff_payload"].get("removed_count", 0)),
             "added_preview": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
+            "added_first_10": list(cross_meta["approvals_diff_payload"].get("added", []))[:10],
         },
         "top_movers_abs": _top_rows_as_json(core_movers_df, "top_abs_growers"),
         "top_movers_pct": _top_rows_as_json(core_movers_df, "top_pct_growers"),
