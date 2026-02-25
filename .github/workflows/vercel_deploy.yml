@@ -65,6 +65,13 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Refresh local Vercel env after MCP sync
+        if: steps.vercel_config.outputs.ready == 'true'
+        run: npx vercel@latest pull --yes --environment=production --token "${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
       - name: Deploy project
         if: steps.vercel_config.outputs.ready == 'true'
         run: |
@@ -72,7 +79,9 @@ jobs:
             --yes \
             --prod \
             --token "${{ secrets.VERCEL_TOKEN }}" \
+            --build-env ROOTFETCH_MCP_TOKEN="${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
             --env ROOTFETCH_MCP_TOKEN="${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
+            --build-env ROOTFETCH_MCP_ALLOWED_ORIGINS="${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS }}" \
             --env ROOTFETCH_MCP_ALLOWED_ORIGINS="${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS }}"
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
