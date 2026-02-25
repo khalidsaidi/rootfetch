@@ -1,51 +1,307 @@
 {
-  "date_utc": "2026-02-24",
-  "run_id": "f1a0dbdd-7886-4e8e-babf-6b90014560d5",
-  "approved_tlds_count": 838,
-  "counted_today_count": 838,
+  "date_utc": "2026-02-25",
+  "run_id": "c0b7473c-0942-4a5f-8b35-aee769d9634d",
+  "approved_tlds_count": 841,
+  "counted_today_count": 841,
   "counted_today_core_count": 3,
-  "counted_today_rolling_count": 45,
-  "processed_tlds_count_today": 838,
+  "counted_today_rolling_count": 65,
+  "processed_tlds_count_today": 841,
   "coverage_pct_today": 1.0,
   "note_if_partial": "",
-  "total_delegated_domains_today": 53517992,
-  "top_movers_abs": [],
-  "top_movers_pct": [],
-  "top_decliners_abs": [],
-  "core_movers_abs": [],
-  "core_movers_pct": [],
-  "rolling_updates": [],
+  "total_delegated_domains_today": 53590335,
+  "top_movers_abs": [
+    {
+      "tld": "xyz",
+      "delta_abs": 15392.0,
+      "delta_pct": 0.0019116652191317,
+      "count": 8067011
+    },
+    {
+      "tld": "app",
+      "delta_abs": 1893.0,
+      "delta_pct": 0.0017458348512166,
+      "count": 1086188
+    },
+    {
+      "tld": "dev",
+      "delta_abs": 980.0,
+      "delta_pct": 0.0016427435157728,
+      "count": 597543
+    }
+  ],
+  "top_movers_pct": [
+    {
+      "tld": "xyz",
+      "delta_abs": 15392.0,
+      "delta_pct": 0.0019116652191317,
+      "count": 8067011
+    },
+    {
+      "tld": "app",
+      "delta_abs": 1893.0,
+      "delta_pct": 0.0017458348512166,
+      "count": 1086188
+    },
+    {
+      "tld": "dev",
+      "delta_abs": 980.0,
+      "delta_pct": 0.0016427435157728,
+      "count": 597543
+    }
+  ],
+  "top_decliners_abs": [
+    {
+      "tld": "dev",
+      "delta_abs": 980.0,
+      "delta_pct": 0.0016427435157728,
+      "count": 597543
+    },
+    {
+      "tld": "app",
+      "delta_abs": 1893.0,
+      "delta_pct": 0.0017458348512166,
+      "count": 1086188
+    },
+    {
+      "tld": "xyz",
+      "delta_abs": 15392.0,
+      "delta_pct": 0.0019116652191317,
+      "count": 8067011
+    }
+  ],
+  "core_movers_abs": [
+    {
+      "tld": "xyz",
+      "delta_abs": 15392.0,
+      "delta_pct": 0.0019116652191317,
+      "count": 8067011
+    },
+    {
+      "tld": "app",
+      "delta_abs": 1893.0,
+      "delta_pct": 0.0017458348512166,
+      "count": 1086188
+    },
+    {
+      "tld": "dev",
+      "delta_abs": 980.0,
+      "delta_pct": 0.0016427435157728,
+      "count": 597543
+    }
+  ],
+  "core_movers_pct": [
+    {
+      "tld": "xyz",
+      "delta_abs": 15392.0,
+      "delta_pct": 0.0019116652191317,
+      "count": 8067011
+    },
+    {
+      "tld": "app",
+      "delta_abs": 1893.0,
+      "delta_pct": 0.0017458348512166,
+      "count": 1086188
+    },
+    {
+      "tld": "dev",
+      "delta_abs": 980.0,
+      "delta_pct": 0.0016427435157728,
+      "count": 597543
+    }
+  ],
+  "rolling_updates": [
+    {
+      "tld": "icu",
+      "count": 485512,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -1185.0,
+      "delta_pct": -0.0024347797500292
+    },
+    {
+      "tld": "red",
+      "count": 19212,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -277.0,
+      "delta_pct": -0.0142131458771614
+    },
+    {
+      "tld": "autos",
+      "count": 238807,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -138.0,
+      "delta_pct": -0.0005775387641507
+    },
+    {
+      "tld": "uno",
+      "count": 37005,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -117.0,
+      "delta_pct": -0.003151769839987
+    },
+    {
+      "tld": "food",
+      "count": 26088,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -56.0,
+      "delta_pct": -0.002141982864137
+    },
+    {
+      "tld": "vin",
+      "count": 10107,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -25.0,
+      "delta_pct": -0.0024674299249901
+    },
+    {
+      "tld": "college",
+      "count": 7111,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -23.0,
+      "delta_pct": -0.0032239977572189
+    },
+    {
+      "tld": "wtf",
+      "count": 36821,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": 16.0,
+      "delta_pct": 0.0004347235429968
+    },
+    {
+      "tld": "cool",
+      "count": 21842,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": 10.0,
+      "delta_pct": 0.0004580432392817
+    },
+    {
+      "tld": "med",
+      "count": 2443,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": 7.0,
+      "delta_pct": 0.0028735632183908
+    },
+    {
+      "tld": "restaurant",
+      "count": 8207,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -5.0,
+      "delta_pct": -0.0006088650754992
+    },
+    {
+      "tld": "gal",
+      "count": 7610,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": 5.0,
+      "delta_pct": 0.0006574621959237
+    },
+    {
+      "tld": "cheap",
+      "count": 7114,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -5.0,
+      "delta_pct": -0.0007023458350891
+    },
+    {
+      "tld": "properties",
+      "count": 13290,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -3.0,
+      "delta_pct": -0.0002256826901376
+    },
+    {
+      "tld": "charity",
+      "count": 4724,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -2.0,
+      "delta_pct": -0.0004231908590774
+    },
+    {
+      "tld": "democrat",
+      "count": 983,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": 1.0,
+      "delta_pct": 0.0010183299389002
+    },
+    {
+      "tld": "racing",
+      "count": 4308,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": 1.0,
+      "delta_pct": 0.0002321801718133
+    },
+    {
+      "tld": "town",
+      "count": 35458,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -1.0,
+      "delta_pct": -2.8201584929073012e-05
+    },
+    {
+      "tld": "country",
+      "count": 3077,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": -1.0,
+      "delta_pct": -0.0003248862897985
+    },
+    {
+      "tld": "rio",
+      "count": 630,
+      "prev_date_utc": "2026-02-24",
+      "days_since_prev": 1,
+      "delta_abs": 0.0,
+      "delta_pct": 0.0
+    }
+  ],
   "anomalies": [],
   "sector_snapshot": [
     {
       "sector": "ai_tech",
-      "sector_count": 2907992,
-      "sector_delta_pct": null
+      "sector_count": 2914084,
+      "sector_delta_pct": 0.0020949163546529702
     },
     {
       "sector": "commerce",
-      "sector_count": 2124928,
-      "sector_delta_pct": null
+      "sector_count": 2124937,
+      "sector_delta_pct": 4.235437624239504e-06
     },
     {
       "sector": "finance",
-      "sector_count": 60936,
-      "sector_delta_pct": null
+      "sector_count": 60944,
+      "sector_delta_pct": 0.0001312852829197847
     },
     {
       "sector": "geo_local",
-      "sector_count": 96542,
-      "sector_delta_pct": null
+      "sector_count": 96547,
+      "sector_delta_pct": 5.179093037227321e-05
     },
     {
       "sector": "media_social",
-      "sector_count": 1009377,
-      "sector_delta_pct": null
+      "sector_count": 1009628,
+      "sector_delta_pct": 0.00024866823793290316
     },
     {
       "sector": "other",
-      "sector_count": 47318217,
-      "sector_delta_pct": null
+      "sector_count": 47384195,
+      "sector_delta_pct": 0.001394346705836359
     }
   ]
 }
