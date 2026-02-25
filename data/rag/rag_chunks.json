@@ -10,30 +10,30 @@
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "048810417c5b4252e3717b34d3129c56276df298",
+      "id": "449842a886d5ade7f206a7cd2abe34f1d6bb7275",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
       "title": "Setup",
-      "text": "n/activate\npip install -e \".[dev]\"\n```\n\nSet local env vars (or use local `.env`):\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- optional `CZDS_TOTP_SECRET`\n\nQuick start:\n\n```bash\ncp .env.example .env\n```\n\nOptional local MCP auth for step-9 live checks (keep this local-only, never commit):\n\n```bash\ncat > .env.mcp <<'EOF'\nROOTFETCH_MCP_TOKEN=replace_with_vercel_mcp_token\nROOTFETCH_MCP_ORIGIN=https://rootfetch.vercel.app\nROOTFETCH_MCP_URL=https://rootfetch.vercel.app/api/mcp\nEOF\nchmod 600 .env.mcp\n```\n\n## CLI\n\n```bash\nrootfetch auth-check\nrootfetch discover\nrootfetch run-baseline --dry-run\nrootfetch run-baseline --resume\nrootfetch baseline-status\nrootfetch run-hybrid\nrootfetch run-hybrid --dry-run\nrootfetch compute-signals --date YYYY-MM-DD\nrootfetch rag build\nrootfetch rag build-static\nrootfetch rag search \"count_ns_sld\"\nrootfetch mcp serve --transport stdio\n```\n\n## Local Automation\n\nPrimary daily entrypoint:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest entrypoint (includes MCP checks when `ROOTFETCH_MCP_TOKEN` is set):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script aut",
+      "text": "n/activate\npip install -e \".[dev]\"\n```\n\nSet local env vars (or use local `.env`):\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- optional `CZDS_TOTP_SECRET`\n\nQuick start:\n\n```bash\ncp .env.example .env\n```\n\nOptional local MCP auth for step-9 live checks (keep this local-only, never commit):\n\n```bash\ncat > .env.mcp <<'EOF'\nROOTFETCH_MCP_TOKEN=replace_with_vercel_mcp_token\nROOTFETCH_MCP_ORIGIN=https://rootfetch.vercel.app\nROOTFETCH_MCP_URL=https://rootfetch.vercel.app/api/mcp\nEOF\nchmod 600 .env.mcp\n```\n\n## CLI\n\n```bash\nrootfetch auth-check\nrootfetch discover\nrootfetch run-baseline --dry-run\nrootfetch run-baseline --resume\nrootfetch baseline-status\nrootfetch run-hybrid\nrootfetch run-hybrid --dry-run\nrootfetch compute-signals --date YYYY-MM-DD\npython compute_model_v1.py snapshot.json\nrootfetch rag build\nrootfetch rag build-static\nrootfetch rag search \"count_ns_sld\"\nrootfetch mcp serve --transport stdio\n```\n\n## Local Automation\n\nPrimary daily entrypoint:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest entrypoint (includes MCP checks when `ROOTFETCH_MCP_TOKEN` is set):\n\n```bash\n./scripts/re",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "1728e27c110cdf0163630643e50bc9effd2eb197",
+      "id": "90d5e3b61eb82bb54d851e5f1d5162ed7742e246",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
       "title": "Local Automation",
-      "text": "un_hybrid.sh\n```\n\nFull retest entrypoint (includes MCP checks when `ROOTFETCH_MCP_TOKEN` is set):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script auto-switches:\n\n1. runs `rootfetch discover`\n2. if baseline is incomplete, repeatedly runs `rootfetch run-baseline --resume` until 100% coverage\n3. once baseline is complete, runs `rootfetch run-hybrid`\n4. rebuilds static RAG + commits safe artifacts only\n\nSee scheduler setups in [docs/local_runner.md](docs/local_runner.md).\n\n## Outputs\n\n- `data/approved_tlds/latest.json`\n- `data/daily_counts/<YYYY-MM-DD>.csv`\n- `data/growth_trends.csv`\n- `data/signals/*`\n- `data/digests/*`\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n- `data/state/baseline_complete.json` (written once baseline reaches 100%)\n\n## Docs\n\n- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` r",
+      "text": "ly entrypoint:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest entrypoint (includes MCP checks when `ROOTFETCH_MCP_TOKEN` is set):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script auto-switches:\n\n1. runs `rootfetch discover`\n2. if baseline is incomplete, repeatedly runs `rootfetch run-baseline --resume` until 100% coverage\n3. once baseline is complete, runs `rootfetch run-hybrid`\n4. rebuilds static RAG + commits safe artifacts only\n\nSee scheduler setups in [docs/local_runner.md](docs/local_runner.md).\n\n## Outputs\n\n- `data/approved_tlds/latest.json`\n- `data/daily_counts/<YYYY-MM-DD>.csv`\n- `data/growth_trends.csv`\n- `data/signals/*`\n- `data/digests/*`\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n- `data/state/baseline_complete.json` (written once baseline reaches 100%)\n\n## Docs\n\n- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- Local",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "0fb3353bf3b76a307c6d982b182964f1ead6cdaa",
+      "id": "c7730a6e5151d43fb7f424fc96b4b5c8bb90751a",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
       "title": "Docs",
-      "text": ")\n- RAG: [docs/rag.md](docs/rag.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs on `self-hosted` only.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/vercel_deploy.yml` deploys dashboard on safe artifact/code changes.",
+      "text": "ract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs on `self-hosted` only.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/vercel_deploy.yml` deploys dashboard on safe artifact/code changes.",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
@@ -46,30 +46,48 @@
       "resource_uri": "rootfetch://docs/dashboard"
     },
     {
-      "id": "1e8ba33e1613cc263ae63b38cf3765adbe5f4010",
+      "id": "8502b90973eaebfb179847cc2fdf832eccccc30a",
+      "source_path": "docs/ga4_custom_dimensions.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "GA4 Custom Dimensions Checklist",
+      "text": "# GA4 Custom Dimensions Checklist\n\nRegister these GA4 event-scoped custom dimensions so RootFetch event params appear in reports:\n\n- `tld`\n- `sector`\n- `cadence`\n- `page_type`\n- `range_days`\n- `q_len`\n- `hits_count`\n- `status`\n\nAlso useful optional dimensions:\n\n- `label`\n- `href`\n- `chart`\n- `table`\n- `sort_key`\n- `direction`",
+      "resource_uri": "rootfetch://docs/ga4_custom_dimensions"
+    },
+    {
+      "id": "c800c04d1c0346178012452c4abce09dcfb47c12",
       "source_path": "docs/local_runner.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "RootFetch Local Runner",
-      "text": "# RootFetch Local Runner\n\nRootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted runners.\n\n## Required Local Environment\n\nCreate a local `.env` (never committed):\n\n```bash\ncp .env.example .env\n```\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)\n\nOptional local MCP auth file `.env.mcp` (never committed):\n\n- `ROOTFETCH_MCP_TOKEN`\n- optional `ROOTFETCH_MCP_ORIGIN` (default `https://rootfetch.vercel.app`)\n- optional `ROOTFETCH_MCP_URL` (default `https://rootfetch.vercel.app/api/mcp`)\n\nOptional hybrid overrides:\n\n- `ROOTFETCH_ROLLING_PERIOD_DAYS`\n- `ROOTFETCH_ROLLING_MIN_PER_DAY`\n- `ROOTFETCH_ROLLING_MAX_PER_DAY`\n- `ROOTFETCH_MAX_WORKERS`\n- `ROOTFETCH_HTTP_TIMEOUT`\n- `ROOTFETCH_RETRY_MAX`\n- `ROOTFETCH_LOG_EVERY`\n\n## Daily Local Command\n\nRun:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest (includes live MCP checks if token is available, otherwise prints a skip message):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script does:\n\n1. `rootfetch discover`\n2. checks `rootfetch baseline-status --date <today>",
+      "text": "# RootFetch Local Runner\n\nRootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted runners.\n\n## Required Local Environment\n\nCreate a local `.env` (never committed):\n\n```bash\ncp .env.example .env\n```\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)\n\nOptional local MCP auth file `.env.mcp` (never committed):\n\n- `ROOTFETCH_MCP_TOKEN`\n- optional `ROOTFETCH_MCP_ORIGIN` (default `https://rootfetch.vercel.app`)\n- optional `ROOTFETCH_MCP_URL` (default `https://rootfetch.vercel.app/api/mcp`)\n\nOptional hybrid overrides:\n\n- `ROOTFETCH_ROLLING_PERIOD_DAYS`\n- `ROOTFETCH_ROLLING_MIN_PER_DAY`\n- `ROOTFETCH_ROLLING_MAX_PER_DAY`\n- `ROOTFETCH_MAX_WORKERS`\n- `ROOTFETCH_HTTP_TIMEOUT`\n- `ROOTFETCH_RETRY_MAX`\n- `ROOTFETCH_LOG_EVERY`\n\nOptional local alerting and delivery-reliability overrides:\n\n- `ROOTFETCH_SLACK_WEBHOOK_URL`\n- `ROOTFETCH_DISCORD_WEBHOOK_URL`\n- `ROOTFETCH_ALERT_MOVER_ABS_THRESHOLD`\n- `ROOTFETCH_ALERT_MOVER_PCT_THRESHOLD`\n- `ROOTFETCH_ALERT_ANOMALY_Z_THRESHOLD`\n- `ROOTFETCH_ALERT_FAILURE_THRESHOLD`\n- `ROOTFETCH_ALERT_RETRY",
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
-      "id": "27bb9155c3917d843e8aa7e597b0be215933d64f",
+      "id": "882eae1e86f5530528f312c28e92724c6151682e",
+      "source_path": "docs/local_runner.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Required Local Environment",
+      "text": "ER_ABS_THRESHOLD`\n- `ROOTFETCH_ALERT_MOVER_PCT_THRESHOLD`\n- `ROOTFETCH_ALERT_ANOMALY_Z_THRESHOLD`\n- `ROOTFETCH_ALERT_FAILURE_THRESHOLD`\n- `ROOTFETCH_ALERT_RETRY_MAX`\n- `ROOTFETCH_ALERT_RETRY_BASE_SECONDS`\n- `ROOTFETCH_ALERT_RETRY_MAX_SECONDS`\n- `ROOTFETCH_ALERT_RETRY_JITTER_PCT`\n- `ROOTFETCH_ALERT_LOCK_TIMEOUT_SECONDS`\n- `ROOTFETCH_ALERT_DEDUP_HOURS`\n\n## Daily Local Command\n\nRun:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest (includes live MCP checks if token is available, otherwise prints a skip message):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script does:\n\n1. `rootfetch discover`\n2. checks `rootfetch baseline-status --date <today>`\n3. loops `rootfetch run-baseline --resume` until baseline completion (`missing_ever_count=0`)\n4. after baseline completion, runs `rootfetch run-hybrid --date <today>`\n5. `rootfetch compute-signals --date <run_date>`\n6. `rootfetch rag build-static`\n7. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json`)\n\nAlert delivery is local-only and persistent:\n\n- queue state is stored at `.ai/alerts/stat",
+      "resource_uri": "rootfetch://docs/local_runner"
+    },
+    {
+      "id": "7a591067c52e4d400a70e768ffc26720e8b4fb47",
       "source_path": "docs/local_runner.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Daily Local Command",
-      "text": "s a skip message):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script does:\n\n1. `rootfetch discover`\n2. checks `rootfetch baseline-status --date <today>`\n3. loops `rootfetch run-baseline --resume` until baseline completion (`missing_ever_count=0`)\n4. after baseline completion, runs `rootfetch run-hybrid --date <today>`\n5. `rootfetch compute-signals --date <run_date>`\n6. `rootfetch rag build-static`\n7. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json`)\n\n## Scheduling\n\n### Option 1: cron\n\n```bash\nCRON_TZ=UTC\n30 2 * * * /bin/bash -lc \"cd /path/to/rootfetch && ./scripts/local_run_hybrid.sh >> .ai/logs/cron.log 2>&1\"\n```\n\n### Option 2: systemd timer (recommended)\n\nService (`/etc/systemd/system/rootfetch-hybrid.service`):\n\n```ini\n[Unit]\nDescription=RootFetch Hybrid Daily Run\n\n[Service]\nType=oneshot\nWorkingDirectory=/path/to/rootfetch\nExecStart=/bin/bash -lc './scripts/local_run_hybrid.sh'\n```\n\nTimer (`/etc/systemd/system/rootfetch-hybrid.timer`):\n\n```ini\n[Unit]\nDescription=Run RootFetch Hybrid Daily at 02:30 UTC\n\n[Timer]\nOnCalendar=*-*-* 0",
+      "text": "ts only under `data/` (including `data/state/baseline_complete.json`)\n\nAlert delivery is local-only and persistent:\n\n- queue state is stored at `.ai/alerts/state.json`\n- delivery attempts are append-logged at `.ai/alerts/delivery_log.jsonl`\n- failed notifications are retried with exponential backoff\n- exhausted retries are retained in `dead_letters` for operator review\n\n## Scheduling\n\n### Option 1: cron\n\n```bash\nCRON_TZ=UTC\n30 2 * * * /bin/bash -lc \"cd /path/to/rootfetch && ./scripts/local_run_hybrid.sh >> .ai/logs/cron.log 2>&1\"\n```\n\n### Option 2: systemd timer (recommended)\n\nService (`/etc/systemd/system/rootfetch-hybrid.service`):\n\n```ini\n[Unit]\nDescription=RootFetch Hybrid Daily Run\n\n[Service]\nType=oneshot\nWorkingDirectory=/path/to/rootfetch\nExecStart=/bin/bash -lc './scripts/local_run_hybrid.sh'\n```\n\nTimer (`/etc/systemd/system/rootfetch-hybrid.timer`):\n\n```ini\n[Unit]\nDescription=Run RootFetch Hybrid Daily at 02:30 UTC\n\n[Timer]\nOnCalendar=*-*-* 02:30:00 UTC\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n```\n\nEnable:\n\n```bash\nsudo systemctl daemon-reload\nsudo systemctl enable",
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
-      "id": "6559b024c7b3822666c10124b9e053c93f9e1a63",
+      "id": "ff6aeed38fffd7c14eec676e74f0519476a1a558",
       "source_path": "docs/local_runner.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Option 2: systemd timer (recommended)",
-      "text": "id.sh'\n```\n\nTimer (`/etc/systemd/system/rootfetch-hybrid.timer`):\n\n```ini\n[Unit]\nDescription=Run RootFetch Hybrid Daily at 02:30 UTC\n\n[Timer]\nOnCalendar=*-*-* 02:30:00 UTC\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n```\n\nEnable:\n\n```bash\nsudo systemctl daemon-reload\nsudo systemctl enable --now rootfetch-hybrid.timer\n```",
+      "text": "Timer]\nOnCalendar=*-*-* 02:30:00 UTC\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n```\n\nEnable:\n\n```bash\nsudo systemctl daemon-reload\nsudo systemctl enable --now rootfetch-hybrid.timer\n```",
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
@@ -100,13 +118,49 @@
       "resource_uri": "rootfetch://docs/metrics_spec"
     },
     {
-      "id": "d1f4c333f2b9e36e823f2b13f7517a35e0067e7e",
+      "id": "abae07571deedcf99f69b4bb713da9a6d0e43018",
       "source_path": "docs/metrics_spec.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Hybrid Trend Fields",
-      "text": "c` and `prev_date_utc`\n- `cadence`: `core` or `rolling` (or legacy `daily`)\n\nDeltas are computed against `prev_date_utc`:\n\n- `delta_abs = count - prev_count`\n- `delta_pct = delta_abs / prev_count` (blank if previous missing/0)\n\nThis prevents misleading day-over-day comparisons for rolling rows.\n\n## Data Quality\n\nFlags:\n\n- `ok`\n- `missing`\n- `failed`\n- `estimate`\n- `suspicious`\n\nSuspicious rule:\n\n- `abs(delta_pct) > 0.20`\n- prior base > 10,000\n- not newly approved",
+      "text": "c` and `prev_date_utc`\n- `cadence`: `core` or `rolling` (or legacy `daily`)\n\nDeltas are computed against `prev_date_utc`:\n\n- `delta_abs = count - prev_count`\n- `delta_pct = delta_abs / prev_count` (blank if previous missing/0)\n\nThis prevents misleading day-over-day comparisons for rolling rows.\n\n## Data Quality\n\nFlags:\n\n- `ok`\n- `missing`\n- `failed`\n- `estimate`\n- `suspicious`\n\nSuspicious rule:\n\n- `abs(delta_pct) > 0.20`\n- prior base > 10,000\n- not newly approved\n\n## Model Contract\n\nRootFetch structural model fields (`DVI_v1` and `Regime_v1`) are defined in:\n\n- `docs/model_contract_v1.md`\n\nFormulas and thresholds in that document are versioned and deterministic.",
       "resource_uri": "rootfetch://docs/metrics_spec"
+    },
+    {
+      "id": "ed8197b8bc3fbddd0d7021f455094871198faeb0",
+      "source_path": "docs/model_contract_v1.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Model Contract v1",
+      "text": "# RootFetch Model Contract v1\n\n`model_version`: `rootfetch_model_v1`  \n`methodology_version`: `2026-03-01`\n\nThis document defines the deterministic model used for DVI and structural regime classification.\n\n## Scope\n\nThe contract stabilizes:\n\n- `data/signals/latest.json` model fields\n- replay state logic\n- alert predicates that depend on model state\n- AI summaries that reference regime or DVI\n\nNo silent formula changes are allowed. Any formula or threshold change requires a model version bump.\n\n## DVI_v1\n\nDVI_v1 is a bounded 0-100 score built from three normalized components:\n\n- cross-sectional dispersion (`D_norm`)\n- concentration shift (`C_norm`)\n- anomaly clustering (`A_norm`)\n\n### Inputs\n\nFor date `t` and TLD `i`:\n\n- `d_i(t)`: delegated count\n- `\u0394_i(t) = d_i(t) - d_i(t-1)`\n- `s_i(t) = d_i(t) / \u03a3_j d_j(t)`\n- `HHI(t) = \u03a3_i s_i(t)^2`\n\n### Component A: Cross-sectional Dispersion\n\n- `z_i(t) = (\u0394_i(t) - \u03bc_\u0394) / \u03c3_\u0394` (for that date across TLDs)\n- `D(t) = mean_i(|z_i(t)|)`\n- `D_norm = min(D(t) / D_max, 1.0)`\n\n`D_max` is the empirical `p99` over the rolling calibration window (up to 180 dat",
+      "resource_uri": "rootfetch://docs/model_contract_v1"
+    },
+    {
+      "id": "16db65d7b32199064ba836499210b18230531dae",
+      "source_path": "docs/model_contract_v1.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Component A: Cross-sectional Dispersion",
+      "text": "across TLDs)\n- `D(t) = mean_i(|z_i(t)|)`\n- `D_norm = min(D(t) / D_max, 1.0)`\n\n`D_max` is the empirical `p99` over the rolling calibration window (up to 180 dates), with a fixed floor to avoid short-history amplification.\n\n### Component B: Concentration Shift\n\n- `C(t) = |HHI(t) - HHI(t-1)|`\n- `C_norm = min(C(t) / C_max, 1.0)`\n\n`C_max` is the empirical `p99` over the rolling calibration window, with a fixed floor.\n\n### Component C: Anomaly Clustering\n\n- anomaly threshold: `|z_i(t)| > 2.5`\n- `A(t) = anomaly_count / approved_tlds_count`\n- `A_norm = min(A(t) / A_max, 1.0)`\n\n`A_max` is the empirical `p99` over the rolling calibration window, with a fixed floor.\n\n### Final Score\n\nWeights:\n\n- `w_D = 0.5`\n- `w_C = 0.3`\n- `w_A = 0.2`\n\nFormula:\n\n- `DVI_raw(t) = w_D * D_norm + w_C * C_norm + w_A * A_norm`\n- `DVI_v1(t) = round(100 * DVI_raw(t), 1)`\n\nBands:\n\n- `0 <= DVI < 25`: `stable`\n- `25 <= DVI < 50`: `elevated`\n- `50 <= DVI < 75`: `active`\n- `75 <= DVI <= 100`: `turbulent`\n\n## Regime_v1 State Machine\n\n### States\n\n- `STABLE`\n- `ELEVATED`\n- `ACTIVE`\n- `CONSOLIDATING`\n- `FRAGMENTING`\n- `TURBULE",
+      "resource_uri": "rootfetch://docs/model_contract_v1"
+    },
+    {
+      "id": "ad45e7f27481647e6c715733ea3c4f4cc938ee12",
+      "source_path": "docs/model_contract_v1.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Final Score",
+      "text": "tive`\n- `75 <= DVI <= 100`: `turbulent`\n\n## Regime_v1 State Machine\n\n### States\n\n- `STABLE`\n- `ELEVATED`\n- `ACTIVE`\n- `CONSOLIDATING`\n- `FRAGMENTING`\n- `TURBULENT`\n\n### Base Regime\n\nBase regime is derived from DVI band.\n\n### Override Rules\n\nIf `DVI < 50`:\n\n- `CONSOLIDATING` when:\n  - `delta_hhi > 0`\n  - `top10_share_delta > 0.001`\n- `FRAGMENTING` when:\n  - `delta_hhi < 0`\n  - `top10_share_delta < -0.001`\n\nOtherwise regime remains base regime.\n\n### Hysteresis and Minimum Duration\n\nTo prevent flapping:\n\n- candidate transition must persist for `2` consecutive snapshots\n- minimum active regime duration is `3` snapshots\n\n### Regime Confidence\n\nConfidence is a weighted agreement score in `[0.0, 1.0]`:\n\n- DVI classification agreement: `0.5`\n- HHI directional agreement: `0.3`\n- Top10 share directional agreement: `0.2`\n\n## Published Artifact Fields\n\n`data/signals/latest.json` includes:\n\n- `model_version`\n- `methodology_version`\n- `dvi` (legacy object, now sourced from model v1)\n- `dvi_components`\n- `dvi_band`\n- `regime`\n- `regime_confidence`\n- `regime_inputs`\n- `regime_base`\n- `regime_candida",
+      "resource_uri": "rootfetch://docs/model_contract_v1"
+    },
+    {
+      "id": "f57995e89ff2f2f5c20b1e2ffdc14954fcc4b231",
+      "source_path": "docs/model_contract_v1.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Published Artifact Fields",
+      "text": "(legacy object, now sourced from model v1)\n- `dvi_components`\n- `dvi_band`\n- `regime`\n- `regime_confidence`\n- `regime_inputs`\n- `regime_base`\n- `regime_candidate`\n- `regime_duration_snapshots`\n- `model_calibration`\n- `model_effective_date_utc`\n\n## Recalibration Policy\n\n- normalization scales use rolling historical `p99` over the last 180 available dates\n- deterministic fallback floors are fixed constants\n- no adaptive/randomized behavior is allowed\n\n## Versioning Policy\n\nAny change to:\n\n- weights\n- thresholds\n- hysteresis rules\n- confidence scoring logic\n\nrequires:\n\n- incrementing `model_version`\n- updating this document\n- updating regression fixtures/tests\n\n## Reproducibility\n\nThe deterministic entrypoint is:\n\n```bash\npython compute_model_v1.py snapshot.json\n```\n\nGiven identical input JSON, output must be identical across machines.",
+      "resource_uri": "rootfetch://docs/model_contract_v1"
     },
     {
       "id": "45adfd0a4fb8845dffce69548e731d9774991835",
@@ -136,12 +190,12 @@
       "resource_uri": "rootfetch://docs/signal_spec"
     },
     {
-      "id": "a5874ea47e66a2444b4453cf43c074804a2c1f6a",
+      "id": "33cfc4ade99ae4f7d8da3769e3a5c3523cf02911",
       "source_path": "docs/signal_spec.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Latest Snapshot",
-      "text": "d_tlds_count`, `counted_today_count`, `counted_today_core_count`, `counted_today_rolling_count`, `coverage_pct_today`)\n- core mover arrays (`core_movers_abs`, `core_movers_pct`)\n- rolling updates (`rolling_updates`)\n- compatibility mover arrays (`top_movers_abs`, `top_movers_pct`, `top_decliners_abs`)\n- anomalies and sector snapshot",
+      "text": "d_tlds_count`, `counted_today_count`, `counted_today_core_count`, `counted_today_rolling_count`, `coverage_pct_today`)\n- core mover arrays (`core_movers_abs`, `core_movers_pct`)\n- rolling updates (`rolling_updates`)\n- compatibility mover arrays (`top_movers_abs`, `top_movers_pct`, `top_decliners_abs`)\n- anomalies and sector snapshot\n- model contract fields:\n  - `model_version`\n  - `methodology_version`\n  - `dvi_components`\n  - `dvi_band`\n  - `regime`\n  - `regime_confidence`\n  - `regime_inputs`\n  - `regime_base`\n  - `regime_candidate`\n  - `regime_duration_snapshots`\n  - `model_calibration`\n\nSee `docs/model_contract_v1.md` for the exact formulas, thresholds, and versioning policy.",
       "resource_uri": "rootfetch://docs/signal_spec"
     },
     {
@@ -172,30 +226,48 @@
       "resource_uri": "rootfetch://digest/2026-02-24"
     },
     {
-      "id": "031638a8a0bcafcce1a807426d21fabda7e3909d",
+      "id": "5d0b8ebc3afa29f2c4f9509f437889ef42b82740",
       "source_path": "data/digests/2026-02-25.md",
       "source_type": "digest",
       "date_utc": "2026-02-25",
       "title": "RootFetch Daily Digest \u2014 2026-02-25",
-      "text": "# RootFetch Daily Digest \u2014 2026-02-25\n\n- Run ID: c0b7473c-0942-4a5f-8b35-aee769d9634d\n- Mode: hybrid\n- Approved TLDs observed: 841\n- Counted today: 841 (core=3, rolling=65)\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n| app | 1086188 | 1893.0 | 0.0017458348512166 | ok |\n| dev | 597543 | 980.0 | 0.0016427435157728 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n| app | 1086188 | 1893.0 | 0.0017458348512166 | ok |\n| dev | 597543 | 980.0 | 0.0016427435157728 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 597543 | 980.0 | 0.0016427435157728 | ok |\n| app | 1086188 | 1893.0 | 0.0017458348512166 | ok |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs |",
+      "text": "# RootFetch Daily Digest \u2014 2026-02-25\n\n- Run ID: 877d1690-9599-4674-8fc0-5b0edf78094c\n- Mode: hybrid\n- Approved TLDs observed: 851\n- Observed today: 68 (core=3, rolling=65)\n- Snapshot rows today: 851\n\n## Cross-sectional highlights\n- Total delegated counted today: 59,467,651\n- Distribution (p50 / p90 / p99 / max): 1,410 / 41,687 / 1,109,044 / 11,661,771\n- Concentration (Top1 / Top10 share): 19.61% / 69.51% (HHI=0.0819)\n- New approvals vs 2026-02-24: +13 / -0\n- Added approvals (first 10): aco, gea, melbourne, monash, sakura, schaeffler, sydney, top, versicherung, wtc\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 69.51% of delegations; median TLD has 1,410 names; 335 TLDs have <100.\n- [movers/positive] Core movers: .xyz +15,392, .app +1,893, .dev +980 (day-over-day).\n- [approvals/info] New approvals today: +13 (aco, gea, melbourne).\n- [coverage/positive] Observed today: 68 (core+rolling) out of 851 approved TLDs; snapshot rows today: 851.\n\n## Security Status\n- Safe aggregates checks date: 2026-02-25\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- ve",
       "resource_uri": "rootfetch://digest/2026-02-25"
     },
     {
-      "id": "cbbbda4df7fcada9d04bb6bcd81addeb0c79a6e1",
+      "id": "dcaaa5771a0d898867ca90ce97b923c47cc30143",
       "source_path": "data/digests/2026-02-25.md",
       "source_type": "digest",
       "date_utc": "2026-02-25",
-      "title": "Core Daily Decliners",
-      "text": "| ok |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| icu | 485512 | 2026-02-24 | 1 | -1185.0 | -0.0024347797500292 |\n| red | 19212 | 2026-02-24 | 1 | -277.0 | -0.0142131458771614 |\n| autos | 238807 | 2026-02-24 | 1 | -138.0 | -0.0005775387641507 |\n| uno | 37005 | 2026-02-24 | 1 | -117.0 | -0.003151769839987 |\n| food | 26088 | 2026-02-24 | 1 | -56.0 | -0.002141982864137 |\n| vin | 10107 | 2026-02-24 | 1 | -25.0 | -0.0024674299249901 |\n| college | 7111 | 2026-02-24 | 1 | -23.0 | -0.0032239977572189 |\n| wtf | 36821 | 2026-02-24 | 1 | 16.0 | 0.0004347235429968 |\n| cool | 21842 | 2026-02-24 | 1 | 10.0 | 0.0004580432392817 |\n| med | 2443 | 2026-02-24 | 1 | 7.0 | 0.0028735632183908 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2914084 | 6092.0 | 0.0020949163546529 | 6 |\n| commerce | 2124937 | 9.0 | 4",
+      "title": "Daily Insights",
+      "text": "ows today: 851.\n\n## Security Status\n- Safe aggregates checks date: 2026-02-25\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- vercel_read_only: True\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| org | 11661771 | 19.610276854554083 | other | baseline |\n| xyz | 8067011 | 13.565376913912406 | other | core |\n| top | 5864299 | 9.861326118295812 | other | baseline |\n| info | 5153632 | 8.666278074444204 | other | baseline |\n| online | 3231464 | 5.433986286090232 | other | baseline |\n| store | 2084483 | 3.505238503535309 | commerce | baseline |\n| site | 1714172 | 2.882528519581176 | other | baseline |\n| sbs | 1343810 | 2.2597327747147773 | other | rolling |\n| bond | 1131901 | 1.9033894579088049 | other | baseline |\n| app | 1086188 | 1.8265190935488609 | ai_tech | core |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n| app | 1086188 | 1893.0 | 0.0017458348512166 | ok |\n| d",
       "resource_uri": "rootfetch://digest/2026-02-25"
     },
     {
-      "id": "58afe0727c5219a82c642fef671a1a30919b5b60",
+      "id": "1a969cceb2a6b07542ff25234fbd34a7c5d8e073",
+      "source_path": "data/digests/2026-02-25.md",
+      "source_type": "digest",
+      "date_utc": "2026-02-25",
+      "title": "Core Daily Movers (Absolute)",
+      "text": "| data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n| app | 1086188 | 1893.0 | 0.0017458348512166 | ok |\n| dev | 597543 | 980.0 | 0.0016427435157728 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n| app | 1086188 | 1893.0 | 0.0017458348512166 | ok |\n| dev | 597543 | 980.0 | 0.0016427435157728 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 597543 | 980.0 | 0.0016427435157728 | ok |\n| app | 1086188 | 1893.0 | 0.0017458348512166 | ok |\n| xyz | 8067011 | 15392.0 | 0.0019116652191317 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| icu | 485512 | 2026-02-24 | 1.0 | -1185.0 | -0.0024347797500292 |\n| red | 19212 | 2026-02-24 | 1.0 | -277.0 | -0.0142131458771614 |\n| autos | 238807 | 2026-02-24 | 1.0 | -138.0 | -0.00057753",
+      "resource_uri": "rootfetch://digest/2026-02-25"
+    },
+    {
+      "id": "dfa2ad08adb9498f9b5e5efd5857113f47735aeb",
+      "source_path": "data/digests/2026-02-25.md",
+      "source_type": "digest",
+      "date_utc": "2026-02-25",
+      "title": "Rolling Updates (Since Last Seen)",
+      "text": "0 | -1185.0 | -0.0024347797500292 |\n| red | 19212 | 2026-02-24 | 1.0 | -277.0 | -0.0142131458771614 |\n| autos | 238807 | 2026-02-24 | 1.0 | -138.0 | -0.0005775387641507 |\n| uno | 37005 | 2026-02-24 | 1.0 | -117.0 | -0.003151769839987 |\n| food | 26088 | 2026-02-24 | 1.0 | -56.0 | -0.002141982864137 |\n| vin | 10107 | 2026-02-24 | 1.0 | -25.0 | -0.0024674299249901 |\n| college | 7111 | 2026-02-24 | 1.0 | -23.0 | -0.0032239977572189 |\n| wtf | 36821 | 2026-02-24 | 1.0 | 16.0 | 0.0004347235429968 |\n| cool | 21842 | 2026-02-24 | 1.0 | 10.0 | 0.0004580432392817 |\n| med | 2443 | 2026-02-24 | 1.0 | 7.0 | 0.0028735632183908 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2914084 | 6092.0 | 0.0020949163546529 | 6 |\n| commerce | 2124937 | 9.0 | 4.235437624239504e-06 | 4 |\n| finance | 60944 | 8.0 | 0.0001312852829197 | 3 |\n| geo_local | 96547 | 5.0 | 5.179093037227321e-05 | 3 |\n| media_social | 1009628 | 251.0 | 0.0002486682379329 | 4 |\n| other | 53261511 | 5943294.",
+      "resource_uri": "rootfetch://digest/2026-02-25"
+    },
+    {
+      "id": "f9150f9a763a65706efee667b424622722c0cd5b",
       "source_path": "data/digests/2026-02-25.md",
       "source_type": "digest",
       "date_utc": "2026-02-25",
       "title": "Sector Snapshot",
-      "text": "| sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2914084 | 6092.0 | 0.0020949163546529 | 6 |\n| commerce | 2124937 | 9.0 | 4.235437624239504e-06 | 4 |\n| finance | 60944 | 8.0 | 0.0001312852829197 | 3 |\n| geo_local | 96547 | 5.0 | 5.179093037227321e-05 | 3 |\n| media_social | 1009628 | 251.0 | 0.0002486682379329 | 4 |\n| other | 47384195 | 65978.0 | 0.0013943467058363 | 821 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "text": "52829197 | 3 |\n| geo_local | 96547 | 5.0 | 5.179093037227321e-05 | 3 |\n| media_social | 1009628 | 251.0 | 0.0002486682379329 | 4 |\n| other | 53261511 | 5943294.0 | 0.1256026616556579 | 831 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-02-25"
     }
   ]

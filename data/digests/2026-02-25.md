@@ -1,23 +1,23 @@
 # RootFetch Daily Digest — 2026-02-25
 
-- Run ID: ae5776a1-cb93-4907-a5ff-b18977e79b9a
+- Run ID: 877d1690-9599-4674-8fc0-5b0edf78094c
 - Mode: hybrid
-- Approved TLDs observed: 841
+- Approved TLDs observed: 851
 - Observed today: 68 (core=3, rolling=65)
-- Snapshot rows today: 841
+- Snapshot rows today: 851
 
 ## Cross-sectional highlights
-- Total delegated counted today: 53,590,335
-- Distribution (p50 / p90 / p99 / max): 1,482 / 41,687 / 1,065,656 / 11,661,771
-- Concentration (Top1 / Top10 share): 21.76% / 68.13% (HHI=0.0888)
-- New approvals vs 2026-02-24: +3 / -0
-- Added approvals (first 10): sakura, xn--55qx5d, xn--io0a7i
+- Total delegated counted today: 59,467,651
+- Distribution (p50 / p90 / p99 / max): 1,410 / 41,687 / 1,109,044 / 11,661,771
+- Concentration (Top1 / Top10 share): 19.61% / 69.51% (HHI=0.0819)
+- New approvals vs 2026-02-24: +13 / -0
+- Added approvals (first 10): aco, gea, melbourne, monash, sakura, schaeffler, sydney, top, versicherung, wtc
 
 ## Daily Insights
-- [market/info] Top 10 TLDs hold 68.13% of delegations; median TLD has 1,482 names; 331 TLDs have <100.
+- [market/info] Top 10 TLDs hold 69.51% of delegations; median TLD has 1,410 names; 335 TLDs have <100.
 - [movers/positive] Core movers: .xyz +15,392, .app +1,893, .dev +980 (day-over-day).
-- [approvals/info] New approvals today: +3 (sakura, xn--55qx5d, xn--io0a7i).
-- [coverage/positive] Observed today: 68 (core+rolling) out of 841 approved TLDs; snapshot rows today: 841.
+- [approvals/info] New approvals today: +13 (aco, gea, melbourne).
+- [coverage/positive] Observed today: 68 (core+rolling) out of 851 approved TLDs; snapshot rows today: 851.
 
 ## Security Status
 - Safe aggregates checks date: 2026-02-25
@@ -29,16 +29,16 @@
 ## Top TLDs by Count (Today)
 | tld | count | share_pct | sector | cadence |
 | --- | --- | --- | --- | --- |
-| org | 11661771 | 21.760959322235998 | other | baseline |
-| xyz | 8067011 | 15.05310799046134 | other | core |
-| info | 5153632 | 9.616719134149845 | other | baseline |
-| online | 3231464 | 6.029938047597575 | other | baseline |
-| store | 2084483 | 3.8896621937519145 | commerce | baseline |
-| site | 1714172 | 3.198658862647528 | other | baseline |
-| sbs | 1343810 | 2.507560365129272 | other | rolling |
-| bond | 1131901 | 2.1121364514702137 | other | baseline |
-| app | 1086188 | 2.0268356225054385 | ai_tech | core |
-| pro | 1034857 | 1.931051559950129 | other | baseline |
+| org | 11661771 | 19.610276854554083 | other | baseline |
+| xyz | 8067011 | 13.565376913912406 | other | core |
+| top | 5864299 | 9.861326118295812 | other | baseline |
+| info | 5153632 | 8.666278074444204 | other | baseline |
+| online | 3231464 | 5.433986286090232 | other | baseline |
+| store | 2084483 | 3.505238503535309 | commerce | baseline |
+| site | 1714172 | 2.882528519581176 | other | baseline |
+| sbs | 1343810 | 2.2597327747147773 | other | rolling |
+| bond | 1131901 | 1.9033894579088049 | other | baseline |
+| app | 1086188 | 1.8265190935488609 | ai_tech | core |
 
 ## Core Daily Movers (Absolute)
 | tld | count | delta_abs | delta_pct | data_quality |
@@ -86,7 +86,7 @@ _No data._
 | finance | 60944 | 8.0 | 0.0001312852829197 | 3 |
 | geo_local | 96547 | 5.0 | 5.179093037227321e-05 | 3 |
 | media_social | 1009628 | 251.0 | 0.0002486682379329 | 4 |
-| other | 47384195 | 65978.0 | 0.0013943467058363 | 821 |
+| other | 53261511 | 5943294.0 | 0.1256026616556579 | 831 |
 
 ## Data Quality Notes
 - Failed TLD jobs: 0

@@ -1,21 +1,21 @@
 {
   "date_utc": "2026-02-25",
-  "run_id": "ae5776a1-cb93-4907-a5ff-b18977e79b9a",
-  "approved_tlds_count": 841,
+  "run_id": "877d1690-9599-4674-8fc0-5b0edf78094c",
+  "approved_tlds_count": 851,
   "counted_today_count": 68,
   "counted_today_core_count": 3,
   "counted_today_rolling_count": 65,
-  "snapshot_rows_today": 841,
-  "processed_tlds_count_today": 841,
-  "coverage_pct_today": 0.08085612366230678,
+  "snapshot_rows_today": 851,
+  "processed_tlds_count_today": 851,
+  "coverage_pct_today": 0.0799059929494712,
   "note_if_partial": "",
-  "total_delegated_counted_today": 53590335,
-  "total_delegated_domains_today": 53590335,
+  "total_delegated_counted_today": 59467651,
+  "total_delegated_domains_today": 59467651,
   "top_tlds": [
     {
       "tld": "org",
       "count": 11661771,
-      "share_pct": 21.760959322235994,
+      "share_pct": 19.610276854554083,
       "sector": "other",
       "cadence": "baseline",
       "status": "ok",
@@ -24,16 +24,25 @@
     {
       "tld": "xyz",
       "count": 8067011,
-      "share_pct": 15.05310799046134,
+      "share_pct": 13.565376913912406,
       "sector": "other",
       "cadence": "core",
       "status": "ok",
       "is_estimate": false
     },
     {
+      "tld": "top",
+      "count": 5864299,
+      "share_pct": 9.861326118295812,
+      "sector": "other",
+      "cadence": "baseline",
+      "status": "ok",
+      "is_estimate": false
+    },
+    {
       "tld": "info",
       "count": 5153632,
-      "share_pct": 9.616719134149843,
+      "share_pct": 8.666278074444204,
       "sector": "other",
       "cadence": "baseline",
       "status": "ok",
@@ -42,7 +51,7 @@
     {
       "tld": "online",
       "count": 3231464,
-      "share_pct": 6.029938047597575,
+      "share_pct": 5.4339862860902315,
       "sector": "other",
       "cadence": "baseline",
       "status": "ok",
@@ -51,7 +60,7 @@
     {
       "tld": "store",
       "count": 2084483,
-      "share_pct": 3.8896621937519145,
+      "share_pct": 3.505238503535309,
       "sector": "commerce",
       "cadence": "baseline",
       "status": "ok",
@@ -60,7 +69,7 @@
     {
       "tld": "site",
       "count": 1714172,
-      "share_pct": 3.1986588626475276,
+      "share_pct": 2.8825285195811756,
       "sector": "other",
       "cadence": "baseline",
       "status": "ok",
@@ -69,7 +78,7 @@
     {
       "tld": "sbs",
       "count": 1343810,
-      "share_pct": 2.507560365129272,
+      "share_pct": 2.2597327747147773,
       "sector": "other",
       "cadence": "rolling",
       "status": "ok",
@@ -78,7 +87,7 @@
     {
       "tld": "bond",
       "count": 1131901,
-      "share_pct": 2.1121364514702137,
+      "share_pct": 1.9033894579088046,
       "sector": "other",
       "cadence": "baseline",
       "status": "ok",
@@ -87,58 +96,63 @@
     {
       "tld": "app",
       "count": 1086188,
-      "share_pct": 2.0268356225054385,
+      "share_pct": 1.8265190935488607,
       "sector": "ai_tech",
       "cadence": "core",
-      "status": "ok",
-      "is_estimate": false
-    },
-    {
-      "tld": "pro",
-      "count": 1034857,
-      "share_pct": 1.931051559950129,
-      "sector": "other",
-      "cadence": "baseline",
       "status": "ok",
       "is_estimate": false
     }
   ],
   "distribution": {
-    "p50": 1482,
+    "p50": 1410,
     "p90": 41687,
-    "p99": 1065656,
+    "p99": 1109044,
     "max": 11661771,
     "min": 1,
-    "tiny_tlds_lt_100": 331,
-    "small_tlds_lt_1000": 400,
-    "tiny_lt_100": 331,
-    "small_lt_1000": 400
+    "tiny_tlds_lt_100": 335,
+    "small_tlds_lt_1000": 406,
+    "tiny_lt_100": 335,
+    "small_lt_1000": 406
   },
   "concentration": {
-    "top1_share_pct": 21.760959322235994,
-    "top3_share_pct": 46.43078644684718,
-    "top10_share_pct": 68.12662954989925,
-    "hhi": 0.08881712384953387
+    "top1_share_pct": 19.610276854554083,
+    "top3_share_pct": 43.0369798867623,
+    "top10_share_pct": 69.51465259658566,
+    "hhi": 0.08185328871896509
   },
   "approvals_diff": {
     "prev_date_utc": "2026-02-24",
-    "added_count": 3,
+    "added_count": 13,
     "removed_count": 0,
     "added_preview": [
+      "aco",
+      "gea",
+      "melbourne",
+      "monash",
       "sakura",
-      "xn--55qx5d",
-      "xn--io0a7i"
+      "schaeffler",
+      "sydney",
+      "top",
+      "versicherung",
+      "wtc"
     ],
     "added_first_10": [
+      "aco",
+      "gea",
+      "melbourne",
+      "monash",
       "sakura",
-      "xn--55qx5d",
-      "xn--io0a7i"
+      "schaeffler",
+      "sydney",
+      "top",
+      "versicherung",
+      "wtc"
     ]
   },
   "pulse": {
-    "total_delegated_today": 53590335,
-    "delta_abs_today": 72343,
-    "delta_pct_today": 0.0013517510148736522,
+    "total_delegated_today": 59467651,
+    "delta_abs_today": 5949659,
+    "delta_pct_today": 0.11117119267105537,
     "rolling_7d_delta_abs": 0,
     "rolling_7d_delta_pct": 0.0,
     "series_30d": [
@@ -148,22 +162,24 @@
       },
       {
         "date_utc": "2026-02-25",
-        "total_delegated_count": 53590335
+        "total_delegated_count": 59467651
       }
     ]
   },
   "dvi": {
-    "score": 22.67,
-    "level": "stable",
-    "dispersion_component": 50.39,
-    "anomaly_component": 0.0,
-    "top10_shift_component": 0.0,
+    "score": 33.4,
+    "level": "elevated",
+    "dispersion_component": 5.12,
+    "anomaly_component": 4.11,
+    "top10_shift_component": 100.0,
     "inputs": {
-      "std_abs_delta": 628.9346,
-      "anomaly_count": 0,
-      "max_abs_robust_z": 0.0,
-      "top10_turnover_pct": 0.0
-    }
+      "dispersion_raw": 0.153688,
+      "concentration_shift_raw": 0.007082,
+      "anomaly_prop_raw": 0.008226,
+      "approved_tlds_count": 851
+    },
+    "model_version": "rootfetch_model_v1",
+    "methodology_version": "2026-03-01"
   },
   "anomaly_spotlight": [
     {
@@ -213,7 +229,7 @@
     {
       "tld": "org",
       "count": 11661771,
-      "share_pct": 22.424540813321492,
+      "share_pct": 20.157445497125952,
       "delta_abs": 2187.0,
       "delta_pct": 0.0001875710145404,
       "delta_7d_abs": null,
@@ -227,7 +243,7 @@
     {
       "tld": "xyz",
       "count": 8067011,
-      "share_pct": 15.512139400697667,
+      "share_pct": 13.943879926746591,
       "delta_abs": 15392.0,
       "delta_pct": 0.0019116652191317,
       "delta_7d_abs": null,
@@ -239,9 +255,23 @@
       "cadence": "core"
     },
     {
+      "tld": "top",
+      "count": 5864299,
+      "share_pct": 10.136478196266264,
+      "delta_abs": null,
+      "delta_pct": null,
+      "delta_7d_abs": null,
+      "delta_30d_abs": null,
+      "delta_7d_pct": null,
+      "delta_30d_pct": null,
+      "anomaly_score": 0.0,
+      "sector": "other",
+      "cadence": "baseline"
+    },
+    {
       "tld": "info",
       "count": 5153632,
-      "share_pct": 9.909972603718566,
+      "share_pct": 8.908085757492941,
       "delta_abs": 1321.0,
       "delta_pct": 0.0002563898025565,
       "delta_7d_abs": null,
@@ -255,7 +285,7 @@
     {
       "tld": "online",
       "count": 3231464,
-      "share_pct": 6.213815753608875,
+      "share_pct": 5.58560611899553,
       "delta_abs": 2609.0,
       "delta_pct": 0.0008080263746746,
       "delta_7d_abs": null,
@@ -269,7 +299,7 @@
     {
       "tld": "store",
       "count": 2084483,
-      "share_pct": 4.008274052729626,
+      "share_pct": 3.6030421504748804,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -283,7 +313,7 @@
     {
       "tld": "site",
       "count": 1714172,
-      "share_pct": 3.296199177213558,
+      "share_pct": 2.962957226882554,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -297,7 +327,7 @@
     {
       "tld": "sbs",
       "count": 1343810,
-      "share_pct": 2.5840262332667616,
+      "share_pct": 2.3227841494651904,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -311,7 +341,7 @@
     {
       "tld": "bond",
       "count": 1131901,
-      "share_pct": 2.176544211950261,
+      "share_pct": 1.9564980924117241,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -325,7 +355,7 @@
     {
       "tld": "app",
       "count": 1086188,
-      "share_pct": 2.0886422085410565,
+      "share_pct": 1.8774828805703907,
       "delta_abs": 1893.0,
       "delta_pct": 0.0017458348512166,
       "delta_7d_abs": null,
@@ -339,7 +369,7 @@
     {
       "tld": "pro",
       "count": 1034857,
-      "share_pct": 1.9899372944685194,
+      "share_pct": 1.788756919924021,
       "delta_abs": 1808.0,
       "delta_pct": 0.0017501589953622,
       "delta_7d_abs": null,
@@ -353,7 +383,7 @@
     {
       "tld": "click",
       "count": 680370,
-      "share_pct": 1.3082905532238236,
+      "share_pct": 1.1760238811823336,
       "delta_abs": 1173.0,
       "delta_pct": 0.0017270394303861,
       "delta_7d_abs": null,
@@ -367,7 +397,7 @@
     {
       "tld": "dev",
       "count": 597543,
-      "share_pct": 1.149021652990319,
+      "share_pct": 1.0328568838034233,
       "delta_abs": 980.0,
       "delta_pct": 0.0016427435157728,
       "delta_7d_abs": null,
@@ -381,7 +411,7 @@
     {
       "tld": "live",
       "count": 547571,
-      "share_pct": 1.0529299741601221,
+      "share_pct": 0.9464799633183292,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -395,7 +425,7 @@
     {
       "tld": "space",
       "count": 512987,
-      "share_pct": 0.9864280406640941,
+      "share_pct": 0.8867012989051277,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -409,7 +439,7 @@
     {
       "tld": "asia",
       "count": 510798,
-      "share_pct": 0.9822187897844155,
+      "share_pct": 0.8829175984540378,
       "delta_abs": 618.0,
       "delta_pct": 0.0012113371751146,
       "delta_7d_abs": null,
@@ -423,7 +453,7 @@
     {
       "tld": "icu",
       "count": 485512,
-      "share_pct": 0.9335960772473876,
+      "share_pct": 0.8392105862995093,
       "delta_abs": -1185.0,
       "delta_pct": -0.0024347797500292,
       "delta_7d_abs": null,
@@ -437,7 +467,7 @@
     {
       "tld": "cfd",
       "count": 477870,
-      "share_pct": 0.9189011959214378,
+      "share_pct": 0.8260013405949731,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -451,7 +481,7 @@
     {
       "tld": "tech",
       "count": 475218,
-      "share_pct": 0.9138016375235813,
+      "share_pct": 0.8214173416930586,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -465,7 +495,7 @@
     {
       "tld": "cloud",
       "count": 459062,
-      "share_pct": 0.8827350969972735,
+      "share_pct": 0.7934915927264936,
       "delta_abs": 643.0,
       "delta_pct": 0.0014026469234477,
       "delta_7d_abs": null,
@@ -479,7 +509,7 @@
     {
       "tld": "cyou",
       "count": 423390,
-      "share_pct": 0.8141410369790478,
+      "share_pct": 0.7318323133791734,
       "delta_abs": 7968.0,
       "delta_pct": 0.0191804959775842,
       "delta_7d_abs": null,
@@ -493,7 +523,7 @@
     {
       "tld": "mobi",
       "count": 406103,
-      "share_pct": 0.7808996847830658,
+      "share_pct": 0.7019516237044391,
       "delta_abs": -250.0,
       "delta_pct": -0.0006152286312639,
       "delta_7d_abs": null,
@@ -507,7 +537,7 @@
     {
       "tld": "world",
       "count": 388219,
-      "share_pct": 0.7465103550744442,
+      "share_pct": 0.671039015724862,
       "delta_abs": -44.0,
       "delta_pct": -0.0001133252460316,
       "delta_7d_abs": null,
@@ -521,7 +551,7 @@
     {
       "tld": "fun",
       "count": 387938,
-      "share_pct": 0.7459700172502369,
+      "share_pct": 0.670553305433973,
       "delta_abs": 68.0,
       "delta_pct": 0.0001753164720138,
       "delta_7d_abs": null,
@@ -535,7 +565,7 @@
     {
       "tld": "life",
       "count": 378428,
-      "share_pct": 0.727683139285073,
+      "share_pct": 0.6541152098241665,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -549,7 +579,7 @@
     {
       "tld": "blog",
       "count": 366016,
-      "share_pct": 0.7038159753204449,
+      "share_pct": 0.6326609887191278,
       "delta_abs": 245.0,
       "delta_pct": 0.0006698180008803,
       "delta_7d_abs": null,
@@ -563,7 +593,7 @@
     {
       "tld": "art",
       "count": 284959,
-      "share_pct": 0.5479506265063239,
+      "share_pct": 0.4925534476209072,
       "delta_abs": -124.0,
       "delta_pct": -0.000434961046432,
       "delta_7d_abs": null,
@@ -577,7 +607,7 @@
     {
       "tld": "link",
       "count": 279486,
-      "share_pct": 0.5374265378519241,
+      "share_pct": 0.48309333223999545,
       "delta_abs": 303.0,
       "delta_pct": 0.0010853096356153,
       "delta_7d_abs": null,
@@ -591,7 +621,7 @@
     {
       "tld": "digital",
       "count": 271307,
-      "share_pct": 0.5216990536377206,
+      "share_pct": 0.46895587861301263,
       "delta_abs": 2576.0,
       "delta_pct": 0.009585793972411,
       "delta_7d_abs": null,
@@ -605,7 +635,7 @@
     {
       "tld": "autos",
       "count": 238807,
-      "share_pct": 0.4592044654286957,
+      "share_pct": 0.41277942148170776,
       "delta_abs": -138.0,
       "delta_pct": -0.0005775387641507,
       "delta_7d_abs": null,
@@ -619,7 +649,7 @@
     {
       "tld": "lol",
       "count": 221886,
-      "share_pct": 0.4266668984414677,
+      "share_pct": 0.38353136513959063,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -633,7 +663,7 @@
     {
       "tld": "website",
       "count": 220828,
-      "share_pct": 0.4246324592314631,
+      "share_pct": 0.38170260539667,
       "delta_abs": -82.0,
       "delta_pct": -0.0003711918880992,
       "delta_7d_abs": null,
@@ -647,7 +677,7 @@
     {
       "tld": "today",
       "count": 209377,
-      "share_pct": 0.4026132121674156,
+      "share_pct": 0.36190947891634473,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -661,7 +691,7 @@
     {
       "tld": "studio",
       "count": 163676,
-      "share_pct": 0.314734283683088,
+      "share_pct": 0.2829150091514906,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -675,7 +705,7 @@
     {
       "tld": "buzz",
       "count": 163232,
-      "share_pct": 0.3138805114626324,
+      "share_pct": 0.2821475523217583,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -689,7 +719,7 @@
     {
       "tld": "skin",
       "count": 160461,
-      "share_pct": 0.30855212672641064,
+      "share_pct": 0.2773578611614246,
       "delta_abs": 19.0,
       "delta_pct": 0.0001184228568579,
       "delta_7d_abs": null,
@@ -703,7 +733,7 @@
     {
       "tld": "help",
       "count": 140953,
-      "share_pct": 0.2710399905177442,
+      "share_pct": 0.24363815883165552,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -717,7 +747,7 @@
     {
       "tld": "run",
       "count": 129793,
-      "share_pct": 0.2495803103819683,
+      "share_pct": 0.2243480277059521,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -731,7 +761,7 @@
     {
       "tld": "lat",
       "count": 123648,
-      "share_pct": 0.2377640259344465,
+      "share_pct": 0.2137263560422023,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -745,7 +775,7 @@
     {
       "tld": "agency",
       "count": 122768,
-      "share_pct": 0.23607186477678674,
+      "share_pct": 0.2122052704337239,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -759,7 +789,7 @@
     {
       "tld": "email",
       "count": 120893,
-      "share_pct": 0.2324664077647276,
+      "share_pct": 0.20896432098384093,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -773,7 +803,7 @@
     {
       "tld": "group",
       "count": 117514,
-      "share_pct": 0.22596889350139543,
+      "share_pct": 0.2031236979485585,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -787,7 +817,7 @@
     {
       "tld": "bet",
       "count": 117375,
-      "share_pct": 0.22570160895490146,
+      "share_pct": 0.20288343556267383,
       "delta_abs": 836.0,
       "delta_pct": 0.0071735642145547,
       "delta_7d_abs": null,
@@ -801,7 +831,7 @@
     {
       "tld": "cat",
       "count": 114757,
-      "share_pct": 0.2206674295108637,
+      "share_pct": 0.1983582058774506,
       "delta_abs": 46.0,
       "delta_pct": 0.0004010077499106,
       "delta_7d_abs": null,
@@ -815,7 +845,7 @@
     {
       "tld": "ltd",
       "count": 111543,
-      "share_pct": 0.21448719546459274,
+      "share_pct": 0.19280278639375786,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -829,7 +859,7 @@
     {
       "tld": "win",
       "count": 106960,
-      "share_pct": 0.205674497071917,
+      "share_pct": 0.18488104168505726,
       "delta_abs": 48.0,
       "delta_pct": 0.0004489673750374,
       "delta_7d_abs": null,
@@ -843,7 +873,7 @@
     {
       "tld": "solutions",
       "count": 102475,
-      "share_pct": 0.1970502438990716,
+      "share_pct": 0.1771286906009372,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -857,7 +887,7 @@
     {
       "tld": "makeup",
       "count": 90164,
-      "share_pct": 0.17337729388549294,
+      "share_pct": 0.15584904863959892,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -871,7 +901,7 @@
     {
       "tld": "services",
       "count": 88677,
-      "share_pct": 0.17051792611112926,
+      "share_pct": 0.15327875966254506,
       "delta_abs": -3.0,
       "delta_pct": -3.3829499323410016e-05,
       "delta_7d_abs": null,
@@ -885,7 +915,7 @@
     {
       "tld": "yachts",
       "count": 87195,
-      "share_pct": 0.16766817288879773,
+      "share_pct": 0.1507171132173576,
       "delta_abs": -25.0,
       "delta_pct": -0.0002866315065351,
       "delta_7d_abs": null,
@@ -899,7 +929,7 @@
     {
       "tld": "media",
       "count": 85469,
-      "share_pct": 0.1643492295272969,
+      "share_pct": 0.147733711217092,
       "delta_abs": 12.0,
       "delta_pct": 0.0001404214985314,
       "delta_7d_abs": null,
@@ -913,7 +943,7 @@
     {
       "tld": "ovh",
       "count": 83676,
-      "share_pct": 0.16090145116856516,
+      "share_pct": 0.14463449928981723,
       "delta_abs": 49.0,
       "delta_pct": 0.0005859351644803,
       "delta_7d_abs": null,
@@ -927,7 +957,7 @@
     {
       "tld": "pics",
       "count": 82790,
-      "share_pct": 0.15919775254846683,
+      "share_pct": 0.1431030426430992,
       "delta_abs": -373.0,
       "delta_pct": -0.0044851676827435,
       "delta_7d_abs": null,
@@ -941,7 +971,7 @@
     {
       "tld": "homes",
       "count": 78399,
-      "share_pct": 0.15075425295382594,
+      "share_pct": 0.1355131711580666,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -955,7 +985,7 @@
     {
       "tld": "company",
       "count": 77734,
-      "share_pct": 0.14947551753354898,
+      "share_pct": 0.13436371441984143,
       "delta_abs": 175.0,
       "delta_pct": 0.0022563467811601,
       "delta_7d_abs": null,
@@ -969,7 +999,7 @@
     {
       "tld": "beauty",
       "count": 76389,
-      "share_pct": 0.14688920303689856,
+      "share_pct": 0.13203887334779205,
       "delta_abs": -152.0,
       "delta_pct": -0.0019858637854221,
       "delta_7d_abs": null,
@@ -983,7 +1013,7 @@
     {
       "tld": "rest",
       "count": 75950,
-      "share_pct": 0.1460450453684751,
+      "share_pct": 0.13128005904992612,
       "delta_abs": 161.0,
       "delta_pct": 0.0021243188325482,
       "delta_7d_abs": null,
@@ -997,7 +1027,7 @@
     {
       "tld": "loan",
       "count": 74488,
-      "share_pct": 0.14323375035427222,
+      "share_pct": 0.12875298273220404,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1011,7 +1041,7 @@
     {
       "tld": "network",
       "count": 73219,
-      "share_pct": 0.1407935770485106,
+      "share_pct": 0.12655950814452324,
       "delta_abs": -12.0,
       "delta_pct": -0.000163865029837,
       "delta_7d_abs": null,
@@ -1025,7 +1055,7 @@
     {
       "tld": "news",
       "count": 71710,
-      "share_pct": 0.1378919052452054,
+      "share_pct": 0.12395119202725743,
       "delta_abs": -5.0,
       "delta_pct": -6.972042111134351e-05,
       "delta_7d_abs": null,
@@ -1039,7 +1069,7 @@
     {
       "tld": "academy",
       "count": 69847,
-      "share_pct": 0.13430952315802344,
+      "share_pct": 0.1207309846538537,
       "delta_abs": -192.0,
       "delta_pct": -0.0027413298305229,
       "delta_7d_abs": null,
@@ -1053,7 +1083,7 @@
     {
       "tld": "fyi",
       "count": 68556,
-      "share_pct": 0.13182704582332033,
+      "share_pct": 0.11849948292596098,
       "delta_abs": -65.0,
       "delta_pct": -0.0009472318969411,
       "delta_7d_abs": null,
@@ -1067,7 +1097,7 @@
     {
       "tld": "love",
       "count": 67255,
-      "share_pct": 0.12932533938455293,
+      "share_pct": 0.1162506961343355,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1081,7 +1111,7 @@
     {
       "tld": "global",
       "count": 65815,
-      "share_pct": 0.1265563483992915,
+      "share_pct": 0.11376164695682538,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1095,7 +1125,7 @@
     {
       "tld": "rocks",
       "count": 63252,
-      "share_pct": 0.12162792902760747,
+      "share_pct": 0.10933148512213202,
       "delta_abs": -12.0,
       "delta_pct": -0.0001896813353566,
       "delta_7d_abs": null,
@@ -1109,7 +1139,7 @@
     {
       "tld": "xin",
       "count": 61669,
-      "share_pct": 0.11858396185422636,
+      "share_pct": 0.10659525953324415,
       "delta_abs": -651.0,
       "delta_pct": -0.0104460847240051,
       "delta_7d_abs": null,
@@ -1123,7 +1153,7 @@
     {
       "tld": "forum",
       "count": 61648,
-      "share_pct": 0.1185435807356913,
+      "share_pct": 0.10655896089940546,
       "delta_abs": 37.0,
       "delta_pct": 0.0006005421109866,
       "delta_7d_abs": null,
@@ -1137,7 +1167,7 @@
     {
       "tld": "games",
       "count": 61486,
-      "share_pct": 0.11823206924984939,
+      "share_pct": 0.10627894286693558,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1151,7 +1181,7 @@
     {
       "tld": "qpon",
       "count": 61194,
-      "share_pct": 0.11767057941117137,
+      "share_pct": 0.10577421900594049,
       "delta_abs": 130.0,
       "delta_pct": 0.0021289139263723,
       "delta_7d_abs": null,
@@ -1165,7 +1195,7 @@
     {
       "tld": "casino",
       "count": 60196,
-      "share_pct": 0.1157515148255527,
+      "share_pct": 0.1040491696454161,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1179,7 +1209,7 @@
     {
       "tld": "zone",
       "count": 59575,
-      "share_pct": 0.11455738746315872,
+      "share_pct": 0.10297576718761488,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1193,7 +1223,7 @@
     {
       "tld": "boats",
       "count": 57670,
-      "share_pct": 0.11089424313890665,
+      "share_pct": 0.09968296254653376,
       "delta_abs": -18.0,
       "delta_pct": -0.0003120232977395,
       "delta_7d_abs": null,
@@ -1207,7 +1237,7 @@
     {
       "tld": "team",
       "count": 54608,
-      "share_pct": 0.10500629147441329,
+      "share_pct": 0.09439027603157822,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1221,7 +1251,7 @@
     {
       "tld": "bio",
       "count": 53957,
-      "share_pct": 0.10375447679982636,
+      "share_pct": 0.09326501838257885,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1235,7 +1265,7 @@
     {
       "tld": "guru",
       "count": 53911,
-      "share_pct": 0.10366602292113052,
+      "share_pct": 0.09318550708940838,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1249,7 +1279,7 @@
     {
       "tld": "mom",
       "count": 50925,
-      "share_pct": 0.09792421244752594,
+      "share_pct": 0.08802418705882144,
       "delta_abs": -8.0,
       "delta_pct": -0.0001570690907663,
       "delta_7d_abs": null,
@@ -1263,7 +1293,7 @@
     {
       "tld": "chat",
       "count": 50767,
-      "share_pct": 0.09762039260330976,
+      "share_pct": 0.08775108305184463,
       "delta_abs": -18.0,
       "delta_pct": -0.000354435364773,
       "delta_7d_abs": null,
@@ -1277,7 +1307,7 @@
     {
       "tld": "quest",
       "count": 48440,
-      "share_pct": 0.09314578008754358,
+      "share_pct": 0.0837288487212432,
       "delta_abs": -76.0,
       "delta_pct": -0.0015664935279083,
       "delta_7d_abs": null,
@@ -1291,7 +1321,7 @@
     {
       "tld": "hair",
       "count": 48439,
-      "share_pct": 0.09314385717713713,
+      "share_pct": 0.08372712021486994,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1305,7 +1335,7 @@
     {
       "tld": "baby",
       "count": 47698,
-      "share_pct": 0.09171898056597137,
+      "share_pct": 0.0824462969922762,
       "delta_abs": 50.0,
       "delta_pct": 0.0010493619879113,
       "delta_7d_abs": null,
@@ -1319,7 +1349,7 @@
     {
       "tld": "llc",
       "count": 47626,
-      "share_pct": 0.0915805310167083,
+      "share_pct": 0.08232184453340068,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1333,7 +1363,7 @@
     {
       "tld": "social",
       "count": 46090,
-      "share_pct": 0.08862694063242946,
+      "share_pct": 0.07966685874405656,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1347,7 +1377,7 @@
     {
       "tld": "care",
       "count": 44664,
-      "share_pct": 0.0858848703928581,
+      "share_pct": 0.07720200865577223,
       "delta_abs": 18.0,
       "delta_pct": 0.0004031716167181,
       "delta_7d_abs": null,
@@ -1361,7 +1391,7 @@
     {
       "tld": "berlin",
       "count": 43319,
-      "share_pct": 0.08329855589620767,
+      "share_pct": 0.07487716758372284,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1375,7 +1405,7 @@
     {
       "tld": "center",
       "count": 43289,
-      "share_pct": 0.08324086858401473,
+      "share_pct": 0.07482531239252471,
       "delta_abs": 1.0,
       "delta_pct": 2.310109037146553e-05,
       "delta_7d_abs": null,
@@ -1389,7 +1419,7 @@
     {
       "tld": "cam",
       "count": 41687,
-      "share_pct": 0.08016036611291141,
+      "share_pct": 0.0720562451825447,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1403,7 +1433,7 @@
     {
       "tld": "bid",
       "count": 41619,
-      "share_pct": 0.08002960820527408,
+      "share_pct": 0.07193870674916228,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1417,7 +1447,7 @@
     {
       "tld": "wang",
       "count": 40778,
-      "share_pct": 0.07841244055346515,
+      "share_pct": 0.07048503288924145,
       "delta_abs": 1.0,
       "delta_pct": 2.452362851607524e-05,
       "delta_7d_abs": null,
@@ -1431,7 +1461,7 @@
     {
       "tld": "systems",
       "count": 40425,
-      "share_pct": 0.07773365317999481,
+      "share_pct": 0.06987487013947681,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1445,7 +1475,7 @@
     {
       "tld": "earth",
       "count": 40030,
-      "share_pct": 0.07697410356945436,
+      "share_pct": 0.0691921101220348,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1459,7 +1489,7 @@
     {
       "tld": "support",
       "count": 39845,
-      "share_pct": 0.07661836514426452,
+      "share_pct": 0.06887233644297969,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1473,7 +1503,7 @@
     {
       "tld": "consulting",
       "count": 39086,
-      "share_pct": 0.075158876145783,
+      "share_pct": 0.06756040010566705,
       "delta_abs": 14.0,
       "delta_pct": 0.0003583128583128,
       "delta_7d_abs": null,
@@ -1487,7 +1517,7 @@
     {
       "tld": "bar",
       "count": 37728,
-      "share_pct": 0.07254756381384897,
+      "share_pct": 0.06521308845076515,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1501,7 +1531,7 @@
     {
       "tld": "tel",
       "count": 37309,
-      "share_pct": 0.07174186435355415,
+      "share_pct": 0.06448884428036464,
       "delta_abs": -1.0,
       "delta_pct": -2.680246582685607e-05,
       "delta_7d_abs": null,
@@ -1515,7 +1545,7 @@
     {
       "tld": "uno",
       "count": 37005,
-      "share_pct": 0.07115729958999897,
+      "share_pct": 0.06396337834289027,
       "delta_abs": -117.0,
       "delta_pct": -0.003151769839987,
       "delta_7d_abs": null,
@@ -1529,7 +1559,7 @@
     {
       "tld": "wtf",
       "count": 36821,
-      "share_pct": 0.07080348407521557,
+      "share_pct": 0.06364533317020843,
       "delta_abs": 16.0,
       "delta_pct": 0.0004347235429968,
       "delta_7d_abs": null,
@@ -1543,7 +1573,7 @@
     {
       "tld": "town",
       "count": 35458,
-      "share_pct": 0.06818255719124938,
+      "share_pct": 0.06128937898344017,
       "delta_abs": -1.0,
       "delta_pct": -2.8201584929073012e-05,
       "delta_7d_abs": null,
@@ -1557,7 +1587,7 @@
     {
       "tld": "page",
       "count": 35425,
-      "share_pct": 0.06811910114783713,
+      "share_pct": 0.06123233827312223,
       "delta_abs": 62.0,
       "delta_pct": 0.0017532449170036,
       "delta_7d_abs": null,
@@ -1571,7 +1601,7 @@
     {
       "tld": "london",
       "count": 34897,
-      "share_pct": 0.0671038044532413,
+      "share_pct": 0.06031968690803518,
       "delta_abs": -1.0,
       "delta_pct": -2.8654937245687436e-05,
       "delta_7d_abs": null,
@@ -1585,7 +1615,7 @@
     {
       "tld": "family",
       "count": 34602,
-      "share_pct": 0.06653654588334398,
+      "share_pct": 0.059809777527920265,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1599,7 +1629,7 @@
     {
       "tld": "photography",
       "count": 34441,
-      "share_pct": 0.06622695730790851,
+      "share_pct": 0.059531488001823646,
       "delta_abs": -2.0,
       "delta_pct": -5.806695119472752e-05,
       "delta_7d_abs": null,
@@ -1613,7 +1643,7 @@
     {
       "tld": "business",
       "count": 33810,
-      "share_pct": 0.0650136008414502,
+      "share_pct": 0.05844080048028969,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1627,7 +1657,7 @@
     {
       "tld": "best",
       "count": 33645,
-      "share_pct": 0.06469632062438901,
+      "share_pct": 0.058155596928699996,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1641,7 +1671,7 @@
     {
       "tld": "works",
       "count": 33642,
-      "share_pct": 0.06469055189316972,
+      "share_pct": 0.058150411409580174,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1655,7 +1685,7 @@
     {
       "tld": "events",
       "count": 33540,
-      "share_pct": 0.06449441503171369,
+      "share_pct": 0.05797410375950655,
       "delta_abs": 12.0,
       "delta_pct": 0.0003579098067287,
       "delta_7d_abs": null,
@@ -1669,7 +1699,7 @@
     {
       "tld": "church",
       "count": 33453,
-      "share_pct": 0.06432712182635415,
+      "share_pct": 0.05782372370503198,
       "delta_abs": -1.0,
       "delta_pct": -2.9891791713995336e-05,
       "delta_7d_abs": null,
@@ -1683,7 +1713,7 @@
     {
       "tld": "finance",
       "count": 33089,
-      "share_pct": 0.06362718243841307,
+      "share_pct": 0.057194547385161366,
       "delta_abs": 12.0,
       "delta_pct": 0.000362789853977,
       "delta_7d_abs": null,
@@ -1697,7 +1727,7 @@
     {
       "tld": "gmbh",
       "count": 33019,
-      "share_pct": 0.06349257870996287,
+      "share_pct": 0.0570735519390324,
       "delta_abs": 11.0,
       "delta_pct": 0.0003332525448376,
       "delta_7d_abs": null,
@@ -1711,7 +1741,7 @@
     {
       "tld": "technology",
       "count": 32737,
-      "share_pct": 0.06295031797534917,
+      "share_pct": 0.056586113141770006,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1725,7 +1755,7 @@
     {
       "tld": "capital",
       "count": 32526,
-      "share_pct": 0.06254458387959211,
+      "share_pct": 0.056221398297009846,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1739,7 +1769,7 @@
     {
       "tld": "plus",
       "count": 32008,
-      "share_pct": 0.061548516289060586,
+      "share_pct": 0.0553260319956555,
       "delta_abs": 10.0,
       "delta_pct": 0.0003125195324707,
       "delta_7d_abs": null,
@@ -1753,7 +1783,7 @@
     {
       "tld": "monster",
       "count": 31312,
-      "share_pct": 0.06021017064618423,
+      "share_pct": 0.05412299155985894,
       "delta_abs": -78.0,
       "delta_pct": -0.0024848677922905,
       "delta_7d_abs": null,
@@ -1767,7 +1797,7 @@
     {
       "tld": "foundation",
       "count": 31204,
-      "share_pct": 0.06000249632228963,
+      "share_pct": 0.05393631287154568,
       "delta_abs": -22.0,
       "delta_pct": -0.0007045410875552,
       "delta_7d_abs": null,
@@ -1781,7 +1811,7 @@
     {
       "tld": "city",
       "count": 30546,
-      "share_pct": 0.05873722127485768,
+      "share_pct": 0.05279895567793342,
       "delta_abs": 2.0,
       "delta_pct": 6.547930853850184e-05,
       "delta_7d_abs": null,
@@ -1795,7 +1825,7 @@
     {
       "tld": "education",
       "count": 29851,
-      "share_pct": 0.05740079854238777,
+      "share_pct": 0.051597643748510134,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1809,7 +1839,7 @@
     {
       "tld": "realtor",
       "count": 27802,
-      "share_pct": 0.05346075511960955,
+      "share_pct": 0.04805593418967803,
       "delta_abs": -32.0,
       "delta_pct": -0.001149673061723,
       "delta_7d_abs": null,
@@ -1823,7 +1853,7 @@
     {
       "tld": "marketing",
       "count": 27250,
-      "share_pct": 0.05239930857525933,
+      "share_pct": 0.04710179867163248,
       "delta_abs": 13.0,
       "delta_pct": 0.0004772919190806,
       "delta_7d_abs": null,
@@ -1837,7 +1867,7 @@
     {
       "tld": "expert",
       "count": 27174,
-      "share_pct": 0.052253167384370545,
+      "share_pct": 0.04697043218726389,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1851,7 +1881,7 @@
     {
       "tld": "coffee",
       "count": 26938,
-      "share_pct": 0.05179936052845271,
+      "share_pct": 0.046562504683171954,
       "delta_abs": 6.0,
       "delta_pct": 0.0002227833061042,
       "delta_7d_abs": null,
@@ -1865,7 +1895,7 @@
     {
       "tld": "travel",
       "count": 26455,
-      "share_pct": 0.05087059480214627,
+      "share_pct": 0.0457276361048821,
       "delta_abs": 16.0,
       "delta_pct": 0.0006051666099322,
       "delta_7d_abs": null,
@@ -1879,7 +1909,7 @@
     {
       "tld": "tools",
       "count": 26291,
-      "share_pct": 0.05055523749549149,
+      "share_pct": 0.04544416105966567,
       "delta_abs": 13.0,
       "delta_pct": 0.0004947104041403,
       "delta_7d_abs": null,
@@ -1893,7 +1923,7 @@
     {
       "tld": "international",
       "count": 26128,
-      "share_pct": 0.05024180309924315,
+      "share_pct": 0.045162414520822515,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1907,7 +1937,7 @@
     {
       "tld": "food",
       "count": 26088,
-      "share_pct": 0.05016488668298589,
+      "share_pct": 0.04509327426589167,
       "delta_abs": -56.0,
       "delta_pct": -0.002141982864137,
       "delta_7d_abs": null,
@@ -1921,7 +1951,7 @@
     {
       "tld": "farm",
       "count": 25988,
-      "share_pct": 0.04997259564234274,
+      "share_pct": 0.04492042362856458,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1935,7 +1965,7 @@
     {
       "tld": "energy",
       "count": 25754,
-      "share_pct": 0.04952263460723776,
+      "share_pct": 0.04451595313721919,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1949,7 +1979,7 @@
     {
       "tld": "coach",
       "count": 25192,
-      "share_pct": 0.048441958958823236,
+      "share_pct": 0.04354453255544093,
       "delta_abs": 12.0,
       "delta_pct": 0.0004765687053216,
       "delta_7d_abs": null,
@@ -1963,7 +1993,7 @@
     {
       "tld": "ninja",
       "count": 25148,
-      "share_pct": 0.048357350900940246,
+      "share_pct": 0.043468478275017014,
       "delta_abs": -4.0,
       "delta_pct": -0.0001590330788804,
       "delta_7d_abs": null,
@@ -1977,7 +2007,7 @@
     {
       "tld": "software",
       "count": 24766,
-      "share_pct": 0.04762279912568341,
+      "share_pct": 0.04280818884042752,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -1991,7 +2021,7 @@
     {
       "tld": "house",
       "count": 24337,
-      "share_pct": 0.04679787056132428,
+      "share_pct": 0.0420666596062943,
       "delta_abs": -5.0,
       "delta_pct": -0.0002054062936488,
       "delta_7d_abs": null,
@@ -2005,7 +2035,7 @@
     {
       "tld": "video",
       "count": 24331,
-      "share_pct": 0.04678633309888569,
+      "share_pct": 0.04205628856805467,
       "delta_abs": 11.0,
       "delta_pct": 0.0004523026315789,
       "delta_7d_abs": null,
@@ -2019,7 +2049,7 @@
     {
       "tld": "pet",
       "count": 24261,
-      "share_pct": 0.04665172937043548,
+      "share_pct": 0.04193529312192571,
       "delta_abs": -172.0,
       "delta_pct": -0.0070396594769369,
       "delta_7d_abs": null,
@@ -2033,7 +2063,7 @@
     {
       "tld": "community",
       "count": 24089,
-      "share_pct": 0.04632098878052926,
+      "share_pct": 0.04163799002572312,
       "delta_abs": 8.0,
       "delta_pct": 0.0003322121174369,
       "delta_7d_abs": null,
@@ -2047,7 +2077,7 @@
     {
       "tld": "locker",
       "count": 23389,
-      "share_pct": 0.04497495149602718,
+      "share_pct": 0.04042803556443347,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2061,7 +2091,7 @@
     {
       "tld": "school",
       "count": 23318,
-      "share_pct": 0.04483842485717054,
+      "share_pct": 0.04030531161193124,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2075,7 +2105,7 @@
     {
       "tld": "cafe",
       "count": 23097,
-      "share_pct": 0.04441346165734917,
+      "share_pct": 0.039923311703438366,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2089,7 +2119,7 @@
     {
       "tld": "ventures",
       "count": 23033,
-      "share_pct": 0.044290395391337556,
+      "share_pct": 0.03981268729554902,
       "delta_abs": -7.0,
       "delta_pct": -0.0003038194444444,
       "delta_7d_abs": null,
@@ -2103,7 +2133,7 @@
     {
       "tld": "irish",
       "count": 22927,
-      "share_pct": 0.04408656688825581,
+      "share_pct": 0.03962946561998231,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2117,7 +2147,7 @@
     {
       "tld": "trade",
       "count": 22835,
-      "share_pct": 0.04390965913086411,
+      "share_pct": 0.03947044303364139,
       "delta_abs": 113.0,
       "delta_pct": 0.004973153771675,
       "delta_7d_abs": null,
@@ -2131,7 +2161,7 @@
     {
       "tld": "swiss",
       "count": 22773,
-      "share_pct": 0.04379043868566536,
+      "share_pct": 0.03936327563849859,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2145,7 +2175,7 @@
     {
       "tld": "training",
       "count": 22344,
-      "share_pct": 0.04296551012130623,
+      "share_pct": 0.038621746404365366,
       "delta_abs": 9.0,
       "delta_pct": 0.0004029550033579,
       "delta_7d_abs": null,
@@ -2159,7 +2189,7 @@
     {
       "tld": "host",
       "count": 22332,
-      "share_pct": 0.04294243519642905,
+      "share_pct": 0.038601004327886115,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2173,7 +2203,7 @@
     {
       "tld": "cool",
       "count": 21842,
-      "share_pct": 0.0420002090972776,
+      "share_pct": 0.03775403620498336,
       "delta_abs": 10.0,
       "delta_pct": 0.0004580432392817,
       "delta_7d_abs": null,
@@ -2187,7 +2217,7 @@
     {
       "tld": "fund",
       "count": 21355,
-      "share_pct": 0.04106375172934544,
+      "share_pct": 0.03691225360120043,
       "delta_abs": -17.0,
       "delta_pct": -0.0007954332771851,
       "delta_7d_abs": null,
@@ -2201,7 +2231,7 @@
     {
       "tld": "legal",
       "count": 21261,
-      "share_pct": 0.040882998151140874,
+      "share_pct": 0.03674977400211296,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2215,7 +2245,7 @@
     {
       "tld": "xn--55qx5d",
       "count": 21189,
-      "share_pct": 0.0407445486018778,
+      "share_pct": 0.03662532154323746,
       "delta_abs": null,
       "delta_pct": null,
       "delta_7d_abs": null,
@@ -2229,7 +2259,7 @@
     {
       "tld": "immo",
       "count": 21101,
-      "share_pct": 0.04057533248611183,
+      "share_pct": 0.03647321298238961,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2243,7 +2273,7 @@
     {
       "tld": "land",
       "count": 20852,
-      "share_pct": 0.040096527794910373,
+      "share_pct": 0.036042814895445155,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2257,7 +2287,7 @@
     {
       "tld": "tips",
       "count": 20537,
-      "share_pct": 0.03949081101688444,
+      "share_pct": 0.035498335387864816,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2271,7 +2301,7 @@
     {
       "tld": "money",
       "count": 20496,
-      "share_pct": 0.039411971690220746,
+      "share_pct": 0.03542746662656071,
       "delta_abs": -4.0,
       "delta_pct": -0.0001951219512195,
       "delta_7d_abs": null,
@@ -2285,7 +2315,7 @@
     {
       "tld": "watch",
       "count": 20412,
-      "share_pct": 0.0392504472160805,
+      "share_pct": 0.03528227209120595,
       "delta_abs": 7.0,
       "delta_pct": 0.0003430531732418,
       "delta_7d_abs": null,
@@ -2299,7 +2329,7 @@
     {
       "tld": "party",
       "count": 20153,
-      "share_pct": 0.03875241342081474,
+      "share_pct": 0.034834588940528786,
       "delta_abs": 15.0,
       "delta_pct": 0.0007448604628066,
       "delta_7d_abs": null,
@@ -2313,7 +2343,7 @@
     {
       "tld": "photos",
       "count": 19353,
-      "share_pct": 0.03721408509566951,
+      "share_pct": 0.03345178384191205,
       "delta_abs": -5.0,
       "delta_pct": -0.0002582911457795,
       "delta_7d_abs": null,
@@ -2327,7 +2357,7 @@
     {
       "tld": "red",
       "count": 19212,
-      "share_pct": 0.036942954728362655,
+      "share_pct": 0.03320806444328085,
       "delta_abs": -277.0,
       "delta_pct": -0.0142131458771614,
       "delta_7d_abs": null,
@@ -2341,7 +2371,7 @@
     {
       "tld": "band",
       "count": 19075,
-      "share_pct": 0.03667951600268154,
+      "share_pct": 0.032971259070142735,
       "delta_abs": 6.0,
       "delta_pct": 0.0003146468089569,
       "delta_7d_abs": null,
@@ -2355,7 +2385,7 @@
     {
       "tld": "ing",
       "count": 18961,
-      "share_pct": 0.03646030421634834,
+      "share_pct": 0.03277420934358985,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2369,7 +2399,7 @@
     {
       "tld": "guide",
       "count": 18784,
-      "share_pct": 0.036119949074409956,
+      "share_pct": 0.0324682637155209,
       "delta_abs": 5.0,
       "delta_pct": 0.0002662548591511,
       "delta_7d_abs": null,
@@ -2383,7 +2413,7 @@
     {
       "tld": "pub",
       "count": 18755,
-      "share_pct": 0.03606418467262345,
+      "share_pct": 0.03241813703069604,
       "delta_abs": 8.0,
       "delta_pct": 0.0004267349442577,
       "delta_7d_abs": null,
@@ -2397,7 +2427,7 @@
     {
       "tld": "cash",
       "count": 18683,
-      "share_pct": 0.03592573512336038,
+      "share_pct": 0.03229368457182054,
       "delta_abs": 25.0,
       "delta_pct": 0.0013399078143423,
       "delta_7d_abs": null,
@@ -2411,7 +2441,7 @@
     {
       "tld": "market",
       "count": 18356,
-      "share_pct": 0.035296943420457264,
+      "share_pct": 0.03172846298776095,
       "delta_abs": 9.0,
       "delta_pct": 0.000490543413092,
       "delta_7d_abs": null,
@@ -2425,7 +2455,7 @@
     {
       "tld": "paris",
       "count": 18331,
-      "share_pct": 0.03524887066029648,
+      "share_pct": 0.03168525032842918,
       "delta_abs": 6.0,
       "delta_pct": 0.0003274215552523,
       "delta_7d_abs": null,
@@ -2439,7 +2469,7 @@
     {
       "tld": "amsterdam",
       "count": 18236,
-      "share_pct": 0.03506619417168548,
+      "share_pct": 0.03152104222296844,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2453,7 +2483,7 @@
     {
       "tld": "institute",
       "count": 18059,
-      "share_pct": 0.034725839029747095,
+      "share_pct": 0.031215096594899485,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2467,7 +2497,7 @@
     {
       "tld": "exchange",
       "count": 17764,
-      "share_pct": 0.0341585804598498,
+      "share_pct": 0.030705187214784567,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2481,7 +2511,7 @@
     {
       "tld": "gallery",
       "count": 17689,
-      "share_pct": 0.03401436217936743,
+      "share_pct": 0.030575549236789245,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2495,7 +2525,7 @@
     {
       "tld": "show",
       "count": 17598,
-      "share_pct": 0.03383937733238216,
+      "share_pct": 0.030418255156821592,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2509,7 +2539,7 @@
     {
       "tld": "press",
       "count": 17575,
-      "share_pct": 0.03379515039303423,
+      "share_pct": 0.03037849951023636,
       "delta_abs": 17.0,
       "delta_pct": 0.0009682196149903,
       "delta_7d_abs": null,
@@ -2523,7 +2553,7 @@
     {
       "tld": "koeln",
       "count": 17365,
-      "share_pct": 0.03339133920768361,
+      "share_pct": 0.03001551317184947,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2537,7 +2567,7 @@
     {
       "tld": "clinic",
       "count": 17321,
-      "share_pct": 0.03330673114980062,
+      "share_pct": 0.02993945889142555,
       "delta_abs": 12.0,
       "delta_pct": 0.0006932809521058,
       "delta_7d_abs": null,
@@ -2551,7 +2581,7 @@
     {
       "tld": "wine",
       "count": 17319,
-      "share_pct": 0.033302885328987765,
+      "share_pct": 0.02993600187867901,
       "delta_abs": -6.0,
       "delta_pct": -0.0003463203463203,
       "delta_7d_abs": null,
@@ -2565,7 +2595,7 @@
     {
       "tld": "gold",
       "count": 16891,
-      "share_pct": 0.032479879675035066,
+      "share_pct": 0.029196201150919057,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2579,7 +2609,7 @@
     {
       "tld": "codes",
       "count": 16853,
-      "share_pct": 0.03240680907959066,
+      "share_pct": 0.02913051790873476,
       "delta_abs": 27.0,
       "delta_pct": 0.0016046594556044,
       "delta_7d_abs": null,
@@ -2593,7 +2623,7 @@
     {
       "tld": "dog",
       "count": 16743,
-      "share_pct": 0.032195288934883194,
+      "share_pct": 0.028940382207674958,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2607,7 +2637,7 @@
     {
       "tld": "golf",
       "count": 16599,
-      "share_pct": 0.03191838983635706,
+      "share_pct": 0.02869147728992395,
       "delta_abs": 10.0,
       "delta_pct": 0.000602809090361,
       "delta_7d_abs": null,
@@ -2621,7 +2651,7 @@
     {
       "tld": "moe",
       "count": 16512,
-      "share_pct": 0.03175109663099751,
+      "share_pct": 0.02854109723544938,
       "delta_abs": -3.0,
       "delta_pct": -0.0001816530426884,
       "delta_7d_abs": null,
@@ -2635,7 +2665,7 @@
     {
       "tld": "partners",
       "count": 16316,
-      "share_pct": 0.031374206191336934,
+      "share_pct": 0.02820230998628828,
       "delta_abs": 9.0,
       "delta_pct": 0.0005519102226037,
       "delta_7d_abs": null,
@@ -2649,7 +2679,7 @@
     {
       "tld": "tax",
       "count": 16257,
-      "share_pct": 0.03126075447735747,
+      "share_pct": 0.02810032811026529,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2663,7 +2693,7 @@
     {
       "tld": "directory",
       "count": 16191,
-      "share_pct": 0.031133842390532986,
+      "share_pct": 0.027986246689629412,
       "delta_abs": -24.0,
       "delta_pct": -0.0014801110083256,
       "delta_7d_abs": null,
@@ -2677,7 +2707,7 @@
     {
       "tld": "bike",
       "count": 15867,
-      "share_pct": 0.030510819418849172,
+      "share_pct": 0.027426210624689636,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2691,7 +2721,7 @@
     {
       "tld": "eus",
       "count": 15488,
-      "share_pct": 0.029782036374811617,
+      "share_pct": 0.02677110670921996,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
       "delta_7d_abs": null,
@@ -2705,23 +2735,9 @@
     {
       "tld": "hamburg",
       "count": 15421,
-      "share_pct": 0.029653201377580707,
+      "share_pct": 0.02665529678221081,
       "delta_abs": 0.0,
       "delta_pct": 0.0,
-      "delta_7d_abs": null,
-      "delta_30d_abs": null,
-      "delta_7d_pct": null,
-      "delta_30d_pct": null,
-      "anomaly_score": 0.0,
-      "sector": "other",
-      "cadence": "baseline"
-    },
-    {
-      "tld": "xn--io0a7i",
-      "count": 15385,
-      "share_pct": 0.029583976602949175,
-      "delta_abs": null,
-      "delta_pct": null,
       "delta_7d_abs": null,
       "delta_30d_abs": null,
       "delta_7d_pct": null,
@@ -2745,1593 +2761,1593 @@
       },
       {
         "rank": 3,
+        "tld": "top",
+        "count": 5864299
+      },
+      {
+        "rank": 4,
         "tld": "info",
         "count": 5153632
       },
       {
-        "rank": 4,
+        "rank": 5,
         "tld": "online",
         "count": 3231464
       },
       {
-        "rank": 5,
+        "rank": 6,
         "tld": "store",
         "count": 2084483
       },
       {
-        "rank": 6,
+        "rank": 7,
         "tld": "site",
         "count": 1714172
       },
       {
-        "rank": 7,
+        "rank": 8,
         "tld": "sbs",
         "count": 1343810
       },
       {
-        "rank": 8,
+        "rank": 9,
         "tld": "bond",
         "count": 1131901
       },
       {
-        "rank": 9,
+        "rank": 10,
         "tld": "app",
         "count": 1086188
       },
       {
-        "rank": 10,
+        "rank": 11,
         "tld": "pro",
         "count": 1034857
       },
       {
-        "rank": 11,
+        "rank": 12,
         "tld": "click",
         "count": 680370
       },
       {
-        "rank": 12,
+        "rank": 13,
         "tld": "dev",
         "count": 597543
       },
       {
-        "rank": 13,
+        "rank": 14,
         "tld": "live",
         "count": 547571
       },
       {
-        "rank": 14,
+        "rank": 15,
         "tld": "space",
         "count": 512987
       },
       {
-        "rank": 15,
+        "rank": 16,
         "tld": "asia",
         "count": 510798
       },
       {
-        "rank": 16,
+        "rank": 17,
         "tld": "icu",
         "count": 485512
       },
       {
-        "rank": 17,
+        "rank": 18,
         "tld": "cfd",
         "count": 477870
       },
       {
-        "rank": 18,
+        "rank": 19,
         "tld": "tech",
         "count": 475218
       },
       {
-        "rank": 19,
+        "rank": 20,
         "tld": "cloud",
         "count": 459062
       },
       {
-        "rank": 20,
+        "rank": 21,
         "tld": "cyou",
         "count": 423390
       },
       {
-        "rank": 21,
+        "rank": 22,
         "tld": "mobi",
         "count": 406103
       },
       {
-        "rank": 22,
+        "rank": 23,
         "tld": "world",
         "count": 388219
       },
       {
-        "rank": 23,
+        "rank": 24,
         "tld": "fun",
         "count": 387938
       },
       {
-        "rank": 24,
+        "rank": 25,
         "tld": "life",
         "count": 378428
       },
       {
-        "rank": 25,
+        "rank": 26,
         "tld": "blog",
         "count": 366016
       },
       {
-        "rank": 26,
+        "rank": 27,
         "tld": "art",
         "count": 284959
       },
       {
-        "rank": 27,
+        "rank": 28,
         "tld": "link",
         "count": 279486
       },
       {
-        "rank": 28,
+        "rank": 29,
         "tld": "digital",
         "count": 271307
       },
       {
-        "rank": 29,
+        "rank": 30,
         "tld": "autos",
         "count": 238807
       },
       {
-        "rank": 30,
+        "rank": 31,
         "tld": "lol",
         "count": 221886
       },
       {
-        "rank": 31,
+        "rank": 32,
         "tld": "website",
         "count": 220828
       },
       {
-        "rank": 32,
+        "rank": 33,
         "tld": "today",
         "count": 209377
       },
       {
-        "rank": 33,
+        "rank": 34,
         "tld": "studio",
         "count": 163676
       },
       {
-        "rank": 34,
+        "rank": 35,
         "tld": "buzz",
         "count": 163232
       },
       {
-        "rank": 35,
+        "rank": 36,
         "tld": "skin",
         "count": 160461
       },
       {
-        "rank": 36,
+        "rank": 37,
         "tld": "help",
         "count": 140953
       },
       {
-        "rank": 37,
+        "rank": 38,
         "tld": "run",
         "count": 129793
       },
       {
-        "rank": 38,
+        "rank": 39,
         "tld": "lat",
         "count": 123648
       },
       {
-        "rank": 39,
+        "rank": 40,
         "tld": "agency",
         "count": 122768
       },
       {
-        "rank": 40,
+        "rank": 41,
         "tld": "email",
         "count": 120893
       },
       {
-        "rank": 41,
+        "rank": 42,
         "tld": "group",
         "count": 117514
       },
       {
-        "rank": 42,
+        "rank": 43,
         "tld": "bet",
         "count": 117375
       },
       {
-        "rank": 43,
+        "rank": 44,
         "tld": "cat",
         "count": 114757
       },
       {
-        "rank": 44,
+        "rank": 45,
         "tld": "ltd",
         "count": 111543
       },
       {
-        "rank": 45,
+        "rank": 46,
         "tld": "win",
         "count": 106960
       },
       {
-        "rank": 46,
+        "rank": 47,
         "tld": "solutions",
         "count": 102475
       },
       {
-        "rank": 47,
+        "rank": 48,
         "tld": "makeup",
         "count": 90164
       },
       {
-        "rank": 48,
+        "rank": 49,
         "tld": "services",
         "count": 88677
       },
       {
-        "rank": 49,
+        "rank": 50,
         "tld": "yachts",
         "count": 87195
       },
       {
-        "rank": 50,
+        "rank": 51,
         "tld": "media",
         "count": 85469
       },
       {
-        "rank": 51,
+        "rank": 52,
         "tld": "ovh",
         "count": 83676
       },
       {
-        "rank": 52,
+        "rank": 53,
         "tld": "pics",
         "count": 82790
       },
       {
-        "rank": 53,
+        "rank": 54,
         "tld": "homes",
         "count": 78399
       },
       {
-        "rank": 54,
+        "rank": 55,
         "tld": "company",
         "count": 77734
       },
       {
-        "rank": 55,
+        "rank": 56,
         "tld": "beauty",
         "count": 76389
       },
       {
-        "rank": 56,
+        "rank": 57,
         "tld": "rest",
         "count": 75950
       },
       {
-        "rank": 57,
+        "rank": 58,
         "tld": "loan",
         "count": 74488
       },
       {
-        "rank": 58,
+        "rank": 59,
         "tld": "network",
         "count": 73219
       },
       {
-        "rank": 59,
+        "rank": 60,
         "tld": "news",
         "count": 71710
       },
       {
-        "rank": 60,
+        "rank": 61,
         "tld": "academy",
         "count": 69847
       },
       {
-        "rank": 61,
+        "rank": 62,
         "tld": "fyi",
         "count": 68556
       },
       {
-        "rank": 62,
+        "rank": 63,
         "tld": "love",
         "count": 67255
       },
       {
-        "rank": 63,
+        "rank": 64,
         "tld": "global",
         "count": 65815
       },
       {
-        "rank": 64,
+        "rank": 65,
         "tld": "rocks",
         "count": 63252
       },
       {
-        "rank": 65,
+        "rank": 66,
         "tld": "xin",
         "count": 61669
       },
       {
-        "rank": 66,
+        "rank": 67,
         "tld": "forum",
         "count": 61648
       },
       {
-        "rank": 67,
+        "rank": 68,
         "tld": "games",
         "count": 61486
       },
       {
-        "rank": 68,
+        "rank": 69,
         "tld": "qpon",
         "count": 61194
       },
       {
-        "rank": 69,
+        "rank": 70,
         "tld": "casino",
         "count": 60196
       },
       {
-        "rank": 70,
+        "rank": 71,
         "tld": "zone",
         "count": 59575
       },
       {
-        "rank": 71,
+        "rank": 72,
         "tld": "boats",
         "count": 57670
       },
       {
-        "rank": 72,
+        "rank": 73,
         "tld": "team",
         "count": 54608
       },
       {
-        "rank": 73,
+        "rank": 74,
         "tld": "bio",
         "count": 53957
       },
       {
-        "rank": 74,
+        "rank": 75,
         "tld": "guru",
         "count": 53911
       },
       {
-        "rank": 75,
+        "rank": 76,
         "tld": "mom",
         "count": 50925
       },
       {
-        "rank": 76,
+        "rank": 77,
         "tld": "chat",
         "count": 50767
       },
       {
-        "rank": 77,
+        "rank": 78,
         "tld": "quest",
         "count": 48440
       },
       {
-        "rank": 78,
+        "rank": 79,
         "tld": "hair",
         "count": 48439
       },
       {
-        "rank": 79,
+        "rank": 80,
         "tld": "baby",
         "count": 47698
       },
       {
-        "rank": 80,
+        "rank": 81,
         "tld": "llc",
         "count": 47626
       },
       {
-        "rank": 81,
+        "rank": 82,
         "tld": "social",
         "count": 46090
       },
       {
-        "rank": 82,
+        "rank": 83,
         "tld": "care",
         "count": 44664
       },
       {
-        "rank": 83,
+        "rank": 84,
         "tld": "berlin",
         "count": 43319
       },
       {
-        "rank": 84,
+        "rank": 85,
         "tld": "center",
         "count": 43289
       },
       {
-        "rank": 85,
+        "rank": 86,
         "tld": "cam",
         "count": 41687
       },
       {
-        "rank": 86,
+        "rank": 87,
         "tld": "bid",
         "count": 41619
       },
       {
-        "rank": 87,
+        "rank": 88,
         "tld": "wang",
         "count": 40778
       },
       {
-        "rank": 88,
+        "rank": 89,
         "tld": "systems",
         "count": 40425
       },
       {
-        "rank": 89,
+        "rank": 90,
         "tld": "earth",
         "count": 40030
       },
       {
-        "rank": 90,
+        "rank": 91,
         "tld": "support",
         "count": 39845
       },
       {
-        "rank": 91,
+        "rank": 92,
         "tld": "consulting",
         "count": 39086
       },
       {
-        "rank": 92,
+        "rank": 93,
         "tld": "bar",
         "count": 37728
       },
       {
-        "rank": 93,
+        "rank": 94,
         "tld": "tel",
         "count": 37309
       },
       {
-        "rank": 94,
+        "rank": 95,
         "tld": "uno",
         "count": 37005
       },
       {
-        "rank": 95,
+        "rank": 96,
         "tld": "wtf",
         "count": 36821
       },
       {
-        "rank": 96,
+        "rank": 97,
         "tld": "town",
         "count": 35458
       },
       {
-        "rank": 97,
+        "rank": 98,
         "tld": "page",
         "count": 35425
       },
       {
-        "rank": 98,
+        "rank": 99,
         "tld": "london",
         "count": 34897
       },
       {
-        "rank": 99,
+        "rank": 100,
         "tld": "family",
         "count": 34602
       },
       {
-        "rank": 100,
+        "rank": 101,
         "tld": "photography",
         "count": 34441
       },
       {
-        "rank": 101,
+        "rank": 102,
         "tld": "business",
         "count": 33810
       },
       {
-        "rank": 102,
+        "rank": 103,
         "tld": "best",
         "count": 33645
       },
       {
-        "rank": 103,
+        "rank": 104,
         "tld": "works",
         "count": 33642
       },
       {
-        "rank": 104,
+        "rank": 105,
         "tld": "events",
         "count": 33540
       },
       {
-        "rank": 105,
+        "rank": 106,
         "tld": "church",
         "count": 33453
       },
       {
-        "rank": 106,
+        "rank": 107,
         "tld": "finance",
         "count": 33089
       },
       {
-        "rank": 107,
+        "rank": 108,
         "tld": "gmbh",
         "count": 33019
       },
       {
-        "rank": 108,
+        "rank": 109,
         "tld": "technology",
         "count": 32737
       },
       {
-        "rank": 109,
+        "rank": 110,
         "tld": "capital",
         "count": 32526
       },
       {
-        "rank": 110,
+        "rank": 111,
         "tld": "plus",
         "count": 32008
       },
       {
-        "rank": 111,
+        "rank": 112,
         "tld": "monster",
         "count": 31312
       },
       {
-        "rank": 112,
+        "rank": 113,
         "tld": "foundation",
         "count": 31204
       },
       {
-        "rank": 113,
+        "rank": 114,
         "tld": "city",
         "count": 30546
       },
       {
-        "rank": 114,
+        "rank": 115,
         "tld": "education",
         "count": 29851
       },
       {
-        "rank": 115,
+        "rank": 116,
         "tld": "realtor",
         "count": 27802
       },
       {
-        "rank": 116,
+        "rank": 117,
         "tld": "marketing",
         "count": 27250
       },
       {
-        "rank": 117,
+        "rank": 118,
         "tld": "expert",
         "count": 27174
       },
       {
-        "rank": 118,
+        "rank": 119,
         "tld": "coffee",
         "count": 26938
       },
       {
-        "rank": 119,
+        "rank": 120,
         "tld": "travel",
         "count": 26455
       },
       {
-        "rank": 120,
+        "rank": 121,
         "tld": "tools",
         "count": 26291
       },
       {
-        "rank": 121,
+        "rank": 122,
         "tld": "international",
         "count": 26128
       },
       {
-        "rank": 122,
+        "rank": 123,
         "tld": "food",
         "count": 26088
       },
       {
-        "rank": 123,
+        "rank": 124,
         "tld": "farm",
         "count": 25988
       },
       {
-        "rank": 124,
+        "rank": 125,
         "tld": "energy",
         "count": 25754
       },
       {
-        "rank": 125,
+        "rank": 126,
         "tld": "coach",
         "count": 25192
       },
       {
-        "rank": 126,
+        "rank": 127,
         "tld": "ninja",
         "count": 25148
       },
       {
-        "rank": 127,
+        "rank": 128,
         "tld": "software",
         "count": 24766
       },
       {
-        "rank": 128,
+        "rank": 129,
         "tld": "house",
         "count": 24337
       },
       {
-        "rank": 129,
+        "rank": 130,
         "tld": "video",
         "count": 24331
       },
       {
-        "rank": 130,
+        "rank": 131,
         "tld": "pet",
         "count": 24261
       },
       {
-        "rank": 131,
+        "rank": 132,
         "tld": "community",
         "count": 24089
       },
       {
-        "rank": 132,
+        "rank": 133,
         "tld": "locker",
         "count": 23389
       },
       {
-        "rank": 133,
+        "rank": 134,
         "tld": "school",
         "count": 23318
       },
       {
-        "rank": 134,
+        "rank": 135,
         "tld": "cafe",
         "count": 23097
       },
       {
-        "rank": 135,
+        "rank": 136,
         "tld": "ventures",
         "count": 23033
       },
       {
-        "rank": 136,
+        "rank": 137,
         "tld": "irish",
         "count": 22927
       },
       {
-        "rank": 137,
+        "rank": 138,
         "tld": "trade",
         "count": 22835
       },
       {
-        "rank": 138,
+        "rank": 139,
         "tld": "swiss",
         "count": 22773
       },
       {
-        "rank": 139,
+        "rank": 140,
         "tld": "training",
         "count": 22344
       },
       {
-        "rank": 140,
+        "rank": 141,
         "tld": "host",
         "count": 22332
       },
       {
-        "rank": 141,
+        "rank": 142,
         "tld": "cool",
         "count": 21842
       },
       {
-        "rank": 142,
+        "rank": 143,
         "tld": "fund",
         "count": 21355
       },
       {
-        "rank": 143,
+        "rank": 144,
         "tld": "legal",
         "count": 21261
       },
       {
-        "rank": 144,
+        "rank": 145,
         "tld": "xn--55qx5d",
         "count": 21189
       },
       {
-        "rank": 145,
+        "rank": 146,
         "tld": "immo",
         "count": 21101
       },
       {
-        "rank": 146,
+        "rank": 147,
         "tld": "land",
         "count": 20852
       },
       {
-        "rank": 147,
+        "rank": 148,
         "tld": "tips",
         "count": 20537
       },
       {
-        "rank": 148,
+        "rank": 149,
         "tld": "money",
         "count": 20496
       },
       {
-        "rank": 149,
+        "rank": 150,
         "tld": "watch",
         "count": 20412
       },
       {
-        "rank": 150,
+        "rank": 151,
         "tld": "party",
         "count": 20153
       },
       {
-        "rank": 151,
+        "rank": 152,
         "tld": "photos",
         "count": 19353
       },
       {
-        "rank": 152,
+        "rank": 153,
         "tld": "red",
         "count": 19212
       },
       {
-        "rank": 153,
+        "rank": 154,
         "tld": "band",
         "count": 19075
       },
       {
-        "rank": 154,
+        "rank": 155,
         "tld": "ing",
         "count": 18961
       },
       {
-        "rank": 155,
+        "rank": 156,
         "tld": "guide",
         "count": 18784
       },
       {
-        "rank": 156,
+        "rank": 157,
         "tld": "pub",
         "count": 18755
       },
       {
-        "rank": 157,
+        "rank": 158,
         "tld": "cash",
         "count": 18683
       },
       {
-        "rank": 158,
+        "rank": 159,
         "tld": "market",
         "count": 18356
       },
       {
-        "rank": 159,
+        "rank": 160,
         "tld": "paris",
         "count": 18331
       },
       {
-        "rank": 160,
+        "rank": 161,
         "tld": "amsterdam",
         "count": 18236
       },
       {
-        "rank": 161,
+        "rank": 162,
         "tld": "institute",
         "count": 18059
       },
       {
-        "rank": 162,
+        "rank": 163,
         "tld": "exchange",
         "count": 17764
       },
       {
-        "rank": 163,
+        "rank": 164,
         "tld": "gallery",
         "count": 17689
       },
       {
-        "rank": 164,
+        "rank": 165,
         "tld": "show",
         "count": 17598
       },
       {
-        "rank": 165,
+        "rank": 166,
         "tld": "press",
         "count": 17575
       },
       {
-        "rank": 166,
+        "rank": 167,
         "tld": "koeln",
         "count": 17365
       },
       {
-        "rank": 167,
+        "rank": 168,
         "tld": "clinic",
         "count": 17321
       },
       {
-        "rank": 168,
+        "rank": 169,
         "tld": "wine",
         "count": 17319
       },
       {
-        "rank": 169,
+        "rank": 170,
         "tld": "gold",
         "count": 16891
       },
       {
-        "rank": 170,
+        "rank": 171,
         "tld": "codes",
         "count": 16853
       },
       {
-        "rank": 171,
+        "rank": 172,
         "tld": "dog",
         "count": 16743
       },
       {
-        "rank": 172,
+        "rank": 173,
         "tld": "golf",
         "count": 16599
       },
       {
-        "rank": 173,
+        "rank": 174,
         "tld": "moe",
         "count": 16512
       },
       {
-        "rank": 174,
+        "rank": 175,
         "tld": "partners",
         "count": 16316
       },
       {
-        "rank": 175,
+        "rank": 176,
         "tld": "tax",
         "count": 16257
       },
       {
-        "rank": 176,
+        "rank": 177,
         "tld": "directory",
         "count": 16191
       },
       {
-        "rank": 177,
+        "rank": 178,
         "tld": "bike",
         "count": 15867
       },
       {
-        "rank": 178,
+        "rank": 179,
         "tld": "eus",
         "count": 15488
       },
       {
-        "rank": 179,
+        "rank": 180,
         "tld": "hamburg",
         "count": 15421
       },
       {
-        "rank": 180,
+        "rank": 181,
         "tld": "xn--io0a7i",
         "count": 15385
       },
       {
-        "rank": 181,
+        "rank": 182,
         "tld": "gov",
         "count": 15279
       },
       {
-        "rank": 182,
+        "rank": 183,
         "tld": "wien",
         "count": 15000
       },
       {
-        "rank": 183,
+        "rank": 184,
         "tld": "blue",
         "count": 14794
       },
       {
-        "rank": 184,
+        "rank": 185,
         "tld": "feedback",
         "count": 14666
       },
       {
-        "rank": 185,
+        "rank": 186,
         "tld": "realestate",
         "count": 14666
       },
       {
-        "rank": 186,
+        "rank": 187,
         "tld": "motorcycles",
         "count": 14200
       },
       {
-        "rank": 187,
+        "rank": 188,
         "tld": "stream",
         "count": 14016
       },
       {
-        "rank": 188,
+        "rank": 189,
         "tld": "zip",
         "count": 13856
       },
       {
-        "rank": 189,
+        "rank": 190,
         "tld": "properties",
         "count": 13290
       },
       {
-        "rank": 190,
+        "rank": 191,
         "tld": "pizza",
         "count": 13189
       },
       {
-        "rank": 191,
+        "rank": 192,
         "tld": "aero",
         "count": 13148
       },
       {
-        "rank": 192,
+        "rank": 193,
         "tld": "sale",
         "count": 13148
       },
       {
-        "rank": 193,
+        "rank": 194,
         "tld": "wales",
         "count": 12954
       },
       {
-        "rank": 194,
+        "rank": 195,
         "tld": "direct",
         "count": 12845
       },
       {
-        "rank": 195,
+        "rank": 196,
         "tld": "reviews",
         "count": 12759
       },
       {
-        "rank": 196,
+        "rank": 197,
         "tld": "fitness",
         "count": 12634
       },
       {
-        "rank": 197,
+        "rank": 198,
         "tld": "rentals",
         "count": 12589
       },
       {
-        "rank": 198,
+        "rank": 199,
         "tld": "boutique",
         "count": 12548
       },
       {
-        "rank": 199,
+        "rank": 200,
         "tld": "tours",
         "count": 12319
       },
       {
-        "rank": 200,
+        "rank": 201,
         "tld": "ren",
         "count": 12290
       },
       {
-        "rank": 201,
+        "rank": 202,
         "tld": "lgbt",
         "count": 12195
       },
       {
-        "rank": 202,
+        "rank": 203,
         "tld": "management",
         "count": 12190
       },
       {
-        "rank": 203,
+        "rank": 204,
         "tld": "cards",
         "count": 12065
       },
       {
-        "rank": 204,
+        "rank": 205,
         "tld": "day",
         "count": 11918
       },
       {
-        "rank": 205,
+        "rank": 206,
         "tld": "rip",
         "count": 11777
       },
       {
-        "rank": 206,
+        "rank": 207,
         "tld": "men",
         "count": 11618
       },
       {
-        "rank": 207,
+        "rank": 208,
         "tld": "lifestyle",
         "count": 11510
       },
       {
-        "rank": 208,
+        "rank": 209,
         "tld": "vegas",
         "count": 11395
       },
       {
-        "rank": 209,
+        "rank": 210,
         "tld": "science",
         "count": 11347
       },
       {
-        "rank": 210,
+        "rank": 211,
         "tld": "contact",
         "count": 11345
       },
       {
-        "rank": 211,
+        "rank": 212,
         "tld": "style",
         "count": 11328
       },
       {
-        "rank": 212,
+        "rank": 213,
         "tld": "vision",
         "count": 11265
       },
       {
-        "rank": 213,
+        "rank": 214,
         "tld": "estate",
         "count": 11223
       },
       {
-        "rank": 214,
+        "rank": 215,
         "tld": "pictures",
         "count": 11114
       },
       {
-        "rank": 215,
+        "rank": 216,
         "tld": "jetzt",
         "count": 11083
       },
       {
-        "rank": 216,
+        "rank": 217,
         "tld": "vet",
         "count": 10951
       },
       {
-        "rank": 217,
+        "rank": 218,
         "tld": "jobs",
         "count": 10801
       },
       {
-        "rank": 218,
+        "rank": 219,
         "tld": "productions",
         "count": 10683
       },
       {
-        "rank": 219,
+        "rank": 220,
         "tld": "engineering",
         "count": 10620
       },
       {
-        "rank": 220,
+        "rank": 221,
         "tld": "report",
         "count": 10532
       },
       {
-        "rank": 221,
+        "rank": 222,
         "tld": "srl",
         "count": 10290
       },
       {
-        "rank": 222,
+        "rank": 223,
         "tld": "vin",
         "count": 10107
       },
       {
-        "rank": 223,
+        "rank": 224,
         "tld": "christmas",
         "count": 10095
       },
       {
-        "rank": 224,
+        "rank": 225,
         "tld": "frl",
         "count": 10070
       },
       {
-        "rank": 225,
+        "rank": 226,
         "tld": "place",
         "count": 9919
       },
       {
-        "rank": 226,
+        "rank": 227,
         "tld": "rent",
         "count": 9900
       },
       {
-        "rank": 227,
+        "rank": 228,
         "tld": "auction",
         "count": 9783
       },
       {
-        "rank": 228,
+        "rank": 229,
         "tld": "clothing",
         "count": 9754
       },
       {
-        "rank": 229,
+        "rank": 230,
         "tld": "solar",
         "count": 9669
       },
       {
-        "rank": 230,
+        "rank": 231,
         "tld": "download",
         "count": 9382
       },
       {
-        "rank": 231,
+        "rank": 232,
         "tld": "construction",
         "count": 9379
       },
       {
-        "rank": 232,
+        "rank": 233,
         "tld": "careers",
         "count": 9365
       },
       {
-        "rank": 233,
+        "rank": 234,
         "tld": "healthcare",
         "count": 9212
       },
       {
-        "rank": 234,
+        "rank": 235,
         "tld": "pink",
         "count": 9147
       },
       {
-        "rank": 235,
+        "rank": 236,
         "tld": "date",
         "count": 9060
       },
       {
-        "rank": 236,
+        "rank": 237,
         "tld": "dvag",
         "count": 9050
       },
       {
-        "rank": 237,
+        "rank": 238,
         "tld": "enterprises",
         "count": 9000
       },
       {
-        "rank": 238,
+        "rank": 239,
         "tld": "deals",
         "count": 8950
       },
       {
-        "rank": 239,
+        "rank": 240,
         "tld": "delivery",
         "count": 8888
       },
       {
-        "rank": 240,
+        "rank": 241,
         "tld": "computer",
         "count": 8786
       },
       {
-        "rank": 241,
+        "rank": 242,
         "tld": "holdings",
         "count": 8778
       },
       {
-        "rank": 242,
+        "rank": 243,
         "tld": "build",
         "count": 8733
       },
       {
-        "rank": 243,
+        "rank": 244,
         "tld": "dental",
         "count": 8693
       },
       {
-        "rank": 244,
+        "rank": 245,
         "tld": "green",
         "count": 8658
       },
       {
-        "rank": 245,
+        "rank": 246,
         "tld": "express",
         "count": 8620
       },
       {
-        "rank": 246,
+        "rank": 247,
         "tld": "diy",
         "count": 8576
       },
       {
-        "rank": 247,
+        "rank": 248,
         "tld": "repair",
         "count": 8475
       },
       {
-        "rank": 248,
+        "rank": 249,
         "tld": "fans",
         "count": 8459
       },
       {
-        "rank": 249,
+        "rank": 250,
         "tld": "poker",
         "count": 8386
       },
       {
-        "rank": 250,
+        "rank": 251,
         "tld": "cymru",
         "count": 8374
       },
       {
-        "rank": 251,
+        "rank": 252,
         "tld": "dance",
         "count": 8308
       },
       {
-        "rank": 252,
+        "rank": 253,
         "tld": "camp",
         "count": 8261
       },
       {
-        "rank": 253,
+        "rank": 254,
         "tld": "coop",
         "count": 8253
       },
       {
-        "rank": 254,
+        "rank": 255,
         "tld": "restaurant",
         "count": 8207
       },
       {
-        "rank": 255,
+        "rank": 256,
         "tld": "lawyer",
         "count": 8198
       },
       {
-        "rank": 256,
+        "rank": 257,
         "tld": "haus",
         "count": 8168
       },
       {
-        "rank": 257,
+        "rank": 258,
         "tld": "university",
         "count": 8062
       },
       {
-        "rank": 258,
+        "rank": 259,
         "tld": "kim",
         "count": 7991
       },
       {
-        "rank": 259,
+        "rank": 260,
         "tld": "brussels",
         "count": 7965
       },
       {
-        "rank": 260,
+        "rank": 261,
         "tld": "fan",
         "count": 7940
       },
       {
-        "rank": 261,
+        "rank": 262,
         "tld": "financial",
         "count": 7816
       },
       {
-        "rank": 262,
+        "rank": 263,
         "tld": "shopping",
         "count": 7676
       },
       {
-        "rank": 263,
+        "rank": 264,
         "tld": "ist",
         "count": 7662
       },
       {
-        "rank": 264,
+        "rank": 265,
         "tld": "doctor",
         "count": 7621
       },
       {
-        "rank": 265,
+        "rank": 266,
         "tld": "gal",
         "count": 7610
       },
       {
-        "rank": 266,
+        "rank": 267,
         "tld": "supply",
         "count": 7584
       },
       {
-        "rank": 267,
+        "rank": 268,
         "tld": "immobilien",
         "count": 7491
       },
       {
-        "rank": 268,
+        "rank": 269,
         "tld": "kitchen",
         "count": 7446
       },
       {
-        "rank": 269,
+        "rank": 270,
         "tld": "villas",
         "count": 7440
       },
       {
-        "rank": 270,
+        "rank": 271,
         "tld": "domains",
         "count": 7383
       },
       {
-        "rank": 271,
+        "rank": 272,
         "tld": "loans",
         "count": 7359
       },
       {
-        "rank": 272,
+        "rank": 273,
         "tld": "review",
         "count": 7323
       },
       {
-        "rank": 273,
+        "rank": 274,
         "tld": "parts",
         "count": 7260
       },
       {
-        "rank": 274,
+        "rank": 275,
         "tld": "engineer",
         "count": 7253
       },
       {
-        "rank": 275,
+        "rank": 276,
         "tld": "quebec",
         "count": 7235
       },
       {
-        "rank": 276,
+        "rank": 277,
         "tld": "game",
         "count": 7226
       },
       {
-        "rank": 277,
+        "rank": 278,
         "tld": "investments",
         "count": 7223
       },
       {
-        "rank": 278,
+        "rank": 279,
         "tld": "cheap",
         "count": 7114
       },
       {
-        "rank": 279,
+        "rank": 280,
         "tld": "college",
         "count": 7111
       },
       {
-        "rank": 280,
+        "rank": 281,
         "tld": "coupons",
         "count": 7036
       },
       {
-        "rank": 281,
+        "rank": 282,
         "tld": "music",
         "count": 6996
       },
       {
-        "rank": 282,
+        "rank": 283,
         "tld": "industries",
         "count": 6982
       },
       {
-        "rank": 283,
+        "rank": 284,
         "tld": "inc",
         "count": 6873
       },
       {
-        "rank": 284,
+        "rank": 285,
         "tld": "promo",
         "count": 6854
       },
       {
-        "rank": 285,
+        "rank": 286,
         "tld": "limited",
         "count": 6852
       },
       {
-        "rank": 286,
+        "rank": 287,
         "tld": "eco",
         "count": 6803
       },
       {
-        "rank": 287,
+        "rank": 288,
         "tld": "film",
         "count": 6708
       },
       {
-        "rank": 288,
+        "rank": 289,
         "tld": "taxi",
         "count": 6549
       },
       {
-        "rank": 289,
+        "rank": 290,
         "tld": "black",
         "count": 6381
       },
       {
-        "rank": 290,
+        "rank": 291,
         "tld": "builders",
         "count": 6217
       },
       {
-        "rank": 291,
+        "rank": 292,
         "tld": "meme",
         "count": 6216
       },
       {
-        "rank": 292,
+        "rank": 293,
         "tld": "ski",
         "count": 6183
       },
       {
-        "rank": 293,
+        "rank": 294,
         "tld": "kids",
         "count": 6171
       },
       {
-        "rank": 294,
+        "rank": 295,
         "tld": "insure",
         "count": 6089
       },
       {
-        "rank": 295,
+        "rank": 296,
         "tld": "mov",
         "count": 6081
       },
       {
-        "rank": 296,
+        "rank": 297,
         "tld": "vote",
         "count": 6015
       },
       {
-        "rank": 297,
+        "rank": 298,
         "tld": "living",
         "count": 5943
       },
       {
-        "rank": 298,
+        "rank": 299,
         "tld": "football",
         "count": 5902
       },
       {
-        "rank": 299,
+        "rank": 300,
+        "tld": "sydney",
+        "count": 5843
+      },
+      {
+        "rank": 301,
         "tld": "claims",
         "count": 5685
       },
       {
-        "rank": 300,
+        "rank": 302,
         "tld": "credit",
         "count": 5660
       },
       {
-        "rank": 301,
+        "rank": 303,
         "tld": "toys",
         "count": 5555
       },
       {
-        "rank": 302,
+        "rank": 304,
         "tld": "fish",
         "count": 5523
       },
       {
-        "rank": 303,
+        "rank": 305,
         "tld": "lighting",
         "count": 5464
       },
       {
-        "rank": 304,
+        "rank": 306,
         "tld": "graphics",
         "count": 5462
       },
       {
-        "rank": 305,
+        "rank": 307,
         "tld": "tube",
         "count": 5334
       },
       {
-        "rank": 306,
+        "rank": 308,
         "tld": "menu",
         "count": 5280
       },
       {
-        "rank": 307,
+        "rank": 309,
         "tld": "markets",
         "count": 5224
       },
       {
-        "rank": 308,
+        "rank": 310,
         "tld": "trading",
         "count": 5214
       },
       {
-        "rank": 309,
+        "rank": 311,
         "tld": "faith",
         "count": 5187
       },
       {
-        "rank": 310,
+        "rank": 312,
         "tld": "vlaanderen",
         "count": 5158
       },
       {
-        "rank": 311,
+        "rank": 313,
         "tld": "army",
         "count": 5110
       },
       {
-        "rank": 312,
+        "rank": 314,
         "tld": "audio",
         "count": 5109
       },
       {
-        "rank": 313,
+        "rank": 315,
         "tld": "equipment",
         "count": 5103
       },
       {
-        "rank": 314,
+        "rank": 316,
         "tld": "property",
         "count": 5050
       },
       {
-        "rank": 315,
+        "rank": 317,
+        "tld": "melbourne",
+        "count": 5046
+      },
+      {
+        "rank": 318,
         "tld": "istanbul",
         "count": 4970
       },
       {
-        "rank": 316,
+        "rank": 319,
         "tld": "gift",
         "count": 4958
       },
       {
-        "rank": 317,
+        "rank": 320,
         "tld": "vacations",
         "count": 4893
-      },
-      {
-        "rank": 318,
-        "tld": "mba",
-        "count": 4791
-      },
-      {
-        "rank": 319,
-        "tld": "charity",
-        "count": 4724
-      },
-      {
-        "rank": 320,
-        "tld": "ngo",
-        "count": 4678
       }
     ],
     "d30": [
@@ -7562,6 +7578,15 @@
       "cadence": "core"
     },
     {
+      "tld": "top",
+      "growth_pct": null,
+      "volatility": null,
+      "anomaly_score": 0.0,
+      "count": 5864299,
+      "sector": "other",
+      "cadence": "baseline"
+    },
+    {
       "tld": "info",
       "growth_pct": 0.025638980255649996,
       "volatility": null,
@@ -9513,21 +9538,12 @@
       "count": 10620,
       "sector": "other",
       "cadence": "baseline"
-    },
-    {
-      "tld": "report",
-      "growth_pct": 0.07601672367920001,
-      "volatility": null,
-      "anomaly_score": 0.0,
-      "count": 10532,
-      "sector": "other",
-      "cadence": "baseline"
     }
   ],
   "sector_indices": [
     {
       "sector": "other",
-      "total_delegated": 47384195,
+      "total_delegated": 53261511,
       "delta_7d_pct": null,
       "delta_30d_pct": null,
       "volatility": 0.0,
@@ -9538,7 +9554,7 @@
         },
         {
           "date_utc": "2026-02-25",
-          "sector_count": 47384195
+          "sector_count": 53261511
         }
       ]
     },
@@ -9630,10 +9646,10 @@
   ],
   "market_risk": {
     "concentration_risk": "high",
-    "concentration_score": 80.11,
-    "top10_share_pct": 68.12662954989925,
-    "top3_share_pct": 46.43078644684718,
-    "hhi": 0.08881712384953387,
+    "concentration_score": 79.55,
+    "top10_share_pct": 69.51465259658566,
+    "top3_share_pct": 43.0369798867623,
+    "hhi": 0.08185328871896509,
     "fragmentation": "low",
     "tiny_tld_saturation_trend": "rising",
     "core_dominance": "stable"
@@ -9989,15 +10005,15 @@
     },
     {
       "sector": "other",
-      "sector_count": 47384195,
-      "sector_delta_pct": 0.001394346705836359
+      "sector_count": 53261511,
+      "sector_delta_pct": 0.1256026616556579
     }
   ],
   "insights": [
     {
       "kind": "market",
       "severity": "info",
-      "text": "Top 10 TLDs hold 68.13% of delegations; median TLD has 1,482 names; 331 TLDs have <100."
+      "text": "Top 10 TLDs hold 69.51% of delegations; median TLD has 1,410 names; 335 TLDs have <100."
     },
     {
       "kind": "movers",
@@ -10007,21 +10023,55 @@
     {
       "kind": "approvals",
       "severity": "info",
-      "text": "New approvals today: +3 (sakura, xn--55qx5d, xn--io0a7i)."
+      "text": "New approvals today: +13 (aco, gea, melbourne)."
     },
     {
       "kind": "coverage",
       "severity": "positive",
-      "text": "Observed today: 68 (core+rolling) out of 841 approved TLDs; snapshot rows today: 841."
+      "text": "Observed today: 68 (core+rolling) out of 851 approved TLDs; snapshot rows today: 851."
     }
   ],
   "security_status": {
     "date_utc": "2026-02-25",
-    "checked_at_utc": "2026-02-25T08:24:47.207485+00:00",
+    "checked_at_utc": "2026-02-25T23:07:55.825566+00:00",
     "no_raw_zones_tracked": true,
     "no_ai_dir_tracked": true,
     "no_env_tracked": true,
-    "last_local_run_id": "ae5776a1-cb93-4907-a5ff-b18977e79b9a",
+    "last_local_run_id": "877d1690-9599-4674-8fc0-5b0edf78094c",
     "vercel_read_only": true
-  }
+  },
+  "model_version": "rootfetch_model_v1",
+  "methodology_version": "2026-03-01",
+  "dvi_components": {
+    "dispersion_norm": 0.051229,
+    "concentration_norm": 1.0,
+    "anomaly_norm": 0.041128
+  },
+  "regime": "STABLE",
+  "regime_confidence": 0.3,
+  "regime_inputs": {
+    "delta_hhi": -0.007082,
+    "top10_share_delta": 0.01343,
+    "median_delta": 0.0
+  },
+  "regime_base": "ELEVATED",
+  "regime_candidate": "ELEVATED",
+  "regime_duration_snapshots": 2,
+  "dvi_band": "elevated",
+  "model_calibration": {
+    "window_dates": 180,
+    "dispersion_p99": 3.0,
+    "concentration_p99": 0.007011,
+    "anomaly_p99": 0.2,
+    "anomaly_z_threshold": 2.5,
+    "weights": {
+      "dispersion": 0.5,
+      "concentration": 0.3,
+      "anomaly": 0.2
+    },
+    "top10_share_delta_threshold": 0.001,
+    "hysteresis_snapshots": 2,
+    "min_regime_duration_snapshots": 3
+  },
+  "model_effective_date_utc": "2026-02-25"
 }
