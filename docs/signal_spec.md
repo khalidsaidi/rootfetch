@@ -87,3 +87,17 @@ Includes:
 - rolling updates (`rolling_updates`)
 - compatibility mover arrays (`top_movers_abs`, `top_movers_pct`, `top_decliners_abs`)
 - anomalies and sector snapshot
+- model contract fields:
+  - `model_version`
+  - `methodology_version`
+  - `dvi_components`
+  - `dvi_band`
+  - `regime`
+  - `regime_confidence`
+  - `regime_inputs`
+  - `regime_base`
+  - `regime_candidate`
+  - `regime_duration_snapshots`
+  - `model_calibration`
+
+See `docs/model_contract_v1.md` for the exact formulas, thresholds, and versioning policy.

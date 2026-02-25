@@ -14,6 +14,11 @@ import yaml
 from rootfetch.config import Settings, get_settings
 from rootfetch.core.io_utils import read_json, utc_now_iso, write_json
 from rootfetch.signals.coverage import compute_coverage_latest
+from rootfetch.signals.model_v1 import (
+    METHODOLOGY_VERSION,
+    MODEL_VERSION,
+    compute_model_v1_from_growth,
+)
 
 
 TOP_MOVERS_COLUMNS = [
@@ -961,62 +966,40 @@ def _top_n_tlds_for_date(growth_df: pd.DataFrame, date_utc: str, n: int = 10) ->
     return [str(item) for item in ranked["tld"].tolist()]
 
 
-def _dvi_payload(
-    *,
-    day_df: pd.DataFrame,
-    anomalies_df: pd.DataFrame,
-    growth_df: pd.DataFrame,
-    date_utc: str,
-) -> dict[str, Any]:
-    if day_df.empty or "status" not in day_df.columns or "delta_abs_num" not in day_df.columns:
-        ok_rows = pd.DataFrame()
-    else:
-        ok_rows = day_df[(day_df["status"] == "ok") & day_df["delta_abs_num"].notna()].copy()
-    abs_delta = ok_rows["delta_abs_num"].abs() if not ok_rows.empty else pd.Series(dtype=float)
-
-    std_abs = float(abs_delta.std(ddof=0)) if not abs_delta.empty else 0.0
-    dispersion_score = min(100.0, math.log10(1.0 + max(std_abs, 0.0)) * 18.0)
-
-    anomaly_count = int(len(anomalies_df.index))
-    max_abs_robust = (
-        float(anomalies_df["robust_z"].abs().max())
-        if (not anomalies_df.empty and "robust_z" in anomalies_df.columns and anomalies_df["robust_z"].notna().any())
-        else 0.0
-    )
-    anomaly_score = min(100.0, anomaly_count * 12.0 + max_abs_robust * 10.0)
-
-    prev_dates = sorted(stem for stem in growth_df["date_utc"].dropna().unique().tolist() if str(stem) < date_utc)
-    prev_date = prev_dates[-1] if prev_dates else ""
-    today_top10 = set(_top_n_tlds_for_date(growth_df, date_utc, n=10))
-    prev_top10 = set(_top_n_tlds_for_date(growth_df, prev_date, n=10)) if prev_date else set()
-    turnover_pct = (
-        (len(today_top10.symmetric_difference(prev_top10)) / 10.0) * 100.0
-        if today_top10 and prev_top10
-        else 0.0
-    )
-    turnover_score = min(100.0, turnover_pct * 2.5)
-
-    score = 0.45 * dispersion_score + 0.35 * anomaly_score + 0.20 * turnover_score
-    score = max(0.0, min(100.0, score))
-    if score >= 67.0:
-        level = "high"
-    elif score >= 34.0:
-        level = "elevated"
-    else:
-        level = "stable"
-
+def _dvi_payload_from_model(model_payload: dict[str, Any]) -> dict[str, Any]:
+    components = model_payload.get("dvi_components", {})
+    inputs = model_payload.get("dvi_inputs", {})
     return {
-        "score": round(score, 2),
-        "level": level,
-        "dispersion_component": round(dispersion_score, 2),
-        "anomaly_component": round(anomaly_score, 2),
-        "top10_shift_component": round(turnover_score, 2),
+        "score": float(model_payload.get("dvi") or 0.0),
+        "level": str(model_payload.get("dvi_band") or "stable"),
+        "dispersion_component": round(float(components.get("dispersion_norm") or 0.0) * 100.0, 2),
+        "anomaly_component": round(float(components.get("anomaly_norm") or 0.0) * 100.0, 2),
+        "top10_shift_component": round(float(components.get("concentration_norm") or 0.0) * 100.0, 2),
         "inputs": {
-            "std_abs_delta": round(std_abs, 4),
-            "anomaly_count": anomaly_count,
-            "max_abs_robust_z": round(max_abs_robust, 4),
-            "top10_turnover_pct": round(turnover_pct, 2),
+            "dispersion_raw": round(float(inputs.get("dispersion_raw") or 0.0), 6),
+            "concentration_shift_raw": round(float(inputs.get("concentration_shift_raw") or 0.0), 6),
+            "anomaly_prop_raw": round(float(inputs.get("anomaly_prop_raw") or 0.0), 6),
+            "approved_tlds_count": int(inputs.get("approved_tlds_count") or 0),
         },
+        "model_version": MODEL_VERSION,
+        "methodology_version": METHODOLOGY_VERSION,
+    }
+
+
+def _model_contract_latest_fields(model_payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "model_version": str(model_payload.get("model_version") or MODEL_VERSION),
+        "methodology_version": str(model_payload.get("methodology_version") or METHODOLOGY_VERSION),
+        "dvi_components": model_payload.get("dvi_components", {}),
+        "regime": str(model_payload.get("regime") or "STABLE"),
+        "regime_confidence": float(model_payload.get("regime_confidence") or 0.0),
+        "regime_inputs": model_payload.get("regime_inputs", {}),
+        "regime_base": str(model_payload.get("regime_base") or "STABLE"),
+        "regime_candidate": str(model_payload.get("regime_candidate") or "STABLE"),
+        "regime_duration_snapshots": int(model_payload.get("regime_duration_snapshots") or 1),
+        "dvi_band": str(model_payload.get("dvi_band") or "stable"),
+        "model_calibration": model_payload.get("calibration", {}),
+        "model_effective_date_utc": str(model_payload.get("effective_date_utc") or ""),
     }
 
 
@@ -1630,6 +1613,13 @@ def compute_signals_for_date(
         settings=settings,
         date_utc=date_utc,
     )
+    model_payload = compute_model_v1_from_growth(
+        growth_df=growth_df,
+        date_utc=date_utc,
+        approved_tlds_count=approved_tlds_count,
+    )
+    dvi_payload = _dvi_payload_from_model(model_payload)
+    model_fields = _model_contract_latest_fields(model_payload)
 
     if growth_df.empty:
         _empty_signals_files(
@@ -1657,12 +1647,6 @@ def compute_signals_for_date(
             growth_df=growth_df,
             date_utc=date_utc,
             total_delegated_today=total_delegated_domains_today,
-        )
-        dvi_payload = _dvi_payload(
-            day_df=daily_df,
-            anomalies_df=empty_df,
-            growth_df=growth_df,
-            date_utc=date_utc,
         )
         anomaly_spotlight = _anomaly_spotlight_payload(
             anomalies_df=empty_df,
@@ -1744,6 +1728,7 @@ def compute_signals_for_date(
             "sector_snapshot": [],
             "insights": insights,
             "security_status": security_meta["payload"],
+            **model_fields,
         }
         write_json(settings.latest_signals_path, latest_payload)
         return {
@@ -1800,12 +1785,6 @@ def compute_signals_for_date(
             growth_df=growth_df,
             date_utc=date_utc,
             total_delegated_today=total_delegated_domains_today,
-        )
-        dvi_payload = _dvi_payload(
-            day_df=daily_df,
-            anomalies_df=empty_df,
-            growth_df=growth_df,
-            date_utc=date_utc,
         )
         anomaly_spotlight = _anomaly_spotlight_payload(
             anomalies_df=empty_df,
@@ -1887,6 +1866,7 @@ def compute_signals_for_date(
             "sector_snapshot": [],
             "insights": insights,
             "security_status": security_meta["payload"],
+            **model_fields,
         }
         write_json(settings.latest_signals_path, latest_payload)
         return {
@@ -1944,12 +1924,6 @@ def compute_signals_for_date(
         growth_df=growth_df,
         date_utc=date_utc,
         total_delegated_today=total_delegated_domains_today,
-    )
-    dvi_payload = _dvi_payload(
-        day_df=day_df,
-        anomalies_df=anomalies_df,
-        growth_df=growth_df,
-        date_utc=date_utc,
     )
     anomaly_spotlight = _anomaly_spotlight_payload(
         anomalies_df=anomalies_df,
@@ -2040,6 +2014,7 @@ def compute_signals_for_date(
         "sector_snapshot": _sector_snapshot_json(sector_snapshot),
         "insights": insights,
         "security_status": security_meta["payload"],
+        **model_fields,
     }
     write_json(settings.latest_signals_path, latest_payload)
 

@@ -1,0 +1,44 @@
+{
+  "calibration": {
+    "anomaly_p99": 0.2,
+    "anomaly_z_threshold": 2.5,
+    "concentration_p99": 0.005,
+    "dispersion_p99": 3.0,
+    "hysteresis_snapshots": 2,
+    "min_regime_duration_snapshots": 3,
+    "top10_share_delta_threshold": 0.001,
+    "weights": {
+      "anomaly": 0.2,
+      "concentration": 0.3,
+      "dispersion": 0.5
+    },
+    "window_dates": 180
+  },
+  "date_utc": "2026-02-25",
+  "dvi": 19.6,
+  "dvi_band": "stable",
+  "dvi_components": {
+    "anomaly_norm": 0.0,
+    "concentration_norm": 0.150008,
+    "dispersion_norm": 0.301511
+  },
+  "dvi_inputs": {
+    "anomaly_prop_raw": 0.0,
+    "approved_tlds_count": 4,
+    "concentration_shift_raw": 0.00075,
+    "dispersion_raw": 0.904534
+  },
+  "effective_date_utc": "2026-02-25",
+  "methodology_version": "2026-03-01",
+  "model_version": "rootfetch_model_v1",
+  "regime": "ELEVATED",
+  "regime_base": "STABLE",
+  "regime_candidate": "STABLE",
+  "regime_confidence": 0.38,
+  "regime_duration_snapshots": 2,
+  "regime_inputs": {
+    "delta_hhi": 0.00075,
+    "median_delta": 0.005814,
+    "top10_share_delta": 0.0
+  }
+}

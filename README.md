@@ -66,6 +66,7 @@ rootfetch baseline-status
 rootfetch run-hybrid
 rootfetch run-hybrid --dry-run
 rootfetch compute-signals --date YYYY-MM-DD
+python compute_model_v1.py snapshot.json
 rootfetch rag build
 rootfetch rag build-static
 rootfetch rag search "count_ns_sld"
@@ -110,6 +111,7 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 
 - Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)
 - Signals: [docs/signal_spec.md](docs/signal_spec.md)
+- Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
 - RAG: [docs/rag.md](docs/rag.md)
 - Local runner: [docs/local_runner.md](docs/local_runner.md)

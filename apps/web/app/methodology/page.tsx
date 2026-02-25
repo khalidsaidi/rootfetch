@@ -55,6 +55,14 @@ export default function MethodologyPage() {
         </p>
       </Section>
 
+      <Section title="Model Contract v1" subtitle="Deterministic structural model used by DVI and regime.">
+        <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
+          <li>DVI_v1 = weighted normalized combination of dispersion, concentration shift, and anomaly clustering.</li>
+          <li>Regime_v1 uses a hysteresis state machine with minimum-duration enforcement to prevent flapping.</li>
+          <li>All model fields are versioned in artifacts (`model_version`, `methodology_version`).</li>
+        </ul>
+      </Section>
+
       <TrackedLink href="/" label="back_home_methodology" pageType="methodology" className="text-sm text-primary hover:text-primary/80">
         Back to dashboard
       </TrackedLink>

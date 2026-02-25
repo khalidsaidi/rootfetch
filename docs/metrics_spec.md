@@ -67,3 +67,11 @@ Suspicious rule:
 - `abs(delta_pct) > 0.20`
 - prior base > 10,000
 - not newly approved
+
+## Model Contract
+
+RootFetch structural model fields (`DVI_v1` and `Regime_v1`) are defined in:
+
+- `docs/model_contract_v1.md`
+
+Formulas and thresholds in that document are versioned and deterministic.
