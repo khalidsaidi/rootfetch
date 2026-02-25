@@ -313,7 +313,7 @@ export default async function Home() {
             <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
               <Shield className="h-3.5 w-3.5 text-emerald-300" /> Data provenance & integrity
             </p>
-            <h2 className="font-display text-2xl font-semibold">Military-grade trust surface</h2>
+            <h2 className="font-display text-2xl font-semibold">DATA INTEGRITY &amp; PROVENANCE</h2>
           </div>
           <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs uppercase tracking-[0.14em] text-emerald-200">
             Immutable artifact badge

@@ -115,10 +115,11 @@ export default function AdvancedAnalyticsLayer({
   const [scenario, setScenario] = useState<Scenario>("balanced");
   const [shockPct, setShockPct] = useState<number>(10);
   const [volShock, setVolShock] = useState<number>(15);
-  const [showSimulation, setShowSimulation] = useState(true);
+  const [showSimulation, setShowSimulation] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showCorrelation, setShowCorrelation] = useState(false);
   const [clusterHighlight, setClusterHighlight] = useState(true);
+  const [clusterDetected, setClusterDetected] = useState(false);
 
   const tldOptions = useMemo(
     () => marketRows.filter((row) => row && row.tld).slice(0, 100).map((row) => row.tld),
@@ -260,8 +261,8 @@ export default function AdvancedAnalyticsLayer({
   return (
     <section className="rf-glass rounded-3xl p-5 md:p-6">
       <div className="mb-3">
-        <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Advanced structural analytics</p>
-        <h2 className="font-display text-2xl font-semibold">Stress, compare, correlate, project</h2>
+        <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural analysis lab</p>
+        <h2 className="font-display text-2xl font-semibold">Scenario, comparison, correlation, and projection</h2>
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs">
@@ -285,6 +286,18 @@ export default function AdvancedAnalyticsLayer({
           onClick={() => setShowCorrelation((prev) => !prev)}
         >
           {disclosureIcon(showCorrelation)} Correlation Engine
+        </button>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-foreground hover:border-primary/60"
+          onClick={() => {
+            setShowCorrelation(true);
+            setClusterHighlight(true);
+            setClusterDetected(true);
+            track("rf_market_filter", { filter_key: "correlation_detect_clusters", value: "run" });
+          }}
+        >
+          Detect Clusters
         </button>
       </div>
 
@@ -362,6 +375,12 @@ export default function AdvancedAnalyticsLayer({
                 Projected 30d delegated: <span className="rf-mono-digits">{fmtInt(projected30d)}</span>
               </p>
             </div>
+            <div className="rounded-lg border border-cyan-400/35 bg-cyan-500/8 p-2 text-xs">
+              <p className="mb-1 uppercase tracking-[0.12em] text-muted-foreground">Impact summary</p>
+              <p>Projected DVI: <span className="rf-mono-digits">{simulation.dvi.toFixed(1)}</span></p>
+              <p>Projected HHI: <span className="rf-mono-digits">{simulation.hhi.toFixed(4)}</span></p>
+              <p>Regime shift: <span className="uppercase">{simulation.state}</span></p>
+            </div>
             <p className="rounded-lg border border-primary/25 bg-primary/8 px-2 py-1.5 text-xs text-foreground">{summary}</p>
           </div>
         </div>
@@ -424,14 +443,27 @@ export default function AdvancedAnalyticsLayer({
             <p className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground">
               <LineChart className="h-3.5 w-3.5 text-primary" /> Sector correlation matrix
             </p>
-            <label className="inline-flex items-center gap-1 text-xs">
-              <input
-                type="checkbox"
-                checked={clusterHighlight}
-                onChange={() => setClusterHighlight((prev) => !prev)}
-              />
-              cluster highlight
-            </label>
+            <div className="flex items-center gap-2">
+              <label className="inline-flex items-center gap-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={clusterHighlight}
+                  onChange={() => setClusterHighlight((prev) => !prev)}
+                />
+                cluster highlight
+              </label>
+              <button
+                type="button"
+                className="rounded border border-primary/40 bg-primary/10 px-2 py-0.5 text-[11px]"
+                onClick={() => {
+                  setClusterDetected(true);
+                  setClusterHighlight(true);
+                  track("rf_market_filter", { filter_key: "cluster_detect", value: "manual" });
+                }}
+              >
+                Detect clusters
+              </button>
+            </div>
           </div>
 
           <div className="grid gap-2 text-[11px] text-muted-foreground sm:grid-cols-4">
@@ -443,7 +475,9 @@ export default function AdvancedAnalyticsLayer({
 
           <p className="text-xs text-muted-foreground">
             Auto-cluster detection:{" "}
-            {clusterGroups.map((group) => `C${group.id + 1}[${group.sectors.join(", ")}]`).join(" | ")}
+            {clusterDetected
+              ? clusterGroups.map((group) => `C${group.id + 1}[${group.sectors.join(", ")}]`).join(" | ")
+              : "Run detect clusters to highlight structural co-movement groups."}
           </p>
 
           <div className="overflow-auto">

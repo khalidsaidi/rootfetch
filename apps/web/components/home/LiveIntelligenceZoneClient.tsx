@@ -203,6 +203,9 @@ export default function LiveIntelligenceZoneClient({
 }) {
   const { replayDays, setReplayDays } = useReplayTimeline();
   const [consoleOpen, setConsoleOpen] = useState(true);
+  const [consoleSeverity, setConsoleSeverity] = useState<"all" | "critical" | "high" | "moderate" | "info">("all");
+  const [consoleTldFilter, setConsoleTldFilter] = useState("");
+  const [consoleCleared, setConsoleCleared] = useState(false);
 
   const dviTrendSeries = useMemo(
     () =>
@@ -325,6 +328,16 @@ export default function LiveIntelligenceZoneClient({
     [anomalyRows],
   );
 
+  const filteredConsoleRows = useMemo(() => {
+    if (consoleCleared) return [];
+    const query = consoleTldFilter.trim().toLowerCase();
+    return eventConsoleRows.filter((row) => {
+      if (consoleSeverity !== "all" && row.severity !== consoleSeverity) return false;
+      if (query && !row.tld.toLowerCase().includes(query)) return false;
+      return true;
+    });
+  }, [consoleCleared, consoleSeverity, consoleTldFilter, eventConsoleRows]);
+
   return (
     <>
       <section className="rf-glass overflow-hidden rounded-3xl p-5 md:p-6">
@@ -376,7 +389,7 @@ export default function LiveIntelligenceZoneClient({
           </div>
 
           <div className="xl:px-5">
-            <div className="scale-[1.12] origin-top">
+            <div className="scale-[1.2] origin-top">
               <VolatilityGauge
                 dvi={{
                   ...dvi,
@@ -384,6 +397,28 @@ export default function LiveIntelligenceZoneClient({
                 }}
                 trendSeries={dviTrendSeries}
               />
+            </div>
+            <div className="mt-4">
+              <p className="mb-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Structural regime history (30d)</p>
+              <div className="flex gap-[2px] overflow-hidden rounded border border-border/60 bg-background/35 p-1">
+                {regimeTimeline.slice(-30).map((item, idx) => {
+                  const tone =
+                    item.state === "consolidating"
+                      ? "bg-rose-400/80"
+                      : item.state === "speculative"
+                        ? "bg-orange-400/80"
+                        : item.state === "fragmenting"
+                          ? "bg-amber-400/80"
+                          : "bg-emerald-400/80";
+                  return <span key={idx} className={`h-3 flex-1 rounded-[2px] ${tone}`} title={`${item.state} ${item.score.toFixed(1)}`} />;
+                })}
+              </div>
+              <div className="mt-1 grid grid-cols-4 gap-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                <span>Stable</span>
+                <span>Elevated</span>
+                <span>Consolidating</span>
+                <span>Turbulent</span>
+              </div>
             </div>
           </div>
 
@@ -416,10 +451,14 @@ export default function LiveIntelligenceZoneClient({
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-border/70 bg-background/25 p-3">
+        <div className="mt-4 rounded-2xl border border-border/70 bg-background/20 p-3">
           <div className="mb-1 flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural timeline</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">STRUCTURAL TIMELINE</p>
             <p className="rf-mono-digits text-xs text-muted-foreground">{replayDays}d rewind</p>
+          </div>
+          <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            <span className={`h-2 w-2 rounded-full ${replayDays === 0 ? "animate-pulse bg-emerald-300" : "bg-cyan-300"}`} />
+            <span>{replayDays === 0 ? "Live" : `Replay ${replayDays}d`}</span>
           </div>
           <input
             type="range"
@@ -427,7 +466,7 @@ export default function LiveIntelligenceZoneClient({
             max={365}
             step={1}
             value={replayDays}
-            className="w-full accent-cyan-400"
+            className="rf-timeline-slider w-full"
             onChange={(event) => {
               const next = clamp(Number(event.target.value), 0, 365);
               setReplayDays(next);
@@ -435,6 +474,17 @@ export default function LiveIntelligenceZoneClient({
               track("rf_chart_range_change", { chart: "global_structural_timeline", range_days: next });
             }}
           />
+          <div className="mt-1 grid grid-cols-4 gap-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <span className="text-emerald-300">Live</span>
+            <span className="text-center">-7d</span>
+            <span className="text-center">-30d</span>
+            <span className="text-right">-90d</span>
+          </div>
+          <div className="mt-1 grid grid-cols-4 gap-2">
+            {[0, 7, 30, 90].map((day) => (
+              <span key={day} className="h-1 rounded-full bg-border/70" />
+            ))}
+          </div>
           <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
             {[0, 7, 30, 90].map((day) => (
               <button
@@ -450,22 +500,6 @@ export default function LiveIntelligenceZoneClient({
                 {day === 0 ? "Now" : `-${day}d`}
               </button>
             ))}
-          </div>
-          <div className="mt-2">
-            <p className="mb-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Regime history (30d)</p>
-            <div className="flex gap-[2px] overflow-hidden rounded border border-border/60 bg-background/35 p-1">
-              {regimeTimeline.slice(-30).map((item, idx) => {
-                const tone =
-                  item.state === "consolidating"
-                    ? "bg-rose-400/80"
-                    : item.state === "speculative"
-                      ? "bg-orange-400/80"
-                      : item.state === "fragmenting"
-                        ? "bg-amber-400/80"
-                        : "bg-emerald-400/80";
-                return <span key={idx} className={`h-3 flex-1 rounded-[2px] ${tone}`} title={`${item.state} ${item.score.toFixed(1)}`} />;
-              })}
-            </div>
           </div>
         </div>
 
@@ -489,8 +523,50 @@ export default function LiveIntelligenceZoneClient({
         <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
           <Activity className="h-3.5 w-3.5 text-primary" /> Event console
         </div>
+        <div className="mb-2 space-y-2">
+          <div className="grid grid-cols-2 gap-1.5 text-[10px] uppercase tracking-[0.11em]">
+            {(["all", "critical", "high", "moderate", "info"] as const).map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={`rounded border px-1.5 py-0.5 ${
+                  consoleSeverity === item
+                    ? "border-primary/60 bg-primary/15 text-foreground"
+                    : "border-border/70 bg-background/35 text-muted-foreground"
+                }`}
+                onClick={() => setConsoleSeverity(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1.5">
+            <input
+              value={consoleTldFilter}
+              onChange={(event) => setConsoleTldFilter(event.target.value)}
+              placeholder="filter tld"
+              className="flex-1 rounded border border-border/70 bg-background/35 px-2 py-1 text-[11px] uppercase tracking-[0.1em] text-muted-foreground placeholder:text-muted-foreground/70"
+            />
+            <button
+              type="button"
+              className="rounded border border-border/70 bg-background/35 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground"
+              onClick={() => setConsoleCleared(true)}
+            >
+              Clear
+            </button>
+          </div>
+          {consoleCleared ? (
+            <button
+              type="button"
+              className="rounded border border-primary/40 bg-primary/10 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-foreground"
+              onClick={() => setConsoleCleared(false)}
+            >
+              Restore log
+            </button>
+          ) : null}
+        </div>
         <div className="space-y-1 overflow-auto pr-1 text-[11px]">
-          {eventConsoleRows.map((row, idx) => (
+          {filteredConsoleRows.map((row, idx) => (
             <div key={`${row.tld}-${idx}`} className="rounded-md border border-border/60 bg-background/30 px-2 py-1">
               <span className="rf-mono-digits text-muted-foreground">[{row.ts}]</span>{" "}
               <span
@@ -511,6 +587,11 @@ export default function LiveIntelligenceZoneClient({
               <span className="text-muted-foreground">{row.label || "signal"}</span>
             </div>
           ))}
+          {filteredConsoleRows.length === 0 ? (
+            <div className="rounded-md border border-border/60 bg-background/30 px-2 py-1 text-muted-foreground">
+              No events for current filters.
+            </div>
+          ) : null}
         </div>
       </aside>
     </>

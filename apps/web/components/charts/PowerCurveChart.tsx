@@ -21,6 +21,10 @@ function fmtInt(value: number): string {
   return new Intl.NumberFormat("en-US").format(Math.trunc(value));
 }
 
+function fmtPct(value: number): string {
+  return `${(value * 100).toFixed(2)}%`;
+}
+
 export default function PowerCurveChart({
   curve,
   forcedFocus,
@@ -47,6 +51,19 @@ export default function PowerCurveChart({
     }
     return rows;
   }, [curve.d30, curve.d90, curve.today]);
+
+  const selectedSeries = useMemo(() => {
+    if (effectiveFocus === "today") return curve.today || [];
+    if (effectiveFocus === "d30") return curve.d30 || [];
+    return curve.d90 || [];
+  }, [curve.d30, curve.d90, curve.today, effectiveFocus]);
+
+  const top10Share = useMemo(() => {
+    const total = selectedSeries.reduce((sum, row) => sum + Number(row.count || 0), 0);
+    if (total <= 0) return 0;
+    const top10 = selectedSeries.slice(0, 10).reduce((sum, row) => sum + Number(row.count || 0), 0);
+    return top10 / total;
+  }, [selectedSeries]);
 
   if (!data.length) {
     return (
@@ -119,7 +136,17 @@ export default function PowerCurveChart({
             <CartesianGrid stroke="hsl(var(--border) / 0.5)" strokeDasharray="3 3" />
             <XAxis dataKey="rank" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
             <YAxis tickFormatter={(value) => fmtInt(Number(value))} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-            <ReferenceArea x1={1} x2={10} fill="rgba(0, 212, 255, 0.08)" />
+            <ReferenceArea
+              x1={1}
+              x2={10}
+              fill="rgba(0, 212, 255, 0.08)"
+              label={{
+                value: `Top 10 hold ${fmtPct(top10Share)}`,
+                position: "insideTopLeft",
+                fill: "rgba(200, 230, 255, 0.92)",
+                fontSize: 11,
+              }}
+            />
             <Tooltip
               formatter={(value: number | string | undefined) => [fmtInt(Number(value || 0)), "delegated"]}
               labelFormatter={(label) => `rank ${label}`}
@@ -141,6 +168,9 @@ export default function PowerCurveChart({
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Concentration annotation: Top 10 hold <span className="rf-mono-digits text-foreground">{fmtPct(top10Share)}</span> in this view.
+      </p>
     </div>
   );
 }

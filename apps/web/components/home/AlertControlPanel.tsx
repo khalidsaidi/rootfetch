@@ -120,7 +120,7 @@ export default function AlertControlPanel({
           <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
             <BellRing className="h-3.5 w-3.5 text-primary" /> Alerting and anomaly system
           </p>
-          <h2 className="font-display text-2xl font-semibold">Rule control plane</h2>
+          <h2 className="font-display text-2xl font-semibold">ALERT &amp; RULE ENGINE</h2>
         </div>
         <div className="rounded-xl border border-border/70 bg-background/40 px-3 py-2 text-xs">
           <p>Critical: {severityCounts.critical}</p>
@@ -130,7 +130,7 @@ export default function AlertControlPanel({
       </div>
 
       <div className="grid gap-3 xl:grid-cols-[1fr,1fr]">
-        <div className="space-y-3 rounded-xl border border-border/60 bg-background/20 p-3">
+        <div className="space-y-3 rounded-xl border border-border/60 bg-background/14 p-3">
           <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Trigger conditions</p>
           <label className="block text-xs">
             z-score threshold <span className="rf-mono-digits">{zThreshold.toFixed(1)}</span>
@@ -182,7 +182,7 @@ export default function AlertControlPanel({
           </label>
         </div>
 
-        <div className="space-y-3 rounded-xl border border-border/60 bg-background/20 p-3">
+        <div className="space-y-3 rounded-xl border border-border/60 bg-background/14 p-3">
           <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Destinations</p>
           <label className="flex items-center justify-between text-sm">
             <span>Email</span>

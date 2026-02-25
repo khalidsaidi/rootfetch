@@ -70,6 +70,8 @@ export default function DelegationRadarChart({
   const maxY = Math.max(...cleaned.map((row) => Math.abs(Number(row.growth_pct || 0))), 3);
   const xDomain: [number, number] = [-maxX * 1.1, maxX * 1.1];
   const yDomain: [number, number] = [-maxY * 1.15, maxY * 1.15];
+  const xTicks = [-maxX, -maxX / 2, 0, maxX / 2, maxX].map((value) => Number(value.toFixed(4)));
+  const yTicks = [-maxY, -maxY / 2, 0, maxY / 2, maxY].map((value) => Number(value.toFixed(2)));
 
   return (
     <div className="space-y-2">
@@ -92,10 +94,12 @@ export default function DelegationRadarChart({
                 type="number"
                 dataKey="volatility"
                 domain={xDomain}
+                ticks={xTicks}
+                tickFormatter={(value) => Number(value).toFixed(3)}
                 tick={{ fontSize: 10 }}
                 stroke="hsl(var(--muted-foreground))"
                 label={{
-                  value: "30d cross-sectional volatility",
+                  value: "30d cross-sectional volatility (sigma units)",
                   position: "insideBottom",
                   offset: -1,
                   style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" },
@@ -105,10 +109,12 @@ export default function DelegationRadarChart({
                 type="number"
                 dataKey="growth_pct"
                 domain={yDomain}
+                ticks={yTicks}
+                tickFormatter={(value) => `${Number(value).toFixed(1)}%`}
                 tick={{ fontSize: 10 }}
                 stroke="hsl(var(--muted-foreground))"
                 label={{
-                  value: "normalized growth (%)",
+                  value: "30d normalized growth (%)",
                   angle: -90,
                   position: "insideLeft",
                   style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" },
@@ -178,6 +184,9 @@ export default function DelegationRadarChart({
         <p className="rounded border border-border/60 bg-background/35 px-2 py-1">Bubble size = delegated size</p>
         <p className="rounded border border-border/60 bg-background/35 px-2 py-1">Glow = anomaly score</p>
       </div>
+      <p className="text-[11px] text-muted-foreground">
+        X-axis scale uses volatility sigma units; Y-axis uses normalized growth percent over 30 days.
+      </p>
     </div>
   );
 }
