@@ -12,7 +12,21 @@ type DviPayload = {
   top10_shift_component?: number;
 };
 
-export default function VolatilityGauge({ dvi }: { dvi: DviPayload }) {
+function Sparkline({ points }: { points: number[] }) {
+  const max = Math.max(...points, 1);
+  const min = Math.min(...points, 0);
+  const range = Math.max(1, max - min);
+  const coords = points
+    .map((point, idx) => `${(idx / Math.max(1, points.length - 1)) * 100},${100 - ((point - min) / range) * 100}`)
+    .join(" ");
+  return (
+    <svg viewBox="0 0 100 100" className="h-10 w-full">
+      <polyline points={coords} fill="none" stroke="#00d4ff" strokeWidth="2.5" />
+    </svg>
+  );
+}
+
+export default function VolatilityGauge({ dvi, trendSeries }: { dvi: DviPayload; trendSeries?: number[] }) {
   const score = Math.max(0, Math.min(100, Number(dvi.score ?? 0)));
   const level = useMemo(() => {
     if (score >= 75) return "turbulent";
@@ -31,6 +45,7 @@ export default function VolatilityGauge({ dvi }: { dvi: DviPayload }) {
   const disp = Number(dvi.dispersion_component || 0) / 100;
   const shift = Number(dvi.top10_shift_component || 0) / 100;
   const cluster = Number(dvi.anomaly_component || 0) / 100;
+  const spark = (trendSeries && trendSeries.length > 1 ? trendSeries : [score * 0.86, score * 0.9, score * 0.94, score * 0.98, score]).slice(-30);
 
   return (
     <div className="rf-glass rounded-2xl p-3">
@@ -62,6 +77,16 @@ export default function VolatilityGauge({ dvi }: { dvi: DviPayload }) {
             <p className={`mt-0.5 text-[11px] uppercase tracking-[0.18em] ${labelClass}`}>{level}</p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-2 rounded-md border border-border/70 bg-background/35 px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+        <div className="mb-1 grid grid-cols-4 gap-1">
+          <span>0-25 Stable</span>
+          <span>25-50 Elevated</span>
+          <span>50-75 Active</span>
+          <span>75-100 Turbulent</span>
+        </div>
+        <Sparkline points={spark} />
       </div>
 
       <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">

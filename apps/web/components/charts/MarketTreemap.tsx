@@ -84,6 +84,7 @@ function TreemapNodeContent(props: TreeNodeRenderProps) {
   const row = resolveRowPayload(payload);
   if (width < 16 || height < 14 || !payload || !row) return null;
   const base = colorForDelta(Number(payload.delta || 0));
+  const deltaPct = Number(payload.delta || 0) * 100;
   const anomaly = glowForAnomaly(Number(row.anomaly_score || 0));
   return (
     <g>
@@ -108,6 +109,12 @@ function TreemapNodeContent(props: TreeNodeRenderProps) {
           {name}
         </text>
       ) : null}
+      {width > 88 && height > 34 ? (
+        <text x={x + 6} y={y + 28} fill="rgba(230,240,250,0.85)" fontSize={9.5}>
+          {deltaPct >= 0 ? "+" : ""}
+          {deltaPct.toFixed(2)}%
+        </text>
+      ) : null}
     </g>
   );
 }
@@ -116,16 +123,21 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
   const [mode, setMode] = useState<Mode>("today");
   const [sector, setSector] = useState<string>("all");
   const [direction, setDirection] = useState<Direction>("all");
-  const [active, setActive] = useState<MarketMapRow | null>(rows[0] || null);
+  const [activeTld, setActiveTld] = useState<string>(rows[0]?.tld || "");
 
   const sectors = useMemo(
-    () => ["all", ...Array.from(new Set(rows.map((row) => (row.sector || "other").toLowerCase()))).sort()],
+    () => [
+      "all",
+      ...Array.from(new Set(rows.map((row) => (row?.sector || "other").toLowerCase()))).sort(),
+    ],
     [rows],
   );
 
   const filtered = useMemo(() => {
     return rows.filter((row) => {
+      if (!row || typeof row.tld !== "string" || !row.tld) return false;
       const metric = valueForMode(row, mode);
+      if (!Number.isFinite(metric)) return false;
       const rowSector = (row.sector || "other").toLowerCase();
       if (sector !== "all" && rowSector !== sector) return false;
       if (direction === "growth" && metric <= 0) return false;
@@ -138,7 +150,7 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
     () =>
       filtered.slice(0, 220).map((row) => ({
         name: `.${row.tld}`,
-        size: Math.max(1, row.count),
+        size: Math.max(1, Number.isFinite(Number(row.count)) ? Number(row.count) : 0),
         delta: valueForMode(row, mode),
         payload: row,
       })),
@@ -154,6 +166,15 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
       .reduce((sum, row) => sum + Number(row.count || 0), 0);
     return top10 / total;
   }, [filtered]);
+
+  const active = useMemo(() => {
+    if (!rows.length) return null;
+    if (activeTld) {
+      const found = rows.find((row) => row.tld === activeTld);
+      if (found) return found;
+    }
+    return filtered[0] || rows[0] || null;
+  }, [activeTld, filtered, rows]);
 
   if (!rows.length) {
     return (
@@ -229,28 +250,34 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
 
       <div className="grid gap-3 xl:grid-cols-[1.5fr,0.7fr]">
         <div className="rf-glass h-[480px] overflow-hidden rounded-2xl p-2">
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-            minWidth={0}
-            minHeight={220}
-            initialDimension={{ width: 1200, height: 220 }}
-          >
-            <Treemap
-              data={treeData}
-              dataKey="size"
-              isAnimationActive
-              animationDuration={500}
-              content={
-                <TreemapNodeContent
-                  onHover={(row) => {
-                    setActive(row);
-                    track("treemap_filter", { page_type: "home", sort_key: mode, filter_value: row.tld });
-                  }}
-                />
-              }
-            />
-          </ResponsiveContainer>
+          {treeData.length > 0 ? (
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minWidth={0}
+              minHeight={220}
+              initialDimension={{ width: 1200, height: 220 }}
+            >
+              <Treemap
+                data={treeData}
+                dataKey="size"
+                isAnimationActive
+                animationDuration={500}
+                content={
+                  <TreemapNodeContent
+                    onHover={(row) => {
+                      setActiveTld(row.tld);
+                      track("treemap_filter", { page_type: "home", sort_key: mode, filter_value: row.tld });
+                    }}
+                  />
+                }
+              />
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+              Building structural treemap...
+            </div>
+          )}
         </div>
 
         <div className="rf-glass rounded-2xl p-4">

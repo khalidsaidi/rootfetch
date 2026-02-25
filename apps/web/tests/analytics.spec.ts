@@ -12,14 +12,12 @@ test("analytics events fire on core product interactions", async ({ page }) => {
     await route.continue();
   });
 
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  await page.getByRole("link", { name: "Sectors" }).click();
+  await page.getByRole("link", { name: "Sector indices" }).click();
   await page.waitForURL("**/sectors");
 
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
 
   await page.getByRole("link", { name: "Approved TLDs" }).click();
   await page.waitForURL("**/approved");
@@ -27,14 +25,12 @@ test("analytics events fire on core product interactions", async ({ page }) => {
   await page.getByTestId("approved-search-input").fill("app");
   await page.waitForTimeout(700);
 
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const firstTopTld = page.locator("table tbody tr td a").first();
-  await firstTopTld.click();
+  await page.getByRole("link", { name: "Open intelligence card" }).first().click();
   await page.waitForURL("**/tld/**");
 
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.getByRole("link", { name: "Open full digest" }).click();
   await page.waitForURL("**/rootfetch/latest.md");
 

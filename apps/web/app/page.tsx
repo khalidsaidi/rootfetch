@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 
 import AnomalyTicker from "@/components/AnomalyTicker";
+import AdvancedAnalyticsLayer from "@/components/home/AdvancedAnalyticsLayer";
+import AlertControlPanel from "@/components/home/AlertControlPanel";
 import CopyValueButton from "@/components/CopyValueButton";
 import HomeViewTracker from "@/components/HomeViewTracker";
 import JsonArtifactPreview from "@/components/JsonArtifactPreview";
@@ -146,6 +148,14 @@ export default async function Home() {
   const dvi = latest.dvi || {};
   const dviScore = asNumber(dvi.score);
   const top10SharePct = asNumber(concentration.top10_share_pct);
+  const dviTrendSeries = pulseSeries
+    .map((row, idx) => {
+      const current = Number(row.total_delegated_count || 0);
+      const prev = idx > 0 ? Number(pulseSeries[idx - 1]?.total_delegated_count || 0) : current;
+      if (!Number.isFinite(current) || !Number.isFinite(prev) || prev <= 0) return 0;
+      return Math.abs(((current - prev) / prev) * 100) * 10;
+    })
+    .filter((value) => Number.isFinite(value));
 
   const state = marketState(top10SharePct, dviScore);
   const isZeroState = totalDelegated <= 0;
@@ -153,6 +163,17 @@ export default async function Home() {
 
   const anomalyRows = Array.isArray(latest.anomaly_spotlight) && latest.anomaly_spotlight.length > 0
     ? latest.anomaly_spotlight
+        .filter((row) => row && typeof row.tld === "string" && row.tld.length > 0)
+        .map((row) => ({
+          tld: row.tld,
+          delta_abs: Number(row.delta_abs || 0),
+          delta_pct: Number(row.delta_pct || 0),
+          robust_z: Number(row.robust_z || 0),
+          volatility: Number(row.volatility || 0),
+          count: Number(row.count || 0),
+          sector: row.sector || "other",
+          label: row.label || "signal",
+        }))
     : (latest.anomalies || []).slice(0, 12).map((row) => ({
         tld: row.tld,
         delta_abs: 0,
@@ -166,6 +187,20 @@ export default async function Home() {
 
   const marketMapRows = Array.isArray(latest.market_map) && latest.market_map.length > 0
     ? latest.market_map
+        .filter((row) => row && typeof row.tld === "string" && row.tld.length > 0)
+        .map((row) => ({
+          tld: row.tld,
+          count: Number(row.count || 0),
+          share_pct: Number(row.share_pct || 0),
+          delta_abs: Number(row.delta_abs || 0),
+          delta_pct: Number(row.delta_pct || 0),
+          delta_7d_abs: Number(row.delta_7d_abs || 0),
+          delta_30d_abs: Number(row.delta_30d_abs || 0),
+          delta_7d_pct: Number(row.delta_7d_pct || 0),
+          delta_30d_pct: Number(row.delta_30d_pct || 0),
+          anomaly_score: Number(row.anomaly_score || 0),
+          sector: row.sector || "other",
+        }))
     : topRows.slice(0, 180).map((row) => ({
         tld: row.tld,
         count: row.count,
@@ -181,10 +216,17 @@ export default async function Home() {
       }));
 
   const radarRows = Array.isArray(latest.radar_points) && latest.radar_points.length > 0
-    ? latest.radar_points.map((row) => {
+    ? latest.radar_points
+        .filter((row) => row && typeof row.tld === "string" && row.tld.length > 0)
+        .map((row) => {
         const mapRow = marketMapRows.find((item) => item.tld === row.tld);
         return {
           ...row,
+          growth_pct: Number(row.growth_pct || 0),
+          volatility: Number(row.volatility || 0),
+          anomaly_score: Number(row.anomaly_score || 0),
+          count: Number(row.count || 0),
+          sector: row.sector || "other",
           growth_7d_pct: Number((mapRow as { delta_7d_pct?: number } | undefined)?.delta_7d_pct || 0) * 100.0,
           growth_30d_pct: Number((mapRow as { delta_30d_pct?: number } | undefined)?.delta_30d_pct || 0) * 100.0,
         };
@@ -212,7 +254,25 @@ export default async function Home() {
   };
 
   const powerCurve = latest.power_curve || { today: [], d30: [], d90: [] };
-  const sectorIndices = Array.isArray(latest.sector_indices) ? latest.sector_indices : [];
+  const sectorIndices = Array.isArray(latest.sector_indices)
+    ? latest.sector_indices
+        .filter((row) => row && typeof row.sector === "string")
+        .map((row) => ({
+          sector: row.sector,
+          total_delegated: Number(row.total_delegated || 0),
+          delta_7d_pct: row.delta_7d_pct == null ? undefined : Number(row.delta_7d_pct),
+          delta_30d_pct: row.delta_30d_pct == null ? undefined : Number(row.delta_30d_pct),
+          volatility: row.volatility == null ? undefined : Number(row.volatility),
+          series_30d: Array.isArray(row.series_30d)
+            ? row.series_30d
+                .filter((item) => item && typeof item.date_utc === "string")
+                .map((item) => ({
+                  date_utc: item.date_utc,
+                  sector_count: Number(item.sector_count || 0),
+                }))
+            : [],
+        }))
+    : [];
   const snapshotHash = createHash("sha256")
     .update(
       JSON.stringify({
@@ -310,15 +370,20 @@ export default async function Home() {
 
           <div className="xl:px-5">
             <div className="scale-[1.08] origin-top">
-              <VolatilityGauge dvi={dvi} />
+              <VolatilityGauge dvi={dvi} trendSeries={dviTrendSeries} />
             </div>
           </div>
 
           <div className="xl:pl-5 xl:pt-7">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Risk state</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural classification</p>
             <p className={`mt-1 font-display text-3xl font-semibold uppercase ${stateTone(state)}`}>
-              Market state: {state}
+              {state}
             </p>
+            <div className="mt-2 rounded-lg border border-border/70 bg-background/40 p-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              <p>Concentration trend: {top10SharePct >= 65 ? "↑" : top10SharePct <= 52 ? "↓" : "→"}</p>
+              <p>Volatility: {dviScore >= 50 ? "Active" : dviScore >= 25 ? "Stable+" : "Stable"}</p>
+              <p>Fragmentation: {String(marketRisk.fragmentation || "n/a")}</p>
+            </div>
             <div className="mt-3">
               <MarketRiskPanel risk={marketRisk} />
             </div>
@@ -343,6 +408,18 @@ export default async function Home() {
       </section>
 
       <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
+
+      <AlertControlPanel rows={anomalyRows} dviScore={dviScore} top10SharePct={top10SharePct} />
+
+      <AdvancedAnalyticsLayer
+        marketRows={marketMapRows}
+        radarRows={radarRows}
+        sectorRows={sectorIndices}
+        baseDviScore={dviScore}
+        baseTop10SharePct={top10SharePct}
+        totalDelegated={totalDelegated}
+        delta7dAbs={delta7dAbs}
+      />
 
       <section className="rf-glass rounded-3xl p-5 md:p-6">
         <div className="mb-3">

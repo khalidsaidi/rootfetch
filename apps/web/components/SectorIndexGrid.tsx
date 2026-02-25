@@ -24,6 +24,14 @@ function fmtPct(value?: number): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+function volatilityBand(value?: number): { label: string; tone: string } {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return { label: "n/a", tone: "border-border/60 text-muted-foreground" };
+  if (numeric >= 0.06) return { label: "HIGH", tone: "border-rose-400/50 text-rose-200" };
+  if (numeric >= 0.03) return { label: "MODERATE", tone: "border-amber-400/50 text-amber-200" };
+  return { label: "LOW", tone: "border-emerald-400/50 text-emerald-200" };
+}
+
 export default function SectorIndexGrid({ rows }: { rows: SectorIndex[] }) {
   if (!rows.length) {
     const placeholders = ["ai/tech", "commerce", "finance", "geo", "media", "other"];
@@ -47,6 +55,7 @@ export default function SectorIndexGrid({ rows }: { rows: SectorIndex[] }) {
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {rows.slice(0, 9).map((row) => {
         const positive = Number(row.delta_7d_pct || 0) >= 0;
+        const volBand = volatilityBand(row.volatility);
         return (
           <Link
             key={row.sector}
@@ -61,6 +70,9 @@ export default function SectorIndexGrid({ rows }: { rows: SectorIndex[] }) {
               <div>
                 <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{row.sector} index</p>
                 <p className="rf-mono-digits mt-1 text-2xl font-semibold">{fmtInt(row.total_delegated)}</p>
+                <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] ${volBand.tone}`}>
+                  Volatility: {volBand.label}
+                </span>
               </div>
               <div className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs ${positive ? "border-emerald-400/40 text-emerald-300" : "border-rose-400/40 text-rose-300"}`}>
                 {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}

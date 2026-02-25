@@ -40,9 +40,9 @@ export default function PowerCurveChart({
     for (let i = 1; i <= maxRank; i += 1) {
       rows.push({
         rank: i,
-        today: today[i - 1]?.count,
-        d30: d30[i - 1]?.count,
-        d90: d90[i - 1]?.count,
+        today: Number(today[i - 1]?.count || 0),
+        d30: Number(d30[i - 1]?.count || 0),
+        d90: Number(d90[i - 1]?.count || 0),
       });
     }
     return rows;

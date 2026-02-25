@@ -16,7 +16,7 @@ type AnomalyRow = {
   label?: string;
 };
 
-type Severity = "high" | "moderate" | "low";
+type Severity = "critical" | "high" | "moderate" | "info";
 
 function fmtInt(value: number): string {
   return new Intl.NumberFormat("en-US").format(Math.trunc(value));
@@ -32,11 +32,14 @@ function fmtPct(value: number): string {
 }
 
 function intensityClass(row: AnomalyRow): string {
-  const z = Number(row.robust_z || 0);
-  if (z >= 3.5) {
+  const severity = severityOf(row);
+  if (severity === "critical") {
+    return "border-red-500/70 bg-red-500/15 text-red-100";
+  }
+  if (severity === "high") {
     return "border-rose-500/60 bg-rose-500/10 text-rose-100";
   }
-  if (z >= 2) {
+  if (severity === "moderate") {
     return "border-amber-300/60 bg-amber-300/10 text-amber-100";
   }
   return "border-cyan-400/50 bg-cyan-400/10 text-cyan-100";
@@ -44,9 +47,11 @@ function intensityClass(row: AnomalyRow): string {
 
 function severityOf(row: AnomalyRow): Severity {
   const z = Number(row.robust_z || 0);
-  if (z >= 3.5 || Math.abs(Number(row.delta_pct || 0)) >= 0.03) return "high";
-  if (z >= 2 || Math.abs(Number(row.delta_pct || 0)) >= 0.01) return "moderate";
-  return "low";
+  const absDeltaPct = Math.abs(Number(row.delta_pct || 0));
+  if (z >= 4 || absDeltaPct >= 0.06) return "critical";
+  if (z >= 3.5 || absDeltaPct >= 0.03) return "high";
+  if (z >= 2 || absDeltaPct >= 0.01) return "moderate";
+  return "info";
 }
 
 function timestampForIndex(idx: number): string {
@@ -60,12 +65,27 @@ export default function AnomalyTicker({ rows }: { rows: AnomalyRow[] }) {
   const [active, setActive] = useState<AnomalyRow | null>(rows[0] || null);
   const [paused, setPaused] = useState(false);
   const [severityFilter, setSeverityFilter] = useState<Severity | "all">("all");
+  const [sectorFilter, setSectorFilter] = useState<string>("all");
+  const [tldFilter, setTldFilter] = useState<string>("");
+  const [replay24h, setReplay24h] = useState(false);
+
+  const sectors = useMemo(
+    () => ["all", ...Array.from(new Set(rows.map((row) => (row.sector || "other").toLowerCase()))).sort()],
+    [rows],
+  );
 
   const feed = useMemo(() => {
     if (!rows.length) return [];
-    const filtered = rows.filter((row) => severityFilter === "all" || severityOf(row) === severityFilter);
-    return [...filtered.slice(0, 16), ...filtered.slice(0, 16)];
-  }, [rows, severityFilter]);
+    const normalizedQuery = tldFilter.trim().toLowerCase();
+    const filtered = rows
+      .filter((row) => severityFilter === "all" || severityOf(row) === severityFilter)
+      .filter((row) => sectorFilter === "all" || (row.sector || "other").toLowerCase() === sectorFilter)
+      .filter((row) => !normalizedQuery || row.tld.toLowerCase().includes(normalizedQuery));
+    const sorted = replay24h
+      ? [...filtered].sort((a, b) => Math.abs(Number(b.robust_z || 0)) - Math.abs(Number(a.robust_z || 0)))
+      : filtered;
+    return [...sorted.slice(0, 16), ...sorted.slice(0, 16)];
+  }, [rows, replay24h, sectorFilter, severityFilter, tldFilter]);
 
   if (!rows.length) {
     return (
@@ -79,8 +99,8 @@ export default function AnomalyTicker({ rows }: { rows: AnomalyRow[] }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Namespace event stream</p>
-        <div className="flex gap-1.5 text-[11px]">
-          {(["all", "high", "moderate", "low"] as const).map((item) => (
+        <div className="flex flex-wrap gap-1.5 text-[11px]">
+          {(["all", "critical", "high", "moderate", "info"] as const).map((item) => (
             <button
               key={item}
               type="button"
@@ -94,6 +114,37 @@ export default function AnomalyTicker({ rows }: { rows: AnomalyRow[] }) {
               {item}
             </button>
           ))}
+          <select
+            value={sectorFilter}
+            className="rounded border border-border/70 bg-background/45 px-2 py-0.5 uppercase tracking-[0.12em] text-muted-foreground"
+            onChange={(event) => {
+              setSectorFilter(event.target.value);
+              track("rf_market_filter", { filter_key: "anomaly_sector", value: event.target.value });
+            }}
+          >
+            {sectors.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <input
+            value={tldFilter}
+            placeholder="tld"
+            className="w-[84px] rounded border border-border/70 bg-background/45 px-2 py-0.5 uppercase tracking-[0.12em] text-muted-foreground placeholder:text-muted-foreground/70"
+            onChange={(event) => setTldFilter(event.target.value)}
+          />
+          <button
+            type="button"
+            className={`rounded border px-2 py-0.5 uppercase tracking-[0.12em] ${
+              replay24h
+                ? "border-cyan-300/60 bg-cyan-300/10 text-cyan-100"
+                : "border-border/70 bg-background/45 text-muted-foreground"
+            }`}
+            onClick={() => setReplay24h((prev) => !prev)}
+          >
+            {replay24h ? "replay 24h on" : "replay 24h"}
+          </button>
           <button
             type="button"
             className={`rounded border px-2 py-0.5 uppercase tracking-[0.12em] ${
@@ -106,25 +157,29 @@ export default function AnomalyTicker({ rows }: { rows: AnomalyRow[] }) {
         </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-border/70 bg-black/45">
-        <div className="rf-marquee-track gap-2 p-2" style={{ animationPlayState: paused ? "paused" : "running" }}>
-          {feed.map((row, idx) => (
-            <button
-              type="button"
-              key={`${row.tld}-${idx}`}
-              className={`whitespace-nowrap rounded-lg border px-3 py-1.5 text-left text-xs tracking-wide ${intensityClass(row)}`}
-              onClick={() => {
-                setActive(row);
-                track("anomaly_open", { tld: row.tld, sector: row.sector || "other" });
-              }}
-            >
-              <span className="rf-mono-digits text-[10px] text-muted-foreground">[{timestampForIndex(idx)} UTC]</span>{" "}
-              <span className="font-semibold uppercase">{severityOf(row)}</span>{" "}
-              <span className="font-semibold">.{row.tld}</span>{" "}
-              <span className="rf-mono-digits">{fmtSigned(row.delta_abs)}</span>{" "}
-              <span>z={Number(row.robust_z || 0).toFixed(2)}</span>
-            </button>
-          ))}
-        </div>
+        {feed.length > 0 ? (
+          <div className="rf-marquee-track gap-2 p-2" style={{ animationPlayState: paused ? "paused" : "running" }}>
+            {feed.map((row, idx) => (
+              <button
+                type="button"
+                key={`${row.tld}-${idx}`}
+                className={`whitespace-nowrap rounded-lg border px-3 py-1.5 text-left text-xs tracking-wide ${intensityClass(row)}`}
+                onClick={() => {
+                  setActive(row);
+                  track("anomaly_open", { tld: row.tld, sector: row.sector || "other" });
+                }}
+              >
+                <span className="rf-mono-digits text-[10px] text-muted-foreground">[{timestampForIndex(idx)} UTC]</span>{" "}
+                <span className="font-semibold uppercase">{severityOf(row)}</span>{" "}
+                <span className="font-semibold">.{row.tld}</span>{" "}
+                <span className="rf-mono-digits">{fmtSigned(row.delta_abs)}</span>{" "}
+                <span>z={Number(row.robust_z || 0).toFixed(2)}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="px-3 py-3 text-xs text-muted-foreground">No anomaly events match current filters.</div>
+        )}
       </div>
 
       {active ? (
