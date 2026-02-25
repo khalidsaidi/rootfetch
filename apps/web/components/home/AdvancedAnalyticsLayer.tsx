@@ -261,8 +261,8 @@ export default function AdvancedAnalyticsLayer({
   return (
     <section className="rf-glass rounded-3xl p-5 md:p-6">
       <div className="mb-3">
-        <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural analysis lab</p>
-        <h2 className="font-display text-2xl font-semibold">Scenario, comparison, correlation, and projection</h2>
+        <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Model-driven scenario and correlation intelligence</p>
+        <h2 className="font-display text-2xl font-semibold">STRUCTURAL ANALYSIS LAB</h2>
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs">

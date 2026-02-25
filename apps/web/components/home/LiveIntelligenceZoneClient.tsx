@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, Waves } from "lucide-react";
 
 import AnomalyTicker from "@/components/AnomalyTicker";
@@ -206,6 +206,26 @@ export default function LiveIntelligenceZoneClient({
   const [consoleSeverity, setConsoleSeverity] = useState<"all" | "critical" | "high" | "moderate" | "info">("all");
   const [consoleTldFilter, setConsoleTldFilter] = useState("");
   const [consoleCleared, setConsoleCleared] = useState(false);
+  const [timelinePulseActive, setTimelinePulseActive] = useState(false);
+  const timelinePulseTimerRef = useRef<number | null>(null);
+
+  const triggerTimelinePulse = () => {
+    setTimelinePulseActive(false);
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => setTimelinePulseActive(true));
+      if (timelinePulseTimerRef.current !== null) window.clearTimeout(timelinePulseTimerRef.current);
+      timelinePulseTimerRef.current = window.setTimeout(() => setTimelinePulseActive(false), 420);
+    }
+  };
+
+  useEffect(
+    () => () => {
+      if (timelinePulseTimerRef.current !== null && typeof window !== "undefined") {
+        window.clearTimeout(timelinePulseTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const dviTrendSeries = useMemo(
     () =>
@@ -340,7 +360,7 @@ export default function LiveIntelligenceZoneClient({
 
   return (
     <>
-      <section className="rf-glass overflow-hidden rounded-3xl p-5 md:p-6">
+      <section className={`rf-glass overflow-hidden rounded-3xl p-5 md:p-6 ${timelinePulseActive ? "rf-timeline-pulse" : ""}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-primary">Delegation Intelligence Terminal</p>
@@ -423,15 +443,22 @@ export default function LiveIntelligenceZoneClient({
           </div>
 
           <div className="xl:pl-5 xl:pt-7">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural regime</p>
-            <p className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Classification</p>
-            <p className={`mt-1 font-display text-3xl font-semibold uppercase ${stateTone(shownState)}`}>
-              {shownState}
-            </p>
-            <div className="mt-2 rounded-lg border border-border/70 bg-background/35 p-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-              <p>Duration: <span className="rf-mono-digits">{regimeDurationDays}</span> days</p>
-              <p>Confidence: <span className="rf-mono-digits">{regimeConfidence.toFixed(2)}</span></p>
-              <p>Replay date: <span className="rf-mono-digits">{replayDateLabel}</span></p>
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural regime model</p>
+            <div className="mt-2 rounded-lg border border-cyan-400/30 bg-cyan-500/8 p-2">
+              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Derived from DVI</p>
+              <div className="mt-1 grid grid-cols-2 gap-2 text-xs">
+                <p className="rounded border border-border/60 bg-background/35 px-2 py-1">
+                  DVI <span className="rf-mono-digits text-foreground">{shownDviScore.toFixed(1)}</span>
+                </p>
+                <p className="rounded border border-border/60 bg-background/35 px-2 py-1">
+                  Confidence <span className="rf-mono-digits text-foreground">{regimeConfidence.toFixed(2)}</span>
+                </p>
+              </div>
+              <p className={`mt-2 font-display text-2xl font-semibold uppercase ${stateTone(shownState)}`}>Regime: {shownState}</p>
+              <div className="mt-1 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                <p>Duration: <span className="rf-mono-digits">{regimeDurationDays}</span> days</p>
+                <p>Replay date: <span className="rf-mono-digits">{replayDateLabel}</span></p>
+              </div>
             </div>
             <div className="mt-3">
               <MarketRiskPanel risk={marketRiskShown} />
@@ -456,26 +483,46 @@ export default function LiveIntelligenceZoneClient({
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">STRUCTURAL TIMELINE</p>
             <p className="rf-mono-digits text-xs text-muted-foreground">{replayDays}d rewind</p>
           </div>
-          <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-            <span className={`h-2 w-2 rounded-full ${replayDays === 0 ? "animate-pulse bg-emerald-300" : "bg-cyan-300"}`} />
-            <span>{replayDays === 0 ? "Live" : `Replay ${replayDays}d`}</span>
+          <div className="mb-2 flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className={`h-2 w-2 rounded-full ${replayDays === 0 ? "animate-pulse bg-emerald-300" : "bg-cyan-300"}`} />
+              <span>{replayDays === 0 ? "Live" : `Replay ${replayDays}d`}</span>
+            </div>
+            <span className="rounded-full border border-emerald-300/45 bg-emerald-400/10 px-2 py-0.5 text-[10px] text-emerald-200">
+              LIVE
+            </span>
           </div>
-          <input
-            type="range"
-            min={0}
-            max={365}
-            step={1}
-            value={replayDays}
-            className="rf-timeline-slider w-full"
-            onChange={(event) => {
-              const next = clamp(Number(event.target.value), 0, 365);
-              setReplayDays(next);
-              track("volatility_toggle", { chart: "global_structural_timeline", range_days: next });
-              track("rf_chart_range_change", { chart: "global_structural_timeline", range_days: next });
-            }}
-          />
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[10px] uppercase tracking-[0.12em] text-emerald-200/85">
+              LIVE
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={365}
+              step={1}
+              value={replayDays}
+              className="rf-timeline-slider w-full pr-12"
+              onChange={(event) => {
+                const next = clamp(Number(event.target.value), 0, 365);
+                setReplayDays(next);
+                triggerTimelinePulse();
+                track("volatility_toggle", { chart: "global_structural_timeline", range_days: next });
+                track("rf_chart_range_change", { chart: "global_structural_timeline", range_days: next });
+              }}
+            />
+          </div>
+          <div className="mt-1 relative overflow-hidden rounded-full border border-border/60 bg-background/30">
+            <div className="h-2 w-full bg-gradient-to-r from-emerald-400/55 via-amber-400/55 to-rose-400/60" />
+          </div>
           <div className="mt-1 grid grid-cols-4 gap-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            <span className="text-emerald-300">Live</span>
+            <span className="text-emerald-300">Stable</span>
+            <span className="text-center text-amber-200">Elevated</span>
+            <span className="text-center text-orange-200">Consolidating</span>
+            <span className="text-right text-rose-200">Turbulent</span>
+          </div>
+          <div className="mt-1 grid grid-cols-4 gap-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <span className="text-emerald-300">Now</span>
             <span className="text-center">-7d</span>
             <span className="text-center">-30d</span>
             <span className="text-right">-90d</span>
@@ -495,7 +542,10 @@ export default function LiveIntelligenceZoneClient({
                     ? "border-primary/60 bg-primary/15 text-foreground"
                     : "border-border/70 bg-background/40 text-muted-foreground"
                 }`}
-                onClick={() => setReplayDays(day)}
+                onClick={() => {
+                  setReplayDays(day);
+                  triggerTimelinePulse();
+                }}
               >
                 {day === 0 ? "Now" : `-${day}d`}
               </button>

@@ -339,7 +339,7 @@ export default async function Home() {
                 <span className="rf-mono-digits text-xs">{latest.run_id || "n/a"}</span>
               </p>
               <p className="mt-1 flex items-center justify-between">
-                <span className="text-muted-foreground">Time since snapshot</span>
+                <span className="text-muted-foreground">Last artifact commit</span>
                 <span className="rf-mono-digits text-xs">{lastSnapshotAgo}</span>
               </p>
             </div>
@@ -399,11 +399,17 @@ export default async function Home() {
       </section>
 
       <section className="rf-glass rounded-3xl p-5 md:p-6">
-        <div className="mb-4">
-          <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            <TerminalSquare className="h-3.5 w-3.5 text-primary" /> AI control surface
-          </p>
-          <h2 className="font-display text-2xl font-semibold">Agent connection and command console</h2>
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+              <TerminalSquare className="h-3.5 w-3.5 text-primary" /> AI control surface
+            </p>
+            <h2 className="font-display text-2xl font-semibold">Agent connection and command console</h2>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-cyan-100">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-300" />
+            Stream mode toggle
+          </span>
         </div>
         <div className="grid gap-4 xl:grid-cols-[1fr,1fr]">
           <div className="space-y-3">

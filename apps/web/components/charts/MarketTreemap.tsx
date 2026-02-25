@@ -347,14 +347,14 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
                   <span className="text-muted-foreground">Sector</span>
                   <span>{active.sector || "other"}</span>
                 </p>
-                <p className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Concentration impact</span>
-                  <span className="rf-mono-digits">{((active.share_pct / 100) * (active.share_pct / 100)).toFixed(4)} HHI</span>
+                <p className="flex items-center justify-between rounded border border-cyan-300/45 bg-cyan-400/10 px-2 py-1 text-cyan-100">
+                  <span>Concentration impact</span>
+                  <span className="rf-mono-digits font-semibold">{((active.share_pct / 100) * (active.share_pct / 100)).toFixed(4)} HHI</span>
                 </p>
                 {showConcentrationOverlay ? (
-                  <p className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Top10 overlay</span>
-                    <span>{treeData.find((item) => item.payload.tld === active.tld)?.isTop10 ? "dominance zone" : "non-core"}</span>
+                  <p className="flex items-center justify-between rounded border border-amber-300/45 bg-amber-300/10 px-2 py-1 text-amber-100">
+                    <span>Top-10 dominance</span>
+                    <span className="font-semibold">{treeData.find((item) => item.payload.tld === active.tld)?.isTop10 ? "dominance zone" : "non-core"}</span>
                   </p>
                 ) : null}
               </div>
@@ -372,9 +372,9 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
             <p className="mt-2 text-sm text-muted-foreground">Hover any block to inspect concentration impact.</p>
           )}
 
-          <div className="mt-5 rounded-lg border border-border/70 bg-background/40 p-2 text-xs">
-            <p className="text-muted-foreground">Top-10 concentration in current filter</p>
-            <p className="rf-mono-digits mt-1 text-lg font-semibold">{fmtPct(top10Share)}</p>
+          <div className="mt-5 rounded-lg border border-cyan-300/40 bg-cyan-400/8 p-2 text-xs">
+            <p className="text-cyan-100/90">Top-10 concentration in current filter</p>
+            <p className="rf-mono-digits mt-1 text-lg font-semibold text-cyan-100">{fmtPct(top10Share)}</p>
           </div>
         </div>
       </div>

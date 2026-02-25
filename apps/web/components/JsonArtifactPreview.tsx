@@ -77,6 +77,7 @@ export default function JsonArtifactPreview({ payload }: { payload: PreviewPaylo
           }`}
           onClick={() => setStreamMode((prev) => !prev)}
         >
+          <span className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${streamMode ? "animate-pulse bg-cyan-300" : "bg-muted-foreground/70"}`} />
           {streamMode ? "stream mode on" : "stream mode off"}
         </button>
       </div>

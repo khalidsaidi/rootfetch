@@ -96,13 +96,13 @@ export default function DelegationRadarChart({
                 domain={xDomain}
                 ticks={xTicks}
                 tickFormatter={(value) => Number(value).toFixed(3)}
-                tick={{ fontSize: 10 }}
-                stroke="hsl(var(--muted-foreground))"
+                tick={{ fontSize: 10, fill: "hsl(var(--foreground) / 0.82)" }}
+                stroke="hsl(var(--foreground) / 0.78)"
                 label={{
                   value: "30d cross-sectional volatility (sigma units)",
                   position: "insideBottom",
                   offset: -1,
-                  style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" },
+                  style: { fontSize: 10, fill: "hsl(var(--foreground) / 0.84)" },
                 }}
               />
               <YAxis
@@ -111,13 +111,13 @@ export default function DelegationRadarChart({
                 domain={yDomain}
                 ticks={yTicks}
                 tickFormatter={(value) => `${Number(value).toFixed(1)}%`}
-                tick={{ fontSize: 10 }}
-                stroke="hsl(var(--muted-foreground))"
+                tick={{ fontSize: 10, fill: "hsl(var(--foreground) / 0.82)" }}
+                stroke="hsl(var(--foreground) / 0.78)"
                 label={{
                   value: "30d normalized growth (%)",
                   angle: -90,
                   position: "insideLeft",
-                  style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" },
+                  style: { fontSize: 10, fill: "hsl(var(--foreground) / 0.84)" },
                 }}
               />
               <ZAxis type="number" dataKey="z" range={[70, 430]} />

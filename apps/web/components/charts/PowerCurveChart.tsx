@@ -65,6 +65,15 @@ export default function PowerCurveChart({
     return top10 / total;
   }, [selectedSeries]);
 
+  const hhi = useMemo(() => {
+    const total = selectedSeries.reduce((sum, row) => sum + Number(row.count || 0), 0);
+    if (total <= 0) return 0;
+    return selectedSeries.reduce((sum, row) => {
+      const share = Number(row.count || 0) / total;
+      return sum + share * share;
+    }, 0);
+  }, [selectedSeries]);
+
   if (!data.length) {
     return (
       <div className="rf-glass rounded-2xl p-4 text-sm text-muted-foreground">
@@ -141,7 +150,7 @@ export default function PowerCurveChart({
               x2={10}
               fill="rgba(0, 212, 255, 0.08)"
               label={{
-                value: `Top 10 hold ${fmtPct(top10Share)}`,
+                value: `Top 10 hold ${fmtPct(top10Share)} | HHI ${hhi.toFixed(4)}`,
                 position: "insideTopLeft",
                 fill: "rgba(200, 230, 255, 0.92)",
                 fontSize: 11,
@@ -169,7 +178,8 @@ export default function PowerCurveChart({
         </ResponsiveContainer>
       </div>
       <p className="text-xs text-muted-foreground">
-        Concentration annotation: Top 10 hold <span className="rf-mono-digits text-foreground">{fmtPct(top10Share)}</span> in this view.
+        Concentration annotation: Top 10 hold <span className="rf-mono-digits text-foreground">{fmtPct(top10Share)}</span>; HHI{" "}
+        <span className="rf-mono-digits text-foreground">{hhi.toFixed(4)}</span>.
       </p>
     </div>
   );
