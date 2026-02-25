@@ -29,6 +29,7 @@ Optional hybrid overrides:
 - `ROOTFETCH_HTTP_TIMEOUT`
 - `ROOTFETCH_RETRY_MAX`
 - `ROOTFETCH_LOG_EVERY`
+- `ROOTFETCH_REPLAY_INDEX_MAX_RUNS` (default `365`)
 
 Optional local alerting and delivery-reliability overrides:
 

@@ -172,6 +172,30 @@ export type ApprovedLatest = {
   tlds: string[];
 };
 
+export type ArtifactLatestPointer = {
+  run_id: string;
+  snapshot_ts_utc?: string;
+  snapshot_utc_day?: string;
+  snapshot_hash?: string;
+  model_version?: string;
+  methodology_version?: string;
+  coverage?: {
+    approved_tlds_count?: number;
+    counted_ever_count?: number;
+    missing_ever_count?: number;
+    counted_today_core_count?: number;
+    counted_today_rolling_count?: number;
+  };
+};
+
+export type PublishedRunBundle = {
+  pointer: ArtifactLatestPointer;
+  signals: LatestSignals;
+  coverage: CoverageLatest;
+  model: Record<string, unknown>;
+  manifest: Record<string, unknown>;
+};
+
 export type CsvRow = Record<string, string>;
 
 const ROOTFETCH_PUBLIC_CANDIDATES = Array.from(
@@ -260,6 +284,15 @@ async function readJson<T>(filename: string, fallback: T): Promise<T> {
   }
 }
 
+async function readJsonAbsolute<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    const raw = await fs.readFile(filePath, "utf-8");
+    return parseJsonArtifact<T>(raw);
+  } catch {
+    return fallback;
+  }
+}
+
 async function readCsv(filename: string): Promise<CsvRow[]> {
   const filePath = path.join(ROOTFETCH_PUBLIC, filename);
   try {
@@ -302,6 +335,82 @@ export async function loadLatest(): Promise<LatestSignals> {
     anomalies: [],
     sector_snapshot: [],
   });
+}
+
+export async function loadPublishedRunBundle(): Promise<PublishedRunBundle | null> {
+  const pointer = await readJson<ArtifactLatestPointer>("artifacts/latest.json", { run_id: "" });
+  const runId = String(pointer.run_id || "").trim();
+  if (!runId) {
+    return null;
+  }
+
+  const runBase = path.join(ROOTFETCH_PUBLIC, "artifacts", "runs", runId);
+  const signals = await readJsonAbsolute<LatestSignals>(path.join(runBase, "signals_latest.json"), {
+    date_utc: "n/a",
+    run_id: "n/a",
+    approved_tlds_count: 0,
+    counted_today_count: 0,
+    counted_today_core_count: 0,
+    counted_today_rolling_count: 0,
+    snapshot_rows_today: 0,
+    coverage_pct_today: 0,
+    top_tlds: [],
+    distribution: {},
+    concentration: {},
+    approvals_diff: {},
+    pulse: {},
+    dvi: {},
+    anomaly_spotlight: [],
+    market_map: [],
+    power_curve: { today: [], d30: [], d90: [] },
+    radar_points: [],
+    sector_indices: [],
+    market_risk: {},
+    insights: [],
+    security_status: {},
+    top_movers_abs: [],
+    top_movers_pct: [],
+    core_movers_abs: [],
+    core_movers_pct: [],
+    rolling_updates: [],
+    anomalies: [],
+    sector_snapshot: [],
+  });
+  const coverage = await readJsonAbsolute<CoverageLatest>(path.join(runBase, "coverage_latest.json"), {
+    date_utc: "n/a",
+    approved_tlds_count: 0,
+    approved_tlds: [],
+    counted_today_tlds: [],
+    counted_today_count: 0,
+    counted_today_core_count: 0,
+    counted_today_rolling_count: 0,
+    counted_ever_tlds: [],
+    counted_ever_count: 0,
+    missing_ever_tlds: [],
+    missing_ever_count: 0,
+    last_seen_by_tld: {},
+  });
+  const model = await readJsonAbsolute<Record<string, unknown>>(path.join(runBase, "model_latest.json"), {});
+  const manifest = await readJsonAbsolute<Record<string, unknown>>(path.join(runBase, "manifest.json"), {});
+
+  const isSignalsMissing = (signals.date_utc || "n/a") === "n/a";
+  const isCoverageMissing = (coverage.date_utc || "n/a") === "n/a";
+  if (isSignalsMissing || isCoverageMissing) {
+    return null;
+  }
+
+  const anchoredSignals: LatestSignals = {
+    ...signals,
+    run_id: runId,
+  };
+
+  return {
+    pointer,
+    signals: anchoredSignals,
+    coverage,
+    model,
+    manifest,
+  };
 }
 
 export async function loadCoverage(): Promise<CoverageLatest> {
@@ -409,6 +518,20 @@ export async function loadDigestSnippet(lines = 30): Promise<string> {
     return raw.split(/\r?\n/).slice(0, lines).join("\n").trim();
   } catch {
     return "Digest is unavailable.";
+  }
+}
+
+export async function loadDigestSnippetForRun(runId: string, lines = 30): Promise<string> {
+  const safeRunId = String(runId || "").trim();
+  if (!safeRunId) {
+    return loadDigestSnippet(lines);
+  }
+  const digestPath = path.join(ROOTFETCH_PUBLIC, "artifacts", "runs", safeRunId, "digest_latest.txt");
+  try {
+    const raw = await fs.readFile(digestPath, "utf-8");
+    return raw.split(/\r?\n/).slice(0, lines).join("\n").trim();
+  } catch {
+    return loadDigestSnippet(lines);
   }
 }
 

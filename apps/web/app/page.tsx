@@ -22,14 +22,11 @@ import {
 } from "@/components/home/HomeClientCharts";
 import StructuralAnalysisLayer from "@/components/home/StructuralAnalysisLayer";
 import {
-  loadApprovalsDiffLatest,
-  loadConcentrationLatest,
   loadCoverage,
+  loadDigestSnippetForRun,
   loadDigestSnippet,
-  loadDistributionLatest,
   loadLatest,
-  loadSecurityStatusLatest,
-  loadTopTldsCsv,
+  loadPublishedRunBundle,
 } from "@/lib/rootfetch-data";
 
 function asNumber(value: unknown): number {
@@ -66,25 +63,14 @@ function timeSince(isoLike: string | undefined | null): string {
 }
 
 export default async function Home() {
-  const [
-    latest,
-    coverage,
-    topCsv,
-    distributionFallback,
-    concentrationFallback,
-    approvalsFallback,
-    securityFallback,
-    digestSnippet,
-  ] = await Promise.all([
-    loadLatest(),
-    loadCoverage(),
-    loadTopTldsCsv(),
-    loadDistributionLatest(),
-    loadConcentrationLatest(),
-    loadApprovalsDiffLatest(),
-    loadSecurityStatusLatest(),
-    loadDigestSnippet(26),
+  const published = await loadPublishedRunBundle();
+  const [fallbackLatest, fallbackCoverage, digestSnippet] = await Promise.all([
+    published ? Promise.resolve(null) : loadLatest(),
+    published ? Promise.resolve(null) : loadCoverage(),
+    published ? loadDigestSnippetForRun(published.signals.run_id, 26) : loadDigestSnippet(26),
   ]);
+  const latest = published?.signals ?? fallbackLatest!;
+  const coverage = published?.coverage ?? fallbackCoverage!;
 
   const approved = coverage.approved_tlds_count || latest.approved_tlds_count || 0;
   const observedToday = latest.counted_today_count ?? 0;
@@ -96,11 +82,11 @@ export default async function Home() {
   const missingEver = coverage.missing_ever_count ?? Math.max(0, approved - countedEver);
   const coveragePct = approved > 0 ? countedEver / approved : 0;
 
-  const topRows = latest.top_tlds && latest.top_tlds.length > 0 ? latest.top_tlds : topCsv;
-  const distribution = { ...distributionFallback, ...(latest.distribution || {}) } as Record<string, unknown>;
-  const concentration = { ...concentrationFallback, ...(latest.concentration || {}) } as Record<string, unknown>;
-  const approvalsDiff = { ...approvalsFallback, ...(latest.approvals_diff || {}) } as Record<string, unknown>;
-  const securityStatus = { ...securityFallback, ...(latest.security_status || {}) } as Record<string, unknown>;
+  const topRows = Array.isArray(latest.top_tlds) ? latest.top_tlds : [];
+  const distribution = { ...(latest.distribution || {}) } as Record<string, unknown>;
+  const concentration = { ...(latest.concentration || {}) } as Record<string, unknown>;
+  const approvalsDiff = { ...(latest.approvals_diff || {}) } as Record<string, unknown>;
+  const securityStatus = { ...(latest.security_status || {}) } as Record<string, unknown>;
 
   const pulse = latest.pulse || {};
   const totalDelegated = asNumber(

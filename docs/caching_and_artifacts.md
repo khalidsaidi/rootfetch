@@ -65,7 +65,7 @@ Schema:
 6. Commit and push artifacts.
 7. Vercel serves committed files only.
 
-Never publish `latest.json` before run-scoped files exist.
+`latest.json` is written last, after run files + manifest + replay index, so clients never resolve `latest` to a missing run.
 
 ## Cache-Control Policy
 
@@ -87,10 +87,10 @@ Latest pointer:
 - Replay never recomputes historical model outputs at request-time.
 - Model updates create new runs with a new `model_version`.
 - Old runs remain immutable and queryable.
+- Replay index is bounded by `ROOTFETCH_REPLAY_INDEX_MAX_RUNS` (default `365`).
 
 ## Runtime Boundary
 
 - Local runner performs ingestion + heavy compute.
 - Vercel is strictly read-only for committed artifacts.
 - No CZDS downloads or secret-based ingestion tasks run on Vercel.
-

@@ -33,6 +33,7 @@ def _build_source_bundle(base: Path, *, coverage_seed: int = 1) -> Path:
         source / "model_latest.json",
         {
             "model_version": "rootfetch_model_v1",
+            "methodology_version": "2026-03-01",
             "dvi": 33.4,
             "regime": "STABLE",
             "regime_confidence": 0.82,
@@ -71,6 +72,7 @@ def test_publish_run_writes_manifest_latest_and_replay_sorted(tmp_path: Path) ->
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["run_id"] == first_run_id
     assert manifest["model_version"] == "rootfetch_model_v1"
+    assert manifest["methodology_version"] == "2026-03-01"
     assert manifest["files"]
 
     for entry in manifest["files"]:
@@ -81,6 +83,7 @@ def test_publish_run_writes_manifest_latest_and_replay_sorted(tmp_path: Path) ->
     latest = json.loads((artifacts_root / "latest.json").read_text(encoding="utf-8"))
     assert latest["run_id"] == first_run_id
     assert latest["model_version"] == "rootfetch_model_v1"
+    assert latest["methodology_version"] == "2026-03-01"
 
     second_source = _build_source_bundle(tmp_path / "two", coverage_seed=2)
     second_run_id = publish_run(
@@ -98,6 +101,29 @@ def test_publish_run_writes_manifest_latest_and_replay_sorted(tmp_path: Path) ->
     timestamps = [row["snapshot_ts_utc"] for row in replay["runs"]]
     assert run_ids == [second_run_id, first_run_id]
     assert timestamps == sorted(timestamps)
+
+
+def test_publish_run_replay_index_respects_max_runs(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("ROOTFETCH_REPLAY_INDEX_MAX_RUNS", "2")
+    artifacts_root = tmp_path / "artifacts"
+    for idx, ts in enumerate(
+        ["2026-02-25T23:10:01Z", "2026-02-25T23:11:01Z", "2026-02-25T23:12:01Z"],
+        start=1,
+    ):
+        source = _build_source_bundle(tmp_path / f"s{idx}", coverage_seed=idx)
+        publish_run(
+            PublishInputs(
+                artifacts_root=artifacts_root,
+                model_version="rootfetch_model_v1",
+                snapshot_ts_utc=ts,
+                source_dir=source,
+            )
+        )
+
+    replay = json.loads((artifacts_root / "replay" / "index.json").read_text(encoding="utf-8"))
+    assert len(replay["runs"]) == 2
+    timestamps = [row["snapshot_ts_utc"] for row in replay["runs"]]
+    assert timestamps == ["2026-02-25T23:11:01Z", "2026-02-25T23:12:01Z"]
 
 
 def test_publish_run_is_immutable_for_same_run_id(tmp_path: Path) -> None:

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadLatest, parseJsonArtifact } from "@/lib/rootfetch-data";
+import { loadLatest, loadPublishedRunBundle, parseJsonArtifact } from "@/lib/rootfetch-data";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +10,14 @@ function isEmptyLatest(payload: { date_utc?: string; approved_tlds_count?: numbe
 
 export async function GET(request: Request) {
   try {
+    const published = await loadPublishedRunBundle();
+    if (published) {
+      return NextResponse.json({
+        ...published.signals,
+        run_id: published.pointer.run_id || published.signals.run_id,
+      });
+    }
+
     const latest = await loadLatest();
     if (!isEmptyLatest(latest)) {
       return NextResponse.json(latest);

@@ -60,6 +60,16 @@ def _parse_snapshot_ts_utc(value: str) -> str:
     return dt.replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _int_env(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if raw is None or str(raw).strip() == "":
+        return default
+    try:
+        return int(str(raw).strip())
+    except Exception:
+        return default
+
+
 def _snapshot_ts_compact(snapshot_ts_utc: str) -> str:
     parsed = _parse_snapshot_ts_utc(snapshot_ts_utc)
     dt = datetime.strptime(parsed, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
@@ -176,9 +186,13 @@ def publish_run(inputs: PublishInputs) -> str:
                 raise FileNotFoundError(f"Missing optional rag input: {src}")
             optional_rag.append((src, Path("rag") / dest_name))
 
+    model_latest_path = inputs.source_dir / "model_latest.json"
+    methodology_version = _safe_get_json_path(model_latest_path, ["methodology_version"])
+
     manifest: dict[str, Any] = {
         "run_id": run_id,
         "model_version": inputs.model_version,
+        "methodology_version": methodology_version,
         "snapshot_ts_utc": snapshot_ts_utc,
         "snapshot_utc_day": snapshot_ts_utc[:10],
         "snapshot_hash": snapshot_hash,
@@ -204,22 +218,6 @@ def publish_run(inputs: PublishInputs) -> str:
 
     atomic_write_json(run_dir / "manifest.json", manifest)
 
-    latest_obj = {
-        "run_id": run_id,
-        "snapshot_ts_utc": snapshot_ts_utc,
-        "snapshot_utc_day": snapshot_ts_utc[:10],
-        "snapshot_hash": snapshot_hash,
-        "model_version": inputs.model_version,
-        "coverage": {
-            "approved_tlds_count": coverage_obj.get("approved_tlds_count"),
-            "counted_ever_count": coverage_obj.get("counted_ever_count"),
-            "missing_ever_count": coverage_obj.get("missing_ever_count"),
-            "counted_today_core_count": coverage_obj.get("counted_today_core_count"),
-            "counted_today_rolling_count": coverage_obj.get("counted_today_rolling_count"),
-        },
-    }
-    atomic_write_json(inputs.artifacts_root / "latest.json", latest_obj)
-
     replay_dir = inputs.artifacts_root / "replay"
     replay_dir.mkdir(parents=True, exist_ok=True)
     replay_index_path = replay_dir / "index.json"
@@ -229,7 +227,6 @@ def publish_run(inputs: PublishInputs) -> str:
     else:
         runs = []
 
-    model_latest_path = inputs.source_dir / "model_latest.json"
     runs.append(
         {
             "run_id": run_id,
@@ -243,7 +240,28 @@ def publish_run(inputs: PublishInputs) -> str:
         }
     )
     runs.sort(key=lambda row: str(row.get("snapshot_ts_utc") or ""))
+    replay_max_runs = max(1, _int_env("ROOTFETCH_REPLAY_INDEX_MAX_RUNS", 365))
+    if len(runs) > replay_max_runs:
+        runs = runs[-replay_max_runs:]
     atomic_write_json(replay_index_path, {"runs": runs})
+
+    latest_obj = {
+        "run_id": run_id,
+        "snapshot_ts_utc": snapshot_ts_utc,
+        "snapshot_utc_day": snapshot_ts_utc[:10],
+        "snapshot_hash": snapshot_hash,
+        "model_version": inputs.model_version,
+        "methodology_version": methodology_version,
+        "coverage": {
+            "approved_tlds_count": coverage_obj.get("approved_tlds_count"),
+            "counted_ever_count": coverage_obj.get("counted_ever_count"),
+            "missing_ever_count": coverage_obj.get("missing_ever_count"),
+            "counted_today_core_count": coverage_obj.get("counted_today_core_count"),
+            "counted_today_rolling_count": coverage_obj.get("counted_today_rolling_count"),
+        },
+    }
+    # Must be written last so clients never resolve a latest pointer to a missing run.
+    atomic_write_json(inputs.artifacts_root / "latest.json", latest_obj)
 
     return run_id
 
