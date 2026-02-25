@@ -54,6 +54,17 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Sync MCP token into Vercel production env
+        if: steps.vercel_config.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          npx vercel@latest env rm ROOTFETCH_MCP_TOKEN production --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+          printf '%s\n' "${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
+            | npx vercel@latest env add ROOTFETCH_MCP_TOKEN production --token "${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
       - name: Deploy project
         if: steps.vercel_config.outputs.ready == 'true'
         run: |
