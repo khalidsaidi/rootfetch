@@ -23,7 +23,13 @@ function fmtInt(value: number): string {
 export default function DistributionBars({ rows }: { rows: DistributionBar[] }) {
   return (
     <div className="h-[240px] w-full">
-      <ResponsiveContainer>
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        minWidth={0}
+        minHeight={160}
+        initialDimension={{ width: 720, height: 160 }}
+      >
         <BarChart data={rows} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="bucket" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />

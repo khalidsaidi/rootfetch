@@ -63,7 +63,13 @@ export default function SectorIndexGrid({ rows }: { rows: SectorIndex[] }) {
               <p>vol <span className="rf-mono-digits">{typeof row.volatility === "number" ? row.volatility.toFixed(4) : "n/a"}</span></p>
             </div>
             <div className="mt-2 h-[78px] w-full rounded-lg border border-border/60 bg-background/35 px-1">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={0}
+                minHeight={48}
+                initialDimension={{ width: 300, height: 48 }}
+              >
                 <LineChart data={(row.series_30d || []).slice(-30)}>
                   <Line type="monotone" dataKey="sector_count" stroke={positive ? "#00ff85" : "#ff4d4d"} dot={false} strokeWidth={2} />
                   <Tooltip

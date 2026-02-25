@@ -31,7 +31,13 @@ export default function SectorSeriesChart({
 }) {
   return (
     <div className="h-[340px] w-full">
-      <ResponsiveContainer>
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        minWidth={0}
+        minHeight={220}
+        initialDimension={{ width: 820, height: 220 }}
+      >
         <LineChart data={rows} margin={{ top: 12, right: 14, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="date_utc" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />

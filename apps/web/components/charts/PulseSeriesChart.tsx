@@ -34,7 +34,13 @@ export default function PulseSeriesChart({ rows }: { rows: PulsePoint[] }) {
 
   return (
     <div className="h-[180px] w-full">
-      <ResponsiveContainer>
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        minWidth={0}
+        minHeight={120}
+        initialDimension={{ width: 720, height: 120 }}
+      >
         <AreaChart data={rows} margin={{ top: 10, right: 14, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="pulseFill" x1="0" y1="0" x2="0" y2="1">

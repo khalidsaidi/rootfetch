@@ -22,7 +22,13 @@ function fmtInt(value: number): string {
 export default function TldSeriesChart({ rows }: { rows: Row[] }) {
   return (
     <div className="h-[280px] w-full">
-      <ResponsiveContainer>
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        minWidth={0}
+        minHeight={180}
+        initialDimension={{ width: 720, height: 180 }}
+      >
         <LineChart data={rows} margin={{ top: 10, right: 14, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey="date_utc" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />

@@ -67,11 +67,24 @@ function glowForAnomaly(anomaly: number): number {
   return 0.18;
 }
 
+function resolveRowPayload(node: TreeNodeDatum | undefined): MarketMapRow | null {
+  if (!node || typeof node !== "object") return null;
+  const maybeNested = (node as unknown as { payload?: unknown }).payload;
+  if (maybeNested && typeof maybeNested === "object" && "tld" in (maybeNested as object)) {
+    return maybeNested as MarketMapRow;
+  }
+  if ("tld" in (node as object)) {
+    return node as unknown as MarketMapRow;
+  }
+  return null;
+}
+
 function TreemapNodeContent(props: TreeNodeRenderProps) {
   const { x = 0, y = 0, width = 0, height = 0, name = "", payload, onHover } = props;
-  if (width < 16 || height < 14 || !payload) return null;
+  const row = resolveRowPayload(payload);
+  if (width < 16 || height < 14 || !payload || !row) return null;
   const base = colorForDelta(Number(payload.delta || 0));
-  const anomaly = glowForAnomaly(Number(payload.payload.anomaly_score || 0));
+  const anomaly = glowForAnomaly(Number(row.anomaly_score || 0));
   return (
     <g>
       <rect
@@ -88,7 +101,7 @@ function TreemapNodeContent(props: TreeNodeRenderProps) {
           filter: `drop-shadow(0 0 ${8 + anomaly * 20}px rgba(168, 85, 247, ${anomaly}))`,
           transition: "all 500ms ease",
         }}
-        onMouseEnter={() => onHover?.(payload.payload)}
+        onMouseEnter={() => onHover?.(row)}
       />
       {width > 72 && height > 20 ? (
         <text x={x + 6} y={y + 15} fill="rgba(248,252,255,0.92)" fontSize={10.5} fontWeight={600}>
@@ -216,7 +229,13 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
 
       <div className="grid gap-3 xl:grid-cols-[1.5fr,0.7fr]">
         <div className="rf-glass h-[480px] overflow-hidden rounded-2xl p-2">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            minWidth={0}
+            minHeight={220}
+            initialDimension={{ width: 1200, height: 220 }}
+          >
             <Treemap
               data={treeData}
               dataKey="size"

@@ -1,13 +1,19 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { NextResponse } from "next/server";
+import { loadLatest } from "@/lib/rootfetch-data";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const filePath = path.join(process.cwd(), "public", "rootfetch", "latest.json");
   try {
-    const raw = await fs.readFile(filePath, "utf-8");
-    return NextResponse.json(JSON.parse(raw));
-  } catch {
-    return NextResponse.json({ error: "latest.json missing" }, { status: 404 });
+    return NextResponse.json(await loadLatest());
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "failed_to_load_latest",
+        message: error instanceof Error ? error.message : "unknown error",
+      },
+      { status: 500 },
+    );
   }
 }

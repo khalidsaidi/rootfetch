@@ -16,14 +16,16 @@ import HomeViewTracker from "@/components/HomeViewTracker";
 import JsonArtifactPreview from "@/components/JsonArtifactPreview";
 import McpSnippet from "@/components/McpSnippet";
 import MarketRiskPanel from "@/components/MarketRiskPanel";
-import SectorIndexGrid from "@/components/SectorIndexGrid";
 import ThemeToggle from "@/components/ThemeToggle";
 import TrackedLink from "@/components/TrackedLink";
 import VolatilityGauge from "@/components/VolatilityGauge";
-import DelegationRadarChart from "@/components/charts/DelegationRadarChart";
-import MarketTreemap from "@/components/charts/MarketTreemap";
-import PowerCurveChart from "@/components/charts/PowerCurveChart";
-import PulseSeriesChart from "@/components/charts/PulseSeriesChart";
+import {
+  DelegationRadarChartClient as DelegationRadarChart,
+  MarketTreemapClient as MarketTreemap,
+  PowerCurveChartClient as PowerCurveChart,
+  PulseSeriesChartClient as PulseSeriesChart,
+  SectorIndexGridClient as SectorIndexGrid,
+} from "@/components/home/HomeClientCharts";
 import {
   loadApprovalsDiffLatest,
   loadConcentrationLatest,

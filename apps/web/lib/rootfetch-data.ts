@@ -1,4 +1,4 @@
-import { promises as fs } from "node:fs";
+import { existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 
 export type LatestSignals = {
@@ -174,7 +174,18 @@ export type ApprovedLatest = {
 
 export type CsvRow = Record<string, string>;
 
-const ROOTFETCH_PUBLIC = path.join(process.cwd(), "public", "rootfetch");
+const ROOTFETCH_PUBLIC_CANDIDATES = Array.from(
+  new Set([
+    path.join(process.cwd(), "public", "rootfetch"),
+    path.join(process.cwd(), "apps", "web", "public", "rootfetch"),
+    path.join(process.cwd(), "..", "public", "rootfetch"),
+  ]),
+);
+
+const ROOTFETCH_PUBLIC =
+  ROOTFETCH_PUBLIC_CANDIDATES.find((candidate) => existsSync(path.join(candidate, "latest.json"))) ||
+  ROOTFETCH_PUBLIC_CANDIDATES.find((candidate) => existsSync(candidate)) ||
+  ROOTFETCH_PUBLIC_CANDIDATES[0];
 
 function toNumber(value: string | undefined): number {
   if (value === undefined || value === "") {

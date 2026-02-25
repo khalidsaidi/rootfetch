@@ -64,7 +64,13 @@ export default function DelegationRadarChart({ rows }: { rows: RadarPoint[] }) {
   return (
     <div className="space-y-2">
       <div className="rf-glass h-[420px] rounded-2xl p-2">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={0}
+          minHeight={240}
+          initialDimension={{ width: 980, height: 240 }}
+        >
           <ScatterChart margin={{ top: 12, right: 12, left: 6, bottom: 6 }}>
             <ReferenceArea x1={0} x2={xDomain[1]} y1={0} y2={yDomain[1]} fill="rgba(0,255,133,0.06)" />
             <ReferenceArea x1={xDomain[0]} x2={0} y1={0} y2={yDomain[1]} fill="rgba(168,85,247,0.08)" />
