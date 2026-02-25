@@ -68,7 +68,9 @@ The script does:
 4. after baseline completion, runs `rootfetch run-hybrid --date <today>`
 5. `rootfetch compute-signals --date <run_date>`
 6. `rootfetch rag build-static`
-7. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json`)
+7. `rootfetch publish prepare --date <run_date> --out-dir .ai/publish/latest ...`
+8. `rootfetch publish run --source-dir .ai/publish/latest --artifacts-root data/artifacts ...`
+9. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json` and `data/artifacts/*`)
 
 Alert delivery is local-only and persistent:
 

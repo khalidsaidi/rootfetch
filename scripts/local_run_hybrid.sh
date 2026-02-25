@@ -99,12 +99,30 @@ rootfetch alerts run --date "${RUN_DATE}" || true
 echo "[rootfetch] build static rag"
 rootfetch rag build-static
 
+PUBLISH_SNAPSHOT_TS_UTC="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+PUBLISH_BUNDLE_DIR=".ai/publish/latest"
+
+echo "[rootfetch] publish prepare ${RUN_DATE}"
+rootfetch publish prepare \
+  --date "${RUN_DATE}" \
+  --out-dir "${PUBLISH_BUNDLE_DIR}" \
+  --snapshot-ts-utc "${PUBLISH_SNAPSHOT_TS_UTC}" \
+  --model-version "rootfetch_model_v1"
+
+echo "[rootfetch] publish run ${RUN_DATE}"
+rootfetch publish run \
+  --source-dir "${PUBLISH_BUNDLE_DIR}" \
+  --artifacts-root "data/artifacts" \
+  --model-version "rootfetch_model_v1" \
+  --snapshot-ts-utc "${PUBLISH_SNAPSHOT_TS_UTC}"
+
 git add data/approved_tlds/*.json || true
 git add "data/daily_counts/${RUN_DATE}.csv" || true
 git add "data/growth_trends.csv" || true
 git add data/signals/*.csv data/signals/*.json || true
 git add data/digests/*.md || true
 git add data/rag/*.json || true
+git add data/artifacts || true
 git add data/state/baseline_complete.json || true
 
 STAGED="$(git diff --cached --name-only || true)"

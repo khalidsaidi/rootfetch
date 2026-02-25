@@ -197,6 +197,36 @@ def _cmd_alerts_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_publish_prepare(args: argparse.Namespace) -> int:
+    from rootfetch.publish import prepare_latest_publish_bundle
+
+    date_utc = args.date or utc_today_str()
+    meta = prepare_latest_publish_bundle(
+        date_utc=date_utc,
+        out_dir=Path(args.out_dir),
+        snapshot_ts_utc=args.snapshot_ts_utc,
+        model_version=args.model_version,
+    )
+    print(json.dumps(meta, indent=2))
+    return 0
+
+
+def _cmd_publish_run(args: argparse.Namespace) -> int:
+    from rootfetch.publish import PublishInputs, publish_run
+
+    run_id = publish_run(
+        PublishInputs(
+            artifacts_root=Path(args.artifacts_root),
+            model_version=args.model_version,
+            snapshot_ts_utc=args.snapshot_ts_utc,
+            source_dir=Path(args.source_dir),
+            dry_run=bool(args.dry_run),
+        )
+    )
+    print(json.dumps({"run_id": run_id, "dry_run": bool(args.dry_run)}, indent=2))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="rootfetch")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -266,6 +296,25 @@ def build_parser() -> argparse.ArgumentParser:
         help="Allow recovering from a corrupted alerts state by resetting queue state",
     )
     alerts_run.set_defaults(func=_cmd_alerts_run)
+
+    publish = subparsers.add_parser("publish", help="Immutable artifacts publish pipeline")
+    publish_sub = publish.add_subparsers(dest="publish_command", required=True)
+
+    publish_prepare = publish_sub.add_parser("prepare", help="Prepare normalized publish inputs under an output directory")
+    _add_common_flags(publish_prepare)
+    publish_prepare.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
+    publish_prepare.add_argument("--out-dir", default=".ai/publish/latest", help="Prepared bundle output directory")
+    publish_prepare.add_argument("--snapshot-ts-utc", default=None, help="Snapshot timestamp UTC ISO (default: now)")
+    publish_prepare.add_argument("--model-version", default="rootfetch_model_v1", help="Model version tag")
+    publish_prepare.set_defaults(func=_cmd_publish_prepare)
+
+    publish_run = publish_sub.add_parser("run", help="Publish prepared artifacts into immutable run directory + latest pointer")
+    _add_common_flags(publish_run)
+    publish_run.add_argument("--source-dir", required=True, help="Prepared bundle directory containing *_latest files")
+    publish_run.add_argument("--artifacts-root", default="data/artifacts", help="Artifacts root directory")
+    publish_run.add_argument("--model-version", required=True, help="Model version tag")
+    publish_run.add_argument("--snapshot-ts-utc", required=True, help="Snapshot timestamp UTC ISO (e.g. 2026-02-25T23:15:01Z)")
+    publish_run.set_defaults(func=_cmd_publish_run)
 
     return parser
 

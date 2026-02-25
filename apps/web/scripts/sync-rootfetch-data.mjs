@@ -1,4 +1,4 @@
-import { access, copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,6 +64,14 @@ const optionalCopies = [
     source: path.join(repoRoot, "data", "growth_trends.csv"),
     dest: path.join(appRoot, "public", "rootfetch", "growth_trends.csv"),
   },
+  {
+    source: path.join(repoRoot, "data", "artifacts", "latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "artifacts", "latest.json"),
+  },
+  {
+    source: path.join(repoRoot, "data", "artifacts", "replay", "index.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "artifacts", "replay", "index.json"),
+  },
 ];
 
 async function exists(filePath) {
@@ -78,6 +86,24 @@ async function exists(filePath) {
 async function copyOne(source, dest) {
   await mkdir(path.dirname(dest), { recursive: true });
   await copyFile(source, dest);
+}
+
+async function copyDirRecursive(sourceDir, destDir) {
+  const sourceStats = await stat(sourceDir);
+  if (!sourceStats.isDirectory()) {
+    throw new Error(`Expected directory: ${sourceDir}`);
+  }
+  await mkdir(destDir, { recursive: true });
+  const entries = await readdir(sourceDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const src = path.join(sourceDir, entry.name);
+    const dst = path.join(destDir, entry.name);
+    if (entry.isDirectory()) {
+      await copyDirRecursive(src, dst);
+    } else if (entry.isFile()) {
+      await copyOne(src, dst);
+    }
+  }
 }
 
 function normalizeSiteUrl(raw) {
@@ -209,6 +235,17 @@ async function main() {
     }
     await copyOne(item.source, item.dest);
     console.log(`synced ${path.relative(repoRoot, item.source)} -> ${path.relative(appRoot, item.dest)}`);
+  }
+
+  const artifactsRunsSource = path.join(repoRoot, "data", "artifacts", "runs");
+  const artifactsRunsDest = path.join(appRoot, "public", "rootfetch", "artifacts", "runs");
+  if (await exists(artifactsRunsSource)) {
+    await copyDirRecursive(artifactsRunsSource, artifactsRunsDest);
+    console.log(
+      `synced ${path.relative(repoRoot, artifactsRunsSource)} -> ${path.relative(appRoot, artifactsRunsDest)}`
+    );
+  } else {
+    console.warn(`optional artifact directory missing: ${path.relative(repoRoot, artifactsRunsSource)}`);
   }
 
   await generateSeoTextArtifacts();

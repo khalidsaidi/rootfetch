@@ -73,6 +73,8 @@ rootfetch rag search "count_ns_sld"
 rootfetch mcp serve --transport stdio
 rootfetch alerts run --date YYYY-MM-DD
 rootfetch alerts run --date YYYY-MM-DD --recover-corrupt-state
+rootfetch publish prepare --date YYYY-MM-DD --out-dir .ai/publish/latest
+rootfetch publish run --source-dir .ai/publish/latest --artifacts-root data/artifacts --model-version rootfetch_model_v1 --snapshot-ts-utc 2026-02-25T23:15:01Z
 ```
 
 ## Local Automation
@@ -107,6 +109,9 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - `data/digests/*`
 - `data/rag/rag_chunks.json`
 - `data/rag/rag_meta.json`
+- `data/artifacts/latest.json`
+- `data/artifacts/replay/index.json`
+- `data/artifacts/runs/<run_id>/*`
 - `data/state/baseline_complete.json` (written once baseline reaches 100%)
 
 ## Docs
