@@ -7,7 +7,40 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any
+
+
+def _load_dotenv_file(path: Path) -> None:
+    if not path.is_file():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and (
+            (value.startswith('"') and value.endswith('"'))
+            or (value.startswith("'") and value.endswith("'"))
+        ):
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
+
+
+def _load_env_files(paths: list[str]) -> None:
+    for raw in paths:
+        candidate = raw.strip()
+        if not candidate:
+            continue
+        _load_dotenv_file(Path(candidate))
 
 
 def _http_get_json(url: str, timeout: int) -> dict[str, Any]:
@@ -120,26 +153,72 @@ def _initialize_session(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--endpoint", default=os.getenv("ROOTFETCH_MCP_URL", "https://rootfetch.vercel.app/api/mcp"))
-    parser.add_argument("--origin", default=os.getenv("ROOTFETCH_MCP_ORIGIN", "https://rootfetch.vercel.app"))
-    parser.add_argument("--query", default=os.getenv("ROOTFETCH_MCP_RAG_QUERY", "anomaly"))
+    parser.add_argument(
+        "--endpoint",
+        default=None,
+        help="MCP endpoint URL (default from ROOTFETCH_MCP_URL or https://rootfetch.vercel.app/api/mcp)",
+    )
+    parser.add_argument(
+        "--origin",
+        default=None,
+        help="Origin header value (default from ROOTFETCH_MCP_ORIGIN or https://rootfetch.vercel.app)",
+    )
+    parser.add_argument(
+        "--query",
+        default=None,
+        help="RAG query text (default from ROOTFETCH_MCP_RAG_QUERY or anomaly)",
+    )
+    parser.add_argument(
+        "--token",
+        default=None,
+        help="Bearer token (default from ROOTFETCH_MCP_TOKEN; do not pass in shell history on shared hosts)",
+    )
+    parser.add_argument(
+        "--artifact-base-url",
+        default=None,
+        help="Public artifact base URL (default from ROOTFETCH_PUBLIC_BASE_URL or https://rootfetch.vercel.app)",
+    )
+    parser.add_argument(
+        "--env-file",
+        action="append",
+        default=[],
+        help="Optional dotenv file(s) to load before reading env vars (can repeat).",
+    )
+    parser.add_argument(
+        "--no-default-env-files",
+        action="store_true",
+        help="Disable automatic loading of .env and .env.mcp.",
+    )
     parser.add_argument("--timeout", type=int, default=60)
     args = parser.parse_args()
 
-    token = os.getenv("ROOTFETCH_MCP_TOKEN", "").strip()
+    env_files: list[str] = []
+    if not args.no_default_env_files:
+        env_files.extend([".env", ".env.mcp"])
+    env_files.extend(args.env_file)
+    _load_env_files(env_files)
+
+    endpoint = (args.endpoint or os.getenv("ROOTFETCH_MCP_URL") or "https://rootfetch.vercel.app/api/mcp").strip()
+    origin = (args.origin or os.getenv("ROOTFETCH_MCP_ORIGIN") or "https://rootfetch.vercel.app").strip()
+    query = (args.query or os.getenv("ROOTFETCH_MCP_RAG_QUERY") or "anomaly").strip()
+    artifact_base_url = (
+        args.artifact_base_url or os.getenv("ROOTFETCH_PUBLIC_BASE_URL") or "https://rootfetch.vercel.app"
+    ).rstrip("/")
+
+    token = (args.token or os.getenv("ROOTFETCH_MCP_TOKEN") or "").strip()
     if not token:
-        print("error: missing ROOTFETCH_MCP_TOKEN", file=sys.stderr)
+        print("error: missing ROOTFETCH_MCP_TOKEN (set env, .env.mcp, or pass --token)", file=sys.stderr)
         return 2
 
     try:
-        approved_latest = _http_get_json("https://rootfetch.vercel.app/rootfetch/approved_latest.json", args.timeout)
-        coverage_latest = _http_get_json("https://rootfetch.vercel.app/rootfetch/coverage_latest.json", args.timeout)
+        approved_latest = _http_get_json(f"{artifact_base_url}/rootfetch/approved_latest.json", args.timeout)
+        coverage_latest = _http_get_json(f"{artifact_base_url}/rootfetch/coverage_latest.json", args.timeout)
 
-        session_id = _initialize_session(args.endpoint, token, args.origin, args.timeout)
+        session_id = _initialize_session(endpoint, token, origin, args.timeout)
         approved_tool, session_id = _mcp_tool_call(
-            args.endpoint,
+            endpoint,
             token,
-            args.origin,
+            origin,
             args.timeout,
             "rootfetch_get_approved_tlds",
             {},
@@ -147,9 +226,9 @@ def main() -> int:
             session_id,
         )
         coverage_tool, session_id = _mcp_tool_call(
-            args.endpoint,
+            endpoint,
             token,
-            args.origin,
+            origin,
             args.timeout,
             "rootfetch_get_coverage",
             {},
@@ -157,12 +236,12 @@ def main() -> int:
             session_id,
         )
         rag_tool, session_id = _mcp_tool_call(
-            args.endpoint,
+            endpoint,
             token,
-            args.origin,
+            origin,
             args.timeout,
             "rag_search",
-            {"query": args.query, "k": 5},
+            {"query": query, "k": 5},
             4,
             session_id,
         )

@@ -44,6 +44,17 @@ Quick start:
 cp .env.example .env
 ```
 
+Optional local MCP auth for step-9 live checks (keep this local-only, never commit):
+
+```bash
+cat > .env.mcp <<'EOF'
+ROOTFETCH_MCP_TOKEN=replace_with_vercel_mcp_token
+ROOTFETCH_MCP_ORIGIN=https://rootfetch.vercel.app
+ROOTFETCH_MCP_URL=https://rootfetch.vercel.app/api/mcp
+EOF
+chmod 600 .env.mcp
+```
+
 ## CLI
 
 ```bash
@@ -67,6 +78,12 @@ Primary daily entrypoint:
 
 ```bash
 ./scripts/local_run_hybrid.sh
+```
+
+Full retest entrypoint (includes MCP checks when `ROOTFETCH_MCP_TOKEN` is set):
+
+```bash
+./scripts/retest_new_approvals.sh
 ```
 
 The script auto-switches:

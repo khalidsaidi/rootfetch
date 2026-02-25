@@ -11,6 +11,13 @@ if [[ -f .env ]]; then
   set +a
 fi
 
+if [[ -f .env.mcp ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env.mcp
+  set +a
+fi
+
 TODAY="$(date -u +%F)"
 
 echo "[rootfetch] discover ${TODAY}"

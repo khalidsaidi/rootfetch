@@ -14,6 +14,12 @@ cp .env.example .env
 - `CZDS_PASSWORD`
 - `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)
 
+Optional local MCP auth file `.env.mcp` (never committed):
+
+- `ROOTFETCH_MCP_TOKEN`
+- optional `ROOTFETCH_MCP_ORIGIN` (default `https://rootfetch.vercel.app`)
+- optional `ROOTFETCH_MCP_URL` (default `https://rootfetch.vercel.app/api/mcp`)
+
 Optional hybrid overrides:
 
 - `ROOTFETCH_ROLLING_PERIOD_DAYS`
@@ -30,6 +36,12 @@ Run:
 
 ```bash
 ./scripts/local_run_hybrid.sh
+```
+
+Full retest (includes live MCP checks if token is available, otherwise prints a skip message):
+
+```bash
+./scripts/retest_new_approvals.sh
 ```
 
 The script does:
