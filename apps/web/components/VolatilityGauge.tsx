@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { track } from "@/lib/analytics/ga";
 
 type DviPayload = {
@@ -11,42 +13,66 @@ type DviPayload = {
 };
 
 export default function VolatilityGauge({ dvi }: { dvi: DviPayload }) {
-  const score = Math.max(0, Math.min(100, Number(dvi.score || 0)));
-  const level = (dvi.level || "stable").toLowerCase();
-
-  const labelClass =
-    level === "high"
-      ? "text-rose-300"
+  const score = Math.max(0, Math.min(100, Number(dvi.score ?? 0)));
+  const level = useMemo(() => {
+    if (score >= 75) return "turbulent";
+    if (score >= 50) return "active";
+    if (score >= 25) return "elevated";
+    return "stable";
+  }, [score]);
+  const angle = -120 + (score / 100) * 240;
+  const labelClass = level === "turbulent"
+    ? "text-rose-300"
+    : level === "active"
+      ? "text-orange-300"
       : level === "elevated"
         ? "text-amber-300"
-        : "text-cyan-300";
+        : "text-emerald-300";
+  const disp = Number(dvi.dispersion_component || 0) / 100;
+  const shift = Number(dvi.top10_shift_component || 0) / 100;
+  const cluster = Number(dvi.anomaly_component || 0) / 100;
 
   return (
-    <div className="rounded-2xl border border-border/70 bg-background/50 p-3">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Delegation volatility index</p>
+    <div className="rf-glass rounded-2xl p-3">
+      <div className="flex items-center justify-between gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+        <p>Delegation Volatility Index</p>
         <button
           type="button"
           className="rounded border border-border/70 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground hover:border-primary/40"
-          onClick={() => track("volatility_toggle", { score, level })}
+          onClick={() => track("volatility_toggle", { score, level, page_type: "home" })}
         >
-          details
+          drivers
         </button>
       </div>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <p className="font-display text-3xl font-semibold">{score.toFixed(1)}</p>
-        <p className={`text-sm uppercase tracking-wide ${labelClass}`}>{level}</p>
-      </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted/50">
+
+      <div className="relative mt-2 flex items-center justify-center">
         <div
-          className="h-full bg-gradient-to-r from-cyan-400 via-amber-300 to-fuchsia-400 transition-all duration-500"
-          style={{ width: `${Math.max(5, score)}%` }}
-        />
+          className="relative h-40 w-40 rounded-full"
+          style={{
+            background:
+              "conic-gradient(from 210deg, #00ff85 0deg, #00ff85 60deg, #ffb800 120deg, #ff8a00 180deg, #ff4d4d 240deg, rgba(35,42,52,0.7) 240deg)",
+          }}
+        >
+          <div className="absolute inset-[10px] rounded-full bg-[#0f141b] shadow-[inset_0_0_0_1px_rgba(95,115,140,0.28)]" />
+          <div className="absolute left-1/2 top-1/2 h-[54px] w-[2px] -translate-x-1/2 -translate-y-[90%] origin-bottom rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.35)] transition-transform duration-700 ease-[cubic-bezier(.4,0,.2,1)]" style={{ transform: `translate(-50%, -90%) rotate(${angle}deg)` }} />
+          <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/70 bg-cyan-300/60 shadow-[0_0_12px_rgba(0,212,255,0.4)]" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <p className="rf-mono-digits text-3xl font-semibold">{score.toFixed(1)}</p>
+            <p className={`mt-0.5 text-[11px] uppercase tracking-[0.18em] ${labelClass}`}>{level}</p>
+          </div>
+        </div>
       </div>
-      <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] text-muted-foreground">
-        <p>disp {Number(dvi.dispersion_component || 0).toFixed(1)}</p>
-        <p>anom {Number(dvi.anomaly_component || 0).toFixed(1)}</p>
-        <p>top10 {Number(dvi.top10_shift_component || 0).toFixed(1)}</p>
+
+      <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+        <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
+          Dispersion <span className="rf-mono-digits text-muted-foreground">{disp.toFixed(2)}</span>
+        </p>
+        <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
+          Top-10 shift <span className="rf-mono-digits text-muted-foreground">{shift.toFixed(2)}</span>
+        </p>
+        <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
+          Anomaly cluster <span className="rf-mono-digits text-muted-foreground">{cluster.toFixed(2)}</span>
+        </p>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { track } from "@/lib/analytics/ga";
 
@@ -29,68 +29,97 @@ export default function PowerCurveChart({ curve }: { curve: PowerCurvePayload })
     const d30 = curve.d30 || [];
     const d90 = curve.d90 || [];
     const maxRank = Math.max(today.length, d30.length, d90.length);
-    const out: Array<{ rank: number; today?: number; d30?: number; d90?: number }> = [];
+    const rows: Array<{ rank: number; today?: number; d30?: number; d90?: number }> = [];
     for (let i = 1; i <= maxRank; i += 1) {
-      out.push({
+      rows.push({
         rank: i,
         today: today[i - 1]?.count,
         d30: d30[i - 1]?.count,
         d90: d90[i - 1]?.count,
       });
     }
-    return out;
+    return rows;
   }, [curve.d30, curve.d90, curve.today]);
 
   if (!data.length) {
     return (
-      <div className="rounded-2xl border border-border/70 bg-background/50 p-4 text-sm text-muted-foreground">
-        Power curve data not generated yet.
+      <div className="rf-glass rounded-2xl p-4 text-sm text-muted-foreground">
+        Awaiting enough history to render concentration morph.
       </div>
     );
   }
 
+  const key = focus;
+  const subtitle = focus === "today" ? curve.date_utc_today || "today" : focus === "d30" ? curve.date_utc_d30 || "d-30" : curve.date_utc_d90 || "d-90";
+
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        {(
-          [
-            ["today", curve.date_utc_today || "today"],
-            ["d30", curve.date_utc_d30 || "d-30"],
-            ["d90", curve.date_utc_d90 || "d-90"],
-          ] as Array<[Focus, string]>
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            className={`rounded-lg border px-2.5 py-1 ${focus === key ? "border-primary/60 bg-primary/15" : "border-border/70 bg-background/60 text-muted-foreground hover:border-primary/40"}`}
-            onClick={() => {
-              setFocus(key);
-              track("volatility_toggle", { chart: "power_curve", range_days: key });
-              track("rf_chart_range_change", { chart: "power_curve", range_days: key });
-            }}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="inline-flex overflow-hidden rounded-lg border border-border/70 text-xs">
+          {(
+            [
+              ["today", `Today (${curve.date_utc_today || "latest"})`],
+              ["d30", `30d ago (${curve.date_utc_d30 || "n/a"})`],
+              ["d90", `90d ago (${curve.date_utc_d90 || "n/a"})`],
+            ] as Array<[Focus, string]>
+          ).map(([val, label]) => (
+            <button
+              key={val}
+              type="button"
+              className={`px-3 py-1.5 ${focus === val ? "bg-primary/20 text-foreground" : "bg-background/60 text-muted-foreground hover:bg-muted/40"}`}
+              onClick={() => {
+                setFocus(val);
+                track("volatility_toggle", { chart: "power_curve", range_days: val });
+                track("rf_chart_range_change", { chart: "power_curve", range_days: val });
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">rendering profile: {subtitle}</p>
       </div>
-      <div className="h-[320px] w-full rounded-2xl border border-border/70 bg-background/30 p-2">
-        <ResponsiveContainer>
-          <LineChart data={data} margin={{ top: 14, right: 14, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="hsl(var(--border) / 0.6)" strokeDasharray="3 3" />
+
+      <div className="rf-glass h-[360px] rounded-2xl p-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 18, right: 18, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="curveFillCyan" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#00d4ff" stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="curveFillAmber" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ffb800" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#ffb800" stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="curveFillPurple" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#a855f7" stopOpacity={0.28} />
+                <stop offset="95%" stopColor="#a855f7" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="hsl(var(--border) / 0.5)" strokeDasharray="3 3" />
             <XAxis dataKey="rank" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
             <YAxis tickFormatter={(value) => fmtInt(Number(value))} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <ReferenceArea x1={1} x2={10} fill="rgba(0, 212, 255, 0.08)" />
             <Tooltip
+              formatter={(value: number | string | undefined) => [fmtInt(Number(value || 0)), "delegated"]}
+              labelFormatter={(label) => `rank ${label}`}
               contentStyle={{
                 borderRadius: "10px",
                 border: "1px solid hsl(var(--border))",
                 backgroundColor: "hsl(var(--card))",
               }}
             />
-            <Legend />
-            <Line type="monotone" dataKey="today" stroke="#22d3ee" dot={false} strokeWidth={focus === "today" ? 2.8 : 1.4} strokeOpacity={focus === "today" ? 1 : 0.45} />
-            <Line type="monotone" dataKey="d30" stroke="#fbbf24" dot={false} strokeWidth={focus === "d30" ? 2.8 : 1.4} strokeOpacity={focus === "d30" ? 1 : 0.45} />
-            <Line type="monotone" dataKey="d90" stroke="#a78bfa" dot={false} strokeWidth={focus === "d90" ? 2.8 : 1.4} strokeOpacity={focus === "d90" ? 1 : 0.45} />
-          </LineChart>
+            <Area
+              type="monotone"
+              dataKey={key}
+              stroke={focus === "today" ? "#00d4ff" : focus === "d30" ? "#ffb800" : "#a855f7"}
+              fill={focus === "today" ? "url(#curveFillCyan)" : focus === "d30" ? "url(#curveFillAmber)" : "url(#curveFillPurple)"}
+              strokeWidth={2.6}
+              isAnimationActive
+              animationDuration={520}
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>

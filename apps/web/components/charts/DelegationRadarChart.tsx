@@ -1,6 +1,17 @@
 "use client";
 
-import { CartesianGrid, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
+import {
+  CartesianGrid,
+  ReferenceArea,
+  ReferenceLine,
+  ResponsiveContainer,
+  Scatter,
+  ScatterChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+  ZAxis,
+} from "recharts";
 
 import { track } from "@/lib/analytics/ga";
 
@@ -13,18 +24,23 @@ type RadarPoint = {
   sector?: string;
 };
 
-function pointColor(score?: number): string {
-  const value = Number(score || 0);
-  if (value >= 3.5) return "#d946ef";
-  if (value >= 2) return "#f59e0b";
-  return "#22d3ee";
+function bubbleColor(score: number): string {
+  if (score >= 3.5) return "#a855f7";
+  if (score >= 2) return "#ffb800";
+  return "#00d4ff";
 }
 
 export default function DelegationRadarChart({ rows }: { rows: RadarPoint[] }) {
   if (!rows.length) {
     return (
-      <div className="rounded-2xl border border-border/70 bg-background/50 p-4 text-sm text-muted-foreground">
-        Radar points are not available yet.
+      <div className="rf-glass rounded-2xl p-4 text-sm text-muted-foreground">
+        SYSTEM STATUS
+        <ul className="mt-2 space-y-1 text-xs">
+          <li>• Ingestion ready</li>
+          <li>• Awaiting first commit</li>
+          <li>• Rolling history building</li>
+          <li>• Radar requires 3 cycles</li>
+        </ul>
       </div>
     );
   }
@@ -35,72 +51,95 @@ export default function DelegationRadarChart({ rows }: { rows: RadarPoint[] }) {
       volatility: Number(row.volatility || 0),
       growth_pct: Number(row.growth_pct || 0),
       anomaly_score: Number(row.anomaly_score || 0),
-      z: Math.max(10, Math.min(60, Math.log10(Math.max(1, row.count)) * 16)),
-      fill: pointColor(row.anomaly_score),
+      z: Math.max(10, Math.min(65, Math.log10(Math.max(1, row.count)) * 17)),
+      fill: bubbleColor(Number(row.anomaly_score || 0)),
     }))
-    .slice(0, 240);
+    .slice(0, 260);
+
+  const maxX = Math.max(...cleaned.map((row) => Math.abs(Number(row.volatility || 0))), 0.03);
+  const maxY = Math.max(...cleaned.map((row) => Math.abs(Number(row.growth_pct || 0))), 3);
+  const xDomain: [number, number] = [-maxX * 1.1, maxX * 1.1];
+  const yDomain: [number, number] = [-maxY * 1.15, maxY * 1.15];
 
   return (
-    <div className="h-[340px] w-full rounded-2xl border border-border/70 bg-background/30 p-2">
-      <ResponsiveContainer>
-        <ScatterChart margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="hsl(var(--border) / 0.6)" strokeDasharray="3 3" />
-          <XAxis type="number" dataKey="volatility" name="volatility" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-          <YAxis type="number" dataKey="growth_pct" name="growth_pct" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
-          <ZAxis type="number" dataKey="z" range={[60, 420]} />
-          <ReferenceLine x={0} stroke="hsl(var(--border))" strokeDasharray="6 6" />
-          <ReferenceLine y={0} stroke="hsl(var(--border))" strokeDasharray="6 6" />
-          <Tooltip
-            cursor={{ strokeDasharray: "3 3" }}
-            formatter={(value: unknown, key?: string) => {
-              if (key === "growth_pct") {
-                return [`${Number(value || 0).toFixed(2)}%`, "growth"];
-              }
-              if (key === "volatility") {
-                return [Number(value || 0).toFixed(4), "volatility"];
-              }
-              return [String(value), key];
-            }}
-            labelFormatter={(_, payload) => {
-              const row = payload?.[0]?.payload as RadarPoint | undefined;
-              return row ? `.${row.tld} (${row.sector || "other"})` : "tld";
-            }}
-            contentStyle={{
-              borderRadius: "10px",
-              border: "1px solid hsl(var(--border))",
-              backgroundColor: "hsl(var(--card))",
-            }}
-          />
-          <Scatter
-            data={cleaned}
-            fill="#22d3ee"
-            shape={(props: { cx?: number; cy?: number; payload?: { z?: number; fill?: string; tld?: string; sector?: string } }) => {
-              const { cx, cy, payload } = props;
-              if (!cx || !cy) return null;
-              return (
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={Math.max(3, Math.min(13, Number(payload?.z || 0) / 8))}
-                  fill={payload?.fill || "#22d3ee"}
-                  fillOpacity={0.8}
-                  stroke="hsl(var(--background))"
-                  strokeWidth={1}
-                  onClick={() => {
-                    track("anomaly_open", { tld: payload?.tld || "", sector: payload?.sector || "other" });
-                    track("rf_rolling_update_click", { tld: payload?.tld || "" });
-                  }}
-                />
-              );
-            }}
-          />
-        </ScatterChart>
-      </ResponsiveContainer>
-      <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground sm:grid-cols-4">
-        <p>High growth / high vol: speculative</p>
-        <p>High growth / low vol: stable expansion</p>
-        <p>Low growth / high vol: manipulation risk</p>
-        <p>Low growth / low vol: mature</p>
+    <div className="space-y-2">
+      <div className="rf-glass h-[420px] rounded-2xl p-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <ScatterChart margin={{ top: 12, right: 12, left: 6, bottom: 6 }}>
+            <ReferenceArea x1={0} x2={xDomain[1]} y1={0} y2={yDomain[1]} fill="rgba(0,255,133,0.06)" />
+            <ReferenceArea x1={xDomain[0]} x2={0} y1={0} y2={yDomain[1]} fill="rgba(168,85,247,0.08)" />
+            <ReferenceArea x1={xDomain[0]} x2={0} y1={yDomain[0]} y2={0} fill="rgba(255,77,77,0.08)" />
+            <ReferenceArea x1={0} x2={xDomain[1]} y1={yDomain[0]} y2={0} fill="rgba(0,212,255,0.08)" />
+            <CartesianGrid stroke="hsl(var(--border) / 0.55)" strokeDasharray="3 3" />
+            <XAxis
+              type="number"
+              dataKey="volatility"
+              domain={xDomain}
+              tick={{ fontSize: 10 }}
+              stroke="hsl(var(--muted-foreground))"
+            />
+            <YAxis
+              type="number"
+              dataKey="growth_pct"
+              domain={yDomain}
+              tick={{ fontSize: 10 }}
+              stroke="hsl(var(--muted-foreground))"
+            />
+            <ZAxis type="number" dataKey="z" range={[70, 430]} />
+            <ReferenceLine x={0} stroke="hsl(var(--border))" strokeWidth={1.2} />
+            <ReferenceLine y={0} stroke="hsl(var(--border))" strokeWidth={1.2} />
+            <Tooltip
+              cursor={{ strokeDasharray: "3 3" }}
+              formatter={(value: number | string | undefined, key?: string) => {
+                if (key === "growth_pct") return [`${Number(value || 0).toFixed(2)}%`, "growth"];
+                if (key === "volatility") return [Number(value || 0).toFixed(4), "volatility"];
+                return [String(value), key || "value"];
+              }}
+              labelFormatter={(_, payload) => {
+                const row = payload?.[0]?.payload as RadarPoint | undefined;
+                return row ? `.${row.tld} (${row.sector || "other"})` : "tld";
+              }}
+              contentStyle={{
+                borderRadius: "10px",
+                border: "1px solid hsl(var(--border))",
+                backgroundColor: "hsl(var(--card))",
+              }}
+            />
+            <Scatter
+              data={cleaned}
+              shape={(props: { cx?: number; cy?: number; payload?: { z?: number; fill?: string; tld?: string; sector?: string } }) => {
+                const { cx, cy, payload } = props;
+                if (!cx || !cy) return null;
+                return (
+                  <circle
+                    cx={cx}
+                    cy={cy}
+                    r={Math.max(3, Math.min(13, Number(payload?.z || 0) / 8))}
+                    fill={payload?.fill || "#00d4ff"}
+                    fillOpacity={0.78}
+                    stroke="rgba(255,255,255,0.25)"
+                    strokeWidth={1}
+                    style={{
+                      filter: `drop-shadow(0 0 10px ${payload?.fill || "#00d4ff"})`,
+                      transition: "all 400ms cubic-bezier(.3,1,.4,1)",
+                    }}
+                    onClick={() => {
+                      track("anomaly_open", { tld: payload?.tld || "", sector: payload?.sector || "other" });
+                      track("rf_rolling_update_click", { tld: payload?.tld || "" });
+                    }}
+                  />
+                );
+              }}
+            />
+          </ScatterChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground sm:grid-cols-4">
+        <p className="rounded border border-border/70 bg-background/40 px-2 py-1">Speculative</p>
+        <p className="rounded border border-border/70 bg-background/40 px-2 py-1">Expansion</p>
+        <p className="rounded border border-border/70 bg-background/40 px-2 py-1">Declining</p>
+        <p className="rounded border border-border/70 bg-background/40 px-2 py-1">Mature</p>
       </div>
     </div>
   );

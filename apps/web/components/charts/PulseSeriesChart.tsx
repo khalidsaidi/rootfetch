@@ -14,8 +14,20 @@ type PulsePoint = {
 export default function PulseSeriesChart({ rows }: { rows: PulsePoint[] }) {
   if (!rows.length) {
     return (
-      <div className="flex h-[180px] items-center justify-center rounded-xl border border-border/60 bg-background/40 text-xs text-muted-foreground">
-        No pulse series yet
+      <div className="rf-glass flex h-[180px] flex-col items-center justify-center rounded-xl text-xs text-muted-foreground">
+        <p>Awaiting first committed snapshot…</p>
+        <div className="mt-3 flex w-44 items-end gap-1">
+          {[10, 18, 9, 22, 14, 19, 8, 17, 11, 20, 13, 16].map((height, idx) => (
+            <span
+              key={idx}
+              className="w-2 rounded-sm bg-primary/50"
+              style={{
+                height: `${height}px`,
+                animation: `pulse ${0.9 + idx * 0.04}s ease-in-out ${idx * 0.05}s infinite alternate`,
+              }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
@@ -26,11 +38,11 @@ export default function PulseSeriesChart({ rows }: { rows: PulsePoint[] }) {
         <AreaChart data={rows} margin={{ top: 10, right: 14, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="pulseFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#22d3ee" stopOpacity={0.01} />
+              <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.42} />
+              <stop offset="95%" stopColor="#00d4ff" stopOpacity={0.03} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="hsl(var(--border) / 0.6)" strokeDasharray="4 4" />
+          <CartesianGrid stroke="hsl(var(--border) / 0.5)" strokeDasharray="4 4" />
           <XAxis dataKey="date_utc" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
           <YAxis tickFormatter={(value) => fmtInt(Number(value))} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
           <Tooltip
@@ -44,11 +56,12 @@ export default function PulseSeriesChart({ rows }: { rows: PulsePoint[] }) {
           <Area
             type="monotone"
             dataKey="total_delegated_count"
-            stroke="#22d3ee"
-            strokeWidth={2.2}
+            stroke="#00d4ff"
+            strokeWidth={2.6}
             fill="url(#pulseFill)"
             isAnimationActive
             animationDuration={700}
+            style={{ filter: "drop-shadow(0 0 12px rgba(0,212,255,0.35))" }}
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Inter, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import Providers from "./providers";
 import "./globals.css";
@@ -15,7 +15,7 @@ const display = Space_Grotesk({
   variable: "--font-display",
 });
 
-const mono = IBM_Plex_Mono({
+const mono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   variable: "--font-mono",
@@ -78,7 +78,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${display.variable} ${mono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}>
+      <body className={`${inter.variable} ${display.variable} ${mono.variable} rf-control-shell min-h-screen bg-background font-sans text-foreground antialiased`}>
         {gaMeasurementId ? (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} strategy="afterInteractive" />
@@ -94,7 +94,7 @@ export default function RootLayout({
           </>
         ) : null}
         <Providers>
-          <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_18%_12%,hsl(var(--primary)/0.2),transparent_42%),radial-gradient(circle_at_88%_5%,hsl(var(--accent)/0.24),transparent_36%),linear-gradient(130deg,hsl(var(--background))_0%,hsl(var(--background))_45%,hsl(var(--muted)/0.16)_100%)]" />
+          <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_16%_18%,rgba(0,212,255,0.08),transparent_36%),radial-gradient(circle_at_82%_12%,rgba(168,85,247,0.1),transparent_34%)]" />
           {children}
         </Providers>
       </body>
