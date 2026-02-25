@@ -86,6 +86,7 @@ export default function VolatilityGauge({ dvi, trendSeries }: { dvi: DviPayload;
           <span>50-75 Active</span>
           <span>75-100 Turbulent</span>
         </div>
+        <p className="mb-1 text-[9px] tracking-[0.14em] text-muted-foreground/90">30d volatility history</p>
         <Sparkline points={spark} />
       </div>
 

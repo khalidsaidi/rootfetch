@@ -27,6 +27,7 @@ type TreeNodeDatum = {
   size: number;
   delta: number;
   payload: MarketMapRow;
+  isTop10?: boolean;
 };
 
 type TreeNodeRenderProps = {
@@ -86,6 +87,7 @@ function TreemapNodeContent(props: TreeNodeRenderProps) {
   const base = colorForDelta(Number(payload.delta || 0));
   const deltaPct = Number(payload.delta || 0) * 100;
   const anomaly = glowForAnomaly(Number(row.anomaly_score || 0));
+  const top10Overlay = Boolean(payload.isTop10);
   return (
     <g>
       <rect
@@ -104,6 +106,19 @@ function TreemapNodeContent(props: TreeNodeRenderProps) {
         }}
         onMouseEnter={() => onHover?.(row)}
       />
+      {top10Overlay ? (
+        <rect
+          x={x + 1.5}
+          y={y + 1.5}
+          width={Math.max(0, width - 3)}
+          height={Math.max(0, height - 3)}
+          rx={4}
+          fill="rgba(0, 212, 255, 0.08)"
+          stroke="rgba(0, 212, 255, 0.55)"
+          strokeWidth={1.1}
+          pointerEvents="none"
+        />
+      ) : null}
       {width > 72 && height > 20 ? (
         <text x={x + 6} y={y + 15} fill="rgba(248,252,255,0.92)" fontSize={10.5} fontWeight={600}>
           {name}
@@ -124,6 +139,7 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
   const [sector, setSector] = useState<string>("all");
   const [direction, setDirection] = useState<Direction>("all");
   const [activeTld, setActiveTld] = useState<string>(rows[0]?.tld || "");
+  const [showConcentrationOverlay, setShowConcentrationOverlay] = useState<boolean>(true);
 
   const sectors = useMemo(
     () => [
@@ -147,14 +163,22 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
   }, [direction, mode, rows, sector]);
 
   const treeData = useMemo<TreeNodeDatum[]>(
-    () =>
-      filtered.slice(0, 220).map((row) => ({
+    () => {
+      const top10Set = new Set(
+        [...filtered]
+          .sort((a, b) => Number(b.count || 0) - Number(a.count || 0))
+          .slice(0, 10)
+          .map((row) => row.tld),
+      );
+      return filtered.slice(0, 220).map((row) => ({
         name: `.${row.tld}`,
         size: Math.max(1, Number.isFinite(Number(row.count)) ? Number(row.count) : 0),
         delta: valueForMode(row, mode),
         payload: row,
-      })),
-    [filtered, mode],
+        isTop10: showConcentrationOverlay ? top10Set.has(row.tld) : false,
+      }));
+    },
+    [filtered, mode, showConcentrationOverlay],
   );
 
   const top10Share = useMemo(() => {
@@ -217,6 +241,23 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={`rounded-lg border px-2.5 py-1.5 text-xs ${
+              showConcentrationOverlay
+                ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-100"
+                : "border-border/70 bg-background/70 text-muted-foreground"
+            }`}
+            onClick={() => {
+              setShowConcentrationOverlay((prev) => !prev);
+              track("rf_market_filter", {
+                filter_key: "concentration_overlay",
+                value: showConcentrationOverlay ? "off" : "on",
+              });
+            }}
+          >
+            Concentration impact {showConcentrationOverlay ? "on" : "off"}
+          </button>
           <select
             value={sector}
             className="rounded-lg border border-border/70 bg-background/70 px-2.5 py-1.5 text-xs"
@@ -310,6 +351,12 @@ export default function MarketTreemap({ rows }: { rows: MarketMapRow[] }) {
                   <span className="text-muted-foreground">Concentration impact</span>
                   <span className="rf-mono-digits">{((active.share_pct / 100) * (active.share_pct / 100)).toFixed(4)} HHI</span>
                 </p>
+                {showConcentrationOverlay ? (
+                  <p className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Top10 overlay</span>
+                    <span>{treeData.find((item) => item.payload.tld === active.tld)?.isTop10 ? "dominance zone" : "non-core"}</span>
+                  </p>
+                ) : null}
               </div>
               <div className="mt-3">
                 <Link

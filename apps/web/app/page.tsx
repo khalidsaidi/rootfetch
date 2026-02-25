@@ -6,22 +6,18 @@ import {
   Database,
   Shield,
   TerminalSquare,
-  Waves,
 } from "lucide-react";
 
-import AnomalyTicker from "@/components/AnomalyTicker";
 import AdvancedAnalyticsLayer from "@/components/home/AdvancedAnalyticsLayer";
 import AlertControlPanel from "@/components/home/AlertControlPanel";
 import CopyValueButton from "@/components/CopyValueButton";
 import HomeViewTracker from "@/components/HomeViewTracker";
 import JsonArtifactPreview from "@/components/JsonArtifactPreview";
 import McpSnippet from "@/components/McpSnippet";
-import MarketRiskPanel from "@/components/MarketRiskPanel";
-import ThemeToggle from "@/components/ThemeToggle";
+import LiveIntelligenceZoneClient from "@/components/home/LiveIntelligenceZoneClient";
+import { ReplayTimelineProvider } from "@/components/home/ReplayTimelineContext";
 import TrackedLink from "@/components/TrackedLink";
-import VolatilityGauge from "@/components/VolatilityGauge";
 import {
-  PulseSeriesChartClient as PulseSeriesChart,
   SectorIndexGridClient as SectorIndexGrid,
 } from "@/components/home/HomeClientCharts";
 import StructuralAnalysisLayer from "@/components/home/StructuralAnalysisLayer";
@@ -46,12 +42,6 @@ function fmtInt(value: number | undefined | null): string {
   return new Intl.NumberFormat("en-US").format(Math.trunc(value));
 }
 
-function fmtSigned(value: number | undefined | null): string {
-  if (typeof value !== "number" || Number.isNaN(value)) return "n/a";
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${fmtInt(value)}`;
-}
-
 function fmtPct(value: number | undefined | null): string {
   if (typeof value !== "number" || Number.isNaN(value)) return "n/a";
   return `${(value * 100).toFixed(2)}%`;
@@ -62,31 +52,6 @@ function marketState(top10SharePct: number, dviScore: number): "stable" | "fragm
   if (dviScore >= 50) return "speculative";
   if (top10SharePct <= 52) return "fragmenting";
   return "stable";
-}
-
-function stateTone(state: string): string {
-  if (state === "consolidating") return "text-rose-300";
-  if (state === "speculative") return "text-orange-300";
-  if (state === "fragmenting") return "text-amber-300";
-  return "text-emerald-300";
-}
-
-function pulseStatus({
-  isZeroState,
-  observedToday,
-  approved,
-}: {
-  isZeroState: boolean;
-  observedToday: number;
-  approved: number;
-}): { label: string; tone: string; detail: string } {
-  if (isZeroState) {
-    return { label: "BASELINE ESTABLISHING", tone: "text-cyan-200", detail: "Awaiting first committed snapshot" };
-  }
-  if (observedToday < approved) {
-    return { label: "ROLLING HISTORY BUILDING", tone: "text-amber-200", detail: "Core + rolling observations are active" };
-  }
-  return { label: "LIVE SNAPSHOT ACTIVE", tone: "text-emerald-200", detail: "Full snapshot observations complete" };
 }
 
 function timeSince(isoLike: string | undefined | null): string {
@@ -148,18 +113,8 @@ export default async function Home() {
   const dvi = latest.dvi || {};
   const dviScore = asNumber(dvi.score);
   const top10SharePct = asNumber(concentration.top10_share_pct);
-  const dviTrendSeries = pulseSeries
-    .map((row, idx) => {
-      const current = Number(row.total_delegated_count || 0);
-      const prev = idx > 0 ? Number(pulseSeries[idx - 1]?.total_delegated_count || 0) : current;
-      if (!Number.isFinite(current) || !Number.isFinite(prev) || prev <= 0) return 0;
-      return Math.abs(((current - prev) / prev) * 100) * 10;
-    })
-    .filter((value) => Number.isFinite(value));
 
   const state = marketState(top10SharePct, dviScore);
-  const isZeroState = totalDelegated <= 0;
-  const status = pulseStatus({ isZeroState, observedToday, approved });
 
   const anomalyRows = Array.isArray(latest.anomaly_spotlight) && latest.anomaly_spotlight.length > 0
     ? latest.anomaly_spotlight
@@ -309,125 +264,48 @@ export default async function Home() {
       <HomeViewTracker />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }} />
 
-      <section className="rf-glass overflow-hidden rounded-3xl p-5 md:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-primary">Delegation Intelligence Terminal</p>
-            <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight md:text-4xl">
-              LIVE INTELLIGENCE ZONE
-            </h1>
+      <ReplayTimelineProvider initialDays={0}>
+        <LiveIntelligenceZoneClient
+          dateUtc={latest.date_utc}
+          approved={approved}
+          observedToday={observedToday}
+          totalDelegated={totalDelegated}
+          deltaTodayAbs={deltaTodayAbs}
+          delta7dAbs={delta7dAbs}
+          delta7dPct={delta7dPct}
+          pulseSeries={pulseSeries as Array<{ date_utc: string; total_delegated_count: number }>}
+          dvi={dvi}
+          top10SharePct={top10SharePct}
+          marketRisk={marketRisk}
+          distributionP50={asNumber(distribution.p50)}
+          approvalsAddedCount={asNumber(approvalsDiff.added_count)}
+          approvalsAddedPreview={approvalsAdded}
+          anomalyRows={anomalyRows}
+          marketMapRows={marketMapRows}
+        />
+
+        <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
+
+        <AlertControlPanel rows={anomalyRows} dviScore={dviScore} top10SharePct={top10SharePct} />
+
+        <AdvancedAnalyticsLayer
+          marketRows={marketMapRows}
+          radarRows={radarRows}
+          sectorRows={sectorIndices}
+          baseDviScore={dviScore}
+          baseTop10SharePct={top10SharePct}
+          totalDelegated={totalDelegated}
+          delta7dAbs={delta7dAbs}
+        />
+
+        <section className="rf-glass rounded-3xl p-5 md:p-6">
+          <div className="mb-3">
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Sector indices</p>
+            <h2 className="font-display text-2xl font-semibold">Namespace market baskets</h2>
           </div>
-          <ThemeToggle />
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <TrackedLink href="/approved" label="nav_approved" pageType="home" eventName="rf_open_approved" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
-            Approved TLDs
-          </TrackedLink>
-          <TrackedLink href="/sectors" label="nav_sectors" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
-            Sector indices
-          </TrackedLink>
-          <TrackedLink href="/compare" label="nav_compare" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
-            Compare
-          </TrackedLink>
-          <TrackedLink href="/api/latest" label="nav_json" pageType="home" eventName="rf_open_json_api" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
-            Artifact API
-          </TrackedLink>
-        </div>
-
-        <div className="mt-4 grid gap-5 border-t border-border/60 pt-4 xl:grid-cols-[1fr,1.2fr,0.85fr] xl:divide-x xl:divide-border/50">
-          <div className="xl:pr-5">
-            <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              <Waves className="h-3.5 w-3.5 text-primary" /> Delegation pulse
-            </p>
-            <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/55 px-2.5 py-1 text-[11px]">
-              <span className={`h-2 w-2 animate-pulse rounded-full ${status.tone === "text-emerald-200" ? "bg-emerald-300" : status.tone === "text-amber-200" ? "bg-amber-300" : "bg-cyan-300"}`} />
-              <span className={`uppercase tracking-[0.14em] ${status.tone}`}>{status.label}</span>
-            </div>
-            <p className="rf-mono-digits mt-2 text-5xl font-semibold md:text-6xl">{fmtInt(totalDelegated)}</p>
-            <div className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
-              <p className={deltaTodayAbs >= 0 ? "rf-signal-growth" : "rf-signal-down"}>{fmtSigned(deltaTodayAbs)} today</p>
-              <p className={delta7dAbs >= 0 ? "rf-signal-growth" : "rf-signal-down"}>
-                {fmtSigned(delta7dAbs)} 7d avg ({fmtPct(delta7dPct)})
-              </p>
-            </div>
-            <div className="mt-3">
-              <PulseSeriesChart rows={pulseSeries as Array<{ date_utc: string; total_delegated_count: number }>} />
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">{status.detail}</p>
-            {isZeroState ? (
-              <div className="mt-3 rounded-xl border border-border/70 bg-background/40 p-3 text-xs">
-                <p className="uppercase tracking-[0.16em] text-muted-foreground">System status</p>
-                <ul className="mt-2 space-y-1 text-muted-foreground">
-                  <li>• Ingestion ready</li>
-                  <li>• Awaiting first commit</li>
-                  <li>• Rolling history building</li>
-                  <li>• Radar requires 3 cycles</li>
-                </ul>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="xl:px-5">
-            <div className="scale-[1.08] origin-top">
-              <VolatilityGauge dvi={dvi} trendSeries={dviTrendSeries} />
-            </div>
-          </div>
-
-          <div className="xl:pl-5 xl:pt-7">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural classification</p>
-            <p className={`mt-1 font-display text-3xl font-semibold uppercase ${stateTone(state)}`}>
-              {state}
-            </p>
-            <div className="mt-2 rounded-lg border border-border/70 bg-background/40 p-2 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-              <p>Concentration trend: {top10SharePct >= 65 ? "↑" : top10SharePct <= 52 ? "↓" : "→"}</p>
-              <p>Volatility: {dviScore >= 50 ? "Active" : dviScore >= 25 ? "Stable+" : "Stable"}</p>
-              <p>Fragmentation: {String(marketRisk.fragmentation || "n/a")}</p>
-            </div>
-            <div className="mt-3">
-              <MarketRiskPanel risk={marketRisk} />
-            </div>
-            <div className="mt-3 grid gap-2 text-xs">
-              <p className="rounded-lg border border-border/70 bg-background/40 px-2 py-1.5">
-                Median TLD size <span className="rf-mono-digits">{fmtInt(asNumber(distribution.p50))}</span>
-              </p>
-              <p className="rounded-lg border border-border/70 bg-background/40 px-2 py-1.5">
-                New approvals {fmtInt(asNumber(approvalsDiff.added_count))}
-                {approvalsAdded.length > 0 ? ` (${approvalsAdded.slice(0, 3).join(", ")})` : ""}
-              </p>
-              <p className="rounded-lg border border-border/70 bg-background/40 px-2 py-1.5">
-                Last snapshot <span className="rf-mono-digits">{lastSnapshotAgo}</span>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 border-t border-border/60 pt-4">
-          <AnomalyTicker rows={anomalyRows} />
-        </div>
-      </section>
-
-      <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
-
-      <AlertControlPanel rows={anomalyRows} dviScore={dviScore} top10SharePct={top10SharePct} />
-
-      <AdvancedAnalyticsLayer
-        marketRows={marketMapRows}
-        radarRows={radarRows}
-        sectorRows={sectorIndices}
-        baseDviScore={dviScore}
-        baseTop10SharePct={top10SharePct}
-        totalDelegated={totalDelegated}
-        delta7dAbs={delta7dAbs}
-      />
-
-      <section className="rf-glass rounded-3xl p-5 md:p-6">
-        <div className="mb-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Sector indices</p>
-          <h2 className="font-display text-2xl font-semibold">Namespace market baskets</h2>
-        </div>
-        <SectorIndexGrid rows={sectorIndices} />
-      </section>
+          <SectorIndexGrid rows={sectorIndices} />
+        </section>
+      </ReplayTimelineProvider>
 
       <section className="rf-glass rounded-3xl p-5 md:p-6">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">

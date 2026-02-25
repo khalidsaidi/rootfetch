@@ -42,6 +42,7 @@ export default function AlertControlPanel({
   const [destEmail, setDestEmail] = useState(false);
   const [destWebhook, setDestWebhook] = useState(true);
   const [destMcp, setDestMcp] = useState(true);
+  const [destSlack, setDestSlack] = useState(false);
   const [showPayload, setShowPayload] = useState(false);
 
   const triggered = useMemo(() => {
@@ -80,6 +81,7 @@ export default function AlertControlPanel({
         email: destEmail,
         webhook: destWebhook,
         mcp_stream: destMcp,
+        slack: destSlack,
       },
       thresholds: {
         zscore: Number(zThreshold.toFixed(2)),
@@ -101,6 +103,7 @@ export default function AlertControlPanel({
       deltaThresholdPct,
       destEmail,
       destMcp,
+      destSlack,
       destWebhook,
       dviThreshold,
       marketTriggers,
@@ -127,7 +130,7 @@ export default function AlertControlPanel({
       </div>
 
       <div className="grid gap-3 xl:grid-cols-[1fr,1fr]">
-        <div className="space-y-3 rounded-xl border border-border/70 bg-background/35 p-3">
+        <div className="space-y-3 rounded-xl border border-border/60 bg-background/20 p-3">
           <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Trigger conditions</p>
           <label className="block text-xs">
             z-score threshold <span className="rf-mono-digits">{zThreshold.toFixed(1)}</span>
@@ -179,7 +182,7 @@ export default function AlertControlPanel({
           </label>
         </div>
 
-        <div className="space-y-3 rounded-xl border border-border/70 bg-background/35 p-3">
+        <div className="space-y-3 rounded-xl border border-border/60 bg-background/20 p-3">
           <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Destinations</p>
           <label className="flex items-center justify-between text-sm">
             <span>Email</span>
@@ -193,11 +196,22 @@ export default function AlertControlPanel({
             <span>MCP stream</span>
             <input type="checkbox" checked={destMcp} onChange={() => setDestMcp((prev) => !prev)} />
           </label>
+          <label className="flex items-center justify-between text-sm">
+            <span>Slack</span>
+            <input type="checkbox" checked={destSlack} onChange={() => setDestSlack((prev) => !prev)} />
+          </label>
 
           <div className="rounded-lg border border-border/70 bg-background/45 p-2 text-xs">
             <p>DVI trigger: {marketTriggers.dvi ? "ACTIVE" : "idle"}</p>
             <p>Concentration trigger: {marketTriggers.concentration ? "ACTIVE" : "idle"}</p>
             <p>Anomaly trigger rows: {triggered.length}</p>
+          </div>
+          <div className="rounded-lg border border-border/70 bg-background/35 p-2 text-xs">
+            <p className="mb-1 uppercase tracking-[0.12em] text-muted-foreground">Alert subscriptions</p>
+            <p>Email: {destEmail ? "enabled" : "disabled"}</p>
+            <p>Webhook: {destWebhook ? "enabled" : "disabled"}</p>
+            <p>MCP stream: {destMcp ? "enabled" : "disabled"}</p>
+            <p>Slack: {destSlack ? "enabled" : "disabled"}</p>
           </div>
 
           <div className="flex flex-wrap gap-2">

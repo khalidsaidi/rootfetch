@@ -9,6 +9,7 @@ import {
   MarketTreemapClient as MarketTreemap,
   PowerCurveChartClient as PowerCurveChart,
 } from "@/components/home/HomeClientCharts";
+import { useReplayTimeline } from "@/components/home/ReplayTimelineContext";
 
 type ReplayWindow = "now" | "d7" | "d30" | "d90" | "custom";
 
@@ -168,6 +169,7 @@ export default function StructuralAnalysisLayer({
   powerCurve: PowerCurvePayload;
   radarRows: RadarPoint[];
 }) {
+  const { replayDays, isControlled } = useReplayTimeline();
   const [window, setWindow] = useState<ReplayWindow>("now");
   const [customDate, setCustomDate] = useState<string>(powerCurve.date_utc_today || "");
 
@@ -179,7 +181,11 @@ export default function StructuralAnalysisLayer({
     return clamp(diffDays, 0, 365);
   }, [customDate, powerCurve.date_utc_today]);
 
-  const activeHorizonDays = window === "custom" ? customDays : horizonForWindow(window, customDays);
+  const activeHorizonDays = isControlled
+    ? replayDays
+    : window === "custom"
+      ? customDays
+      : horizonForWindow(window, customDays);
 
   const replayedMarketRows = useMemo(() => {
     const rows = marketMapRows
@@ -244,68 +250,76 @@ export default function StructuralAnalysisLayer({
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Structural analysis engine</p>
             <h2 className="font-display text-2xl font-semibold">Treemap intelligence surface</h2>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {REPLAY_OPTIONS.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  className={`rounded-md border px-2.5 py-1 text-xs transition ${
-                    window === option.key
-                      ? "border-primary/60 bg-primary/15 text-foreground"
-                      : "border-border/70 bg-background/45 text-muted-foreground hover:border-primary/30"
-                  }`}
-                  onClick={() => {
-                    setWindow(option.key);
-                    track("volatility_toggle", { chart: "structural_replay", range_days: option.key });
-                    track("rf_chart_range_change", { chart: "structural_replay", range_days: option.key });
-                  }}
-                >
-                  {option.label}
-                </button>
-              ))}
-              {window === "custom" ? (
-                <input
-                  type="date"
-                  value={customDate}
-                  max={powerCurve.date_utc_today || undefined}
-                  className="rounded-md border border-border/70 bg-background/50 px-2 py-1 text-xs"
-                  onChange={(event) => {
-                    setCustomDate(event.target.value);
-                    setWindow("custom");
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className="mt-2 rounded-xl border border-border/70 bg-background/35 p-2">
-              <div className="mb-1 flex items-center justify-between text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                <span>Replay timeline scrubber</span>
-                <span className="rf-mono-digits">{activeHorizonDays}d</span>
+            {!isControlled ? (
+              <>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {REPLAY_OPTIONS.map((option) => (
+                    <button
+                      key={option.key}
+                      type="button"
+                      className={`rounded-md border px-2.5 py-1 text-xs transition ${
+                        window === option.key
+                          ? "border-primary/60 bg-primary/15 text-foreground"
+                          : "border-border/70 bg-background/45 text-muted-foreground hover:border-primary/30"
+                      }`}
+                      onClick={() => {
+                        setWindow(option.key);
+                        track("volatility_toggle", { chart: "structural_replay", range_days: option.key });
+                        track("rf_chart_range_change", { chart: "structural_replay", range_days: option.key });
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                  {window === "custom" ? (
+                    <input
+                      type="date"
+                      value={customDate}
+                      max={powerCurve.date_utc_today || undefined}
+                      className="rounded-md border border-border/70 bg-background/50 px-2 py-1 text-xs"
+                      onChange={(event) => {
+                        setCustomDate(event.target.value);
+                        setWindow("custom");
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className="mt-2 rounded-xl border border-border/70 bg-background/35 p-2">
+                  <div className="mb-1 flex items-center justify-between text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+                    <span>Replay timeline scrubber</span>
+                    <span className="rf-mono-digits">{activeHorizonDays}d</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={365}
+                    step={1}
+                    value={activeHorizonDays}
+                    className="w-full accent-cyan-400"
+                    onChange={(event) => {
+                      const nextDays = clamp(Number(event.target.value), 0, 365);
+                      setWindow("custom");
+                      setCustomDate(ymdForOffset(powerCurve.date_utc_today, nextDays));
+                      track("volatility_toggle", { chart: "structural_replay_scrubber", range_days: nextDays });
+                      track("rf_chart_range_change", { chart: "structural_replay_scrubber", range_days: nextDays });
+                    }}
+                  />
+                  <div className="mt-1 flex justify-between text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    <span>Now</span>
+                    <span>-7d</span>
+                    <span>-30d</span>
+                    <span>-90d</span>
+                    <span>Custom</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="mt-2 rounded-xl border border-border/70 bg-background/25 p-2 text-xs text-muted-foreground">
+                Global structural timeline is active: <span className="rf-mono-digits">{activeHorizonDays}d rewind</span>.
               </div>
-              <input
-                type="range"
-                min={0}
-                max={365}
-                step={1}
-                value={activeHorizonDays}
-                className="w-full accent-cyan-400"
-                onChange={(event) => {
-                  const nextDays = clamp(Number(event.target.value), 0, 365);
-                  setWindow("custom");
-                  setCustomDate(ymdForOffset(powerCurve.date_utc_today, nextDays));
-                  track("volatility_toggle", { chart: "structural_replay_scrubber", range_days: nextDays });
-                  track("rf_chart_range_change", { chart: "structural_replay_scrubber", range_days: nextDays });
-                }}
-              />
-              <div className="mt-1 flex justify-between text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                <span>Now</span>
-                <span>-7d</span>
-                <span>-30d</span>
-                <span>-90d</span>
-                <span>Custom</span>
-              </div>
-            </div>
+            )}
             <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-              {replaySubtitle(window, activeHorizonDays)}
+              {isControlled ? `Global replay (${activeHorizonDays}d back)` : replaySubtitle(window, activeHorizonDays)}
             </p>
           </div>
           <div className="rounded-xl border border-border/70 bg-background/35 p-2">
@@ -342,7 +356,7 @@ export default function StructuralAnalysisLayer({
           <h2 className="font-display text-2xl font-semibold">Growth x volatility strategic map</h2>
         </div>
         <div className="min-w-0">
-          <DelegationRadarChart rows={replayedRadarRows} windowLabel={window === "custom" ? `${activeHorizonDays}d` : window} />
+          <DelegationRadarChart rows={replayedRadarRows} windowLabel={isControlled ? `${activeHorizonDays}d` : window === "custom" ? `${activeHorizonDays}d` : window} />
         </div>
       </section>
     </>
