@@ -1,0 +1,17 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//RootFetch//Quarterly Drill Cadence//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:RootFetch Quarterly Governance Drills
+X-WR-TIMEZONE:UTC
+BEGIN:VEVENT
+UID:rootfetch-quarterly-drills-2026@rootfetch
+DTSTAMP:20260226T000000Z
+DTSTART:20260406T140000Z
+DTEND:20260406T150000Z
+RRULE:FREQ=MONTHLY;INTERVAL=3;COUNT=4
+SUMMARY:RootFetch Quarterly Governance Drill Window
+DESCRIPTION:Execute quarterly drills per docs/quarterly_drill_cadence.md and validate regime flip\, model evolution\, and artifact corruption scenarios.
+END:VEVENT
+END:VCALENDAR
