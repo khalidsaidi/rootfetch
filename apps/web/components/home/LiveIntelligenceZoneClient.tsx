@@ -17,6 +17,8 @@ type AnomalyRow = {
   delta_abs: number;
   delta_pct: number;
   robust_z?: number;
+  z_score?: number;
+  anomaly_score?: number;
   volatility?: number;
   count?: number;
   sector?: string;
@@ -152,7 +154,7 @@ function timestampForIndex(idx: number): string {
 }
 
 function severityOf(row: AnomalyRow): "critical" | "high" | "moderate" | "info" {
-  const z = Math.abs(num(row.robust_z));
+  const z = Math.abs(num(row.robust_z ?? row.z_score));
   const delta = Math.abs(num(row.delta_pct));
   if (z >= 4 || delta >= 0.06) return "critical";
   if (z >= 3.2 || delta >= 0.03) return "high";

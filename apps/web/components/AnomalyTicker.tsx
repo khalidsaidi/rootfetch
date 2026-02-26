@@ -10,6 +10,8 @@ type AnomalyRow = {
   delta_abs: number;
   delta_pct: number;
   robust_z?: number;
+  z_score?: number;
+  anomaly_score?: number;
   volatility?: number;
   count?: number;
   sector?: string;
@@ -31,6 +33,26 @@ function fmtPct(value: number): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+function zValue(row: AnomalyRow): number | null {
+  const robust = Number(row.robust_z);
+  if (Number.isFinite(robust)) return robust;
+  const z = Number(row.z_score);
+  if (Number.isFinite(z)) return z;
+  return null;
+}
+
+function anomalyValue(row: AnomalyRow): number | null {
+  const score = Number(row.anomaly_score);
+  return Number.isFinite(score) ? score : null;
+}
+
+function rankMagnitude(row: AnomalyRow): number {
+  const z = zValue(row);
+  if (z != null) return Math.abs(z);
+  const score = anomalyValue(row);
+  return score == null ? 0 : Math.abs(score);
+}
+
 function intensityClass(row: AnomalyRow): string {
   const severity = severityOf(row);
   if (severity === "critical") {
@@ -46,7 +68,7 @@ function intensityClass(row: AnomalyRow): string {
 }
 
 function severityOf(row: AnomalyRow): Severity {
-  const z = Number(row.robust_z || 0);
+  const z = Math.abs(zValue(row) ?? 0);
   const absDeltaPct = Math.abs(Number(row.delta_pct || 0));
   if (z >= 4 || absDeltaPct >= 0.06) return "critical";
   if (z >= 3.5 || absDeltaPct >= 0.03) return "high";
@@ -82,7 +104,7 @@ export default function AnomalyTicker({ rows }: { rows: AnomalyRow[] }) {
       .filter((row) => sectorFilter === "all" || (row.sector || "other").toLowerCase() === sectorFilter)
       .filter((row) => !normalizedQuery || row.tld.toLowerCase().includes(normalizedQuery));
     const sorted = replay24h
-      ? [...filtered].sort((a, b) => Math.abs(Number(b.robust_z || 0)) - Math.abs(Number(a.robust_z || 0)))
+      ? [...filtered].sort((a, b) => rankMagnitude(b) - rankMagnitude(a))
       : filtered;
     return [...sorted.slice(0, 16), ...sorted.slice(0, 16)];
   }, [rows, replay24h, sectorFilter, severityFilter, tldFilter]);
@@ -159,23 +181,28 @@ export default function AnomalyTicker({ rows }: { rows: AnomalyRow[] }) {
       <div className="overflow-hidden rounded-xl border border-border/70 bg-black/45">
         {feed.length > 0 ? (
           <div className="rf-marquee-track gap-2 p-2" style={{ animationPlayState: paused ? "paused" : "running" }}>
-            {feed.map((row, idx) => (
-              <button
-                type="button"
-                key={`${row.tld}-${idx}`}
-                className={`whitespace-nowrap rounded-lg border px-3 py-1.5 text-left text-xs tracking-wide ${intensityClass(row)}`}
-                onClick={() => {
-                  setActive(row);
-                  track("anomaly_open", { tld: row.tld, sector: row.sector || "other" });
-                }}
-              >
-                <span className="rf-mono-digits text-[10px] text-muted-foreground">[{timestampForIndex(idx)} UTC]</span>{" "}
-                <span className="font-semibold uppercase">{severityOf(row)}</span>{" "}
-                <span className="font-semibold">.{row.tld}</span>{" "}
-                <span className="rf-mono-digits">{fmtSigned(row.delta_abs)}</span>{" "}
-                <span>z={Number(row.robust_z || 0).toFixed(2)}</span>
-              </button>
-            ))}
+            {feed.map((row, idx) => {
+              const z = zValue(row);
+              const anomaly = anomalyValue(row);
+              return (
+                <button
+                  type="button"
+                  key={`${row.tld}-${idx}`}
+                  className={`whitespace-nowrap rounded-lg border px-3 py-1.5 text-left text-xs tracking-wide ${intensityClass(row)}`}
+                  onClick={() => {
+                    setActive(row);
+                    track("anomaly_open", { tld: row.tld, sector: row.sector || "other" });
+                  }}
+                >
+                  <span className="rf-mono-digits text-[10px] text-muted-foreground">[{timestampForIndex(idx)} UTC]</span>{" "}
+                  <span className="font-semibold uppercase">{severityOf(row)}</span>{" "}
+                  <span className="font-semibold">.{row.tld}</span>{" "}
+                  <span className="rf-mono-digits">{fmtSigned(row.delta_abs)}</span>{" "}
+                  <span>{z == null ? "z=n/a" : `z=${z.toFixed(2)}`}</span>{" "}
+                  {z == null && anomaly != null ? <span>a={anomaly.toFixed(2)}</span> : null}
+                </button>
+              );
+            })}
           </div>
         ) : (
           <div className="px-3 py-3 text-xs text-muted-foreground">No anomaly events match current filters.</div>
@@ -197,7 +224,8 @@ export default function AnomalyTicker({ rows }: { rows: AnomalyRow[] }) {
           <div className="mt-2 grid gap-2 text-xs sm:grid-cols-3">
             <p>delta <span className="rf-mono-digits">{fmtSigned(active.delta_abs)}</span></p>
             <p>delta% <span className="rf-mono-digits">{fmtPct(active.delta_pct)}</span></p>
-            <p>robust z <span className="rf-mono-digits">{Number(active.robust_z || 0).toFixed(2)}</span></p>
+            <p>z <span className="rf-mono-digits">{zValue(active)?.toFixed(2) ?? "n/a"}</span></p>
+            <p>anomaly <span className="rf-mono-digits">{anomalyValue(active)?.toFixed(2) ?? "n/a"}</span></p>
             <p>vol30 <span className="rf-mono-digits">{Number(active.volatility || 0).toFixed(4)}</span></p>
             <p>count <span className="rf-mono-digits">{fmtInt(Number(active.count || 0))}</span></p>
             <p>sector <span>{active.sector || "other"}</span></p>
