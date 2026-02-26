@@ -82,6 +82,24 @@
       "resource_uri": "rootfetch://docs/caching_and_artifacts"
     },
     {
+      "id": "9b9fc9c93695ec278d4a6ceafaf379389876438c",
+      "source_path": "docs/cadence_calendar_2026.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Cadence Calendar 2026",
+      "text": "# RootFetch Cadence Calendar 2026\n\nStatus: Derived from `docs/strategy_2026.md`  \nPurpose: Operational scheduling of defined deliverables.\n\nAll cadence decisions derive from Phase definitions in the canonical strategy.\n\n## 1) Monthly Structural Brief\n\nFrequency: Once per calendar month  \nTiming: First full week of month  \nInput: Most recent immutable run at time of publication\n\nMust include:\n\n- `run_id`\n- manifest hash\n- DVI + band\n- regime + confidence\n- coverage summary\n- compare link (if prior run exists)\n\nMust not include:\n\n- forecasts\n- interpretation beyond artifact evidence\n\nStrategy reference: `strategy_2026.md` -> Phase 1\n\n## 2) Structural Updates (Conditional)\n\nTriggered by `meaningful delta` as defined in strategy.\nDetection source: comparison between consecutive immutable runs via `/compare` or equivalent artifact-only diff logic.\n\nPublish within 24 hours of detection.\n\nMust include:\n\n- left `run_id`\n- right `run_id`\n- compare link\n- delta summary\n- manifest hashes\n\nStrategy reference: `strategy_2026.md` -> Phase 1\n\n## 3) Regime Bulletins (Conditional)\n\nTriggered by:\n\n- r",
+      "resource_uri": "rootfetch://docs/cadence_calendar_2026"
+    },
+    {
+      "id": "48400a68abe317f99a2cc94cc5813660345f2d12",
+      "source_path": "docs/cadence_calendar_2026.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "2) Structural Updates (Conditional)",
+      "text": "d`\n- compare link\n- delta summary\n- manifest hashes\n\nStrategy reference: `strategy_2026.md` -> Phase 1\n\n## 3) Regime Bulletins (Conditional)\n\nTriggered by:\n\n- regime flip\n- DVI band crossing\n\nPublish within 24 hours.\n\nNo editorial framing.\n\nStrategy reference: `strategy_2026.md` -> Phase 3\n\n## 4) Concentration Bulletins (Conditional)\n\nTriggered by:\n\n- Top10-share threshold breach\n\nThreshold value must be documented and versioned.\n\nPublish within 24 hours.\n\nStrategy reference: `strategy_2026.md` -> Phase 3\n\n## 5) Quarterly Structural Risk Notes\n\nFrequency: Quarterly\n\nContent limited to:\n\n- concentration trajectory\n- volatility baseline trend\n- universe expansion rate\n\nMust cite runs only.\n\nStrategy reference: `strategy_2026.md` -> Phase 3\n\n## 6) No-Publication Condition\n\nIf no meaningful delta occurs within a month:\n\n- publish monthly brief regardless\n\nAbsence of change is documented.\n\n## 7) Mapping Integrity\n\n- Goals and terms source: `docs/strategy_2026.md`\n- Metrics source: `docs/kpi_dashboard_spec.md`\n\nThis document defines timing only.",
+      "resource_uri": "rootfetch://docs/cadence_calendar_2026"
+    },
+    {
       "id": "eb075b5febcb65aeb602271f14362872a8b351e8",
       "source_path": "docs/dashboard.md",
       "source_type": "doc",
@@ -98,6 +116,24 @@
       "title": "GA4 Custom Dimensions Checklist",
       "text": "# GA4 Custom Dimensions Checklist\n\nRegister these GA4 event-scoped custom dimensions so RootFetch event params appear in reports:\n\n- `tld`\n- `sector`\n- `cadence`\n- `page_type`\n- `range_days`\n- `q_len`\n- `hits_count`\n- `status`\n\nAlso useful optional dimensions:\n\n- `label`\n- `href`\n- `chart`\n- `table`\n- `sort_key`\n- `direction`",
       "resource_uri": "rootfetch://docs/ga4_custom_dimensions"
+    },
+    {
+      "id": "e1a6c93ed408d436d78b43a14e9ccb6ad57143c8",
+      "source_path": "docs/kpi_dashboard_spec.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch KPI Dashboard Specification 2026",
+      "text": "# RootFetch KPI Dashboard Specification 2026\n\nStatus: Derived from `docs/strategy_2026.md`\n\nAll metrics map to defined phase goals.\n\n## 1) Phase 1 \u2014 Structural Reference KPIs\n\nStrategy reference: `strategy_2026.md` -> Phase 1\n\nPrimary:\n\n- Number of runs archived\n- Number of structural briefs published\n- Number of structural updates published\n- Replay index growth rate\n- Run page views\n- Compare page views\n\nSecondary:\n\n- SDK verification calls (if measurable)\n- RSS feed pulls\n\n## 2) Phase 2 \u2014 Integration Layer KPIs\n\nStrategy reference: `strategy_2026.md` -> Phase 2\n\nPrimary:\n\n- npm installs (JS SDK)\n- pip installs (Python SDK)\n- Example repo clones\n- Webhook events processed\n\nSecondary:\n\n- Third-party integration mentions\n- Verified badge usage\n\n## 3) Phase 3 \u2014 Early-Warning Layer KPIs\n\nStrategy reference: `strategy_2026.md` -> Phase 3\n\nPrimary:\n\n- Regime bulletins issued\n- Concentration bulletins issued\n- Structural risk notes published\n- External citations referencing run IDs or compare links\n\n## 4) Explicit Non-KPIs\n\nThe following are not tracked as strategic indicators:\n\n- Social",
+      "resource_uri": "rootfetch://docs/kpi_dashboard_spec"
+    },
+    {
+      "id": "1806497153b4b9c0d389f711db8930091cb88d86",
+      "source_path": "docs/kpi_dashboard_spec.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "3) Phase 3 \u2014 Early-Warning Layer KPIs",
+      "text": "published\n- External citations referencing run IDs or compare links\n\n## 4) Explicit Non-KPIs\n\nThe following are not tracked as strategic indicators:\n\n- Social follower count\n- Engagement impressions\n- Viral metrics\n- Non-artifact-based mentions\n\n## 5) Reporting Interval\n\n- Monthly internal review\n- Quarterly structural assessment\n\n## 6) Final Rule\n\nEvery KPI must trace back to:\n\n- Mission\n- Phase goal\n- Operating principle\n\nIf it cannot be traced, it does not belong.\n\n## 7) Mapping Integrity\n\n- Canonical goals and terms: `docs/strategy_2026.md`\n- Operational schedule context: `docs/cadence_calendar_2026.md`\n\nThis document defines measurement only.",
+      "resource_uri": "rootfetch://docs/kpi_dashboard_spec"
     },
     {
       "id": "b05ad273fe938d1584581e30460b46b3ef1a38a2",
@@ -208,6 +244,51 @@
       "resource_uri": "rootfetch://docs/model_contract_v1"
     },
     {
+      "id": "b67137f20e399196b3e47150ed13a873fc20e63e",
+      "source_path": "docs/model_version_evolution_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Model Version Evolution Playbook",
+      "text": "# Model Version Evolution Playbook\n\nStatus: Governance  \nScope: Applies when introducing a new `model_version` (for example, `rootfetch_model_v2`).\n\n## 1) Purpose\n\nThis protocol ensures model evolution does not:\n\n- rewrite historical meaning\n- create silent metric drift\n- break artifact verifiability\n- compromise comparative continuity\n- introduce non-reproducible outputs\n\nModel evolution must preserve auditability.\nModel evolution is permitted only when stability of meaning can be preserved through versioning.\n\n## 2) Permitted Triggers for Model Evolution\n\nA new `model_version` may be introduced only when at least one condition is true:\n\n- mathematical formula change (`DVI` components, weights, normalization logic)\n- regime state machine change (thresholds, hysteresis, confidence logic)\n- input schema expansion or structural change\n- bug correction that materially affects computed outputs\n- calibration window redefinition\n\nProhibited:\n\n- cosmetic renaming\n- performance optimizations without output change\n- undocumented threshold tweaks\n- silent weight changes\n\n## 3) Pre-Release Requ",
+      "resource_uri": "rootfetch://docs/model_version_evolution_playbook"
+    },
+    {
+      "id": "be51496d5154c413a50e3420d79562299360d077",
+      "source_path": "docs/model_version_evolution_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "2) Permitted Triggers for Model Evolution",
+      "text": "ohibited:\n\n- cosmetic renaming\n- performance optimizations without output change\n- undocumented threshold tweaks\n- silent weight changes\n\n## 3) Pre-Release Requirements\n\nBefore introducing `model_version_vX`, all items below are mandatory.\n\n### A) Formal Diff Documentation\n\nCreate:\n\n- `docs/model_version_vX_diff.md`\n\nMust include:\n\n- exact mathematical differences\n- threshold changes\n- calibration window changes\n- expected directional impact\n- non-backward-compatible behaviors\n\n### B) Backward Compatibility Audit\n\nFor at least 3 historical runs:\n\n1. recompute using old model\n2. recompute using new model\n3. produce a comparison table containing:\n   - DVI old -> new\n   - regime old -> new\n   - confidence delta\n\nThis table must be published internally before rollout.\n\n### C) Determinism Test\n\nFor identical inputs:\n\n- new model must produce identical output across machines\n- regression tests must be updated\n- reproducibility notebook must be updated\n\n## 4) Version Transition Protocol\n\nWhen deploying a new `model_version`:\n\n1. publish final run under old model\n2. publish first run under n",
+      "resource_uri": "rootfetch://docs/model_version_evolution_playbook"
+    },
+    {
+      "id": "955e6771c1e4103d1fb0cc7e75ac5c7d5d2f40d8",
+      "source_path": "docs/model_version_evolution_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "C) Determinism Test",
+      "text": "ook must be updated\n\n## 4) Version Transition Protocol\n\nWhen deploying a new `model_version`:\n\n1. publish final run under old model\n2. publish first run under new model\n3. publish mandatory transition compare snapshot between the final old-model run and the first new-model run\n4. issue Model Version Transition Notice (separate from Structural Brief)\n\nTemporal invariant (required):\n\n- `old_model_final_run.publish_commit_timestamp_utc < new_model_first_run.publish_commit_timestamp_utc`\n- if violated, transition is invalid\n\nTransition notice must include:\n\n- old model version\n- new model version\n- run IDs for both\n- compare link\n- explicit statement: `Model logic changed.`\n\n## 5) Comparative Integrity Rules\n\n- `/compare` may compare runs across model versions.\n- Bulletin must explicitly state model transition when versions differ.\n- If regime or DVI band change is attributable solely to model logic transition, bulletin must include explicit line: `Change attributed to model_version transition.`\n- Regime flip caused by model change must be labeled `model-induced`.\n- Structural Briefs mus",
+      "resource_uri": "rootfetch://docs/model_version_evolution_playbook"
+    },
+    {
+      "id": "122eb881a3665bd77cd65169566164fac79fda2b",
+      "source_path": "docs/model_version_evolution_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "5) Comparative Integrity Rules",
+      "text": "de explicit line: `Change attributed to model_version transition.`\n- Regime flip caused by model change must be labeled `model-induced`.\n- Structural Briefs must not aggregate data across different `model_version` values without explicit disclosure.\n\nProhibited:\n\n- implying structural shift when change is caused by model logic transition.\n\n## 6) Archive Integrity Rules\n\n- Historical runs remain immutable.\n- Historical outputs are not recomputed retroactively.\n- Archive reflects outputs as computed at publish time.\n\nIf recalculation is required:\n\n- publish a new run under the new model\n- do not overwrite old artifacts\n\n## 7) Governance Safeguards\n\nInvariant:\n\n- if `model_version_left != model_version_right`, bulletin must include a version disclosure block.\n- if `model_version_left != model_version_right`, KPI log must set `model_transition=true`.\n- KPI log must include `model_version_old`, `model_version_new`, and `transition_notice_published=true`.\n\n## 8) Rollback Protocol\n\nIf new model produces incorrect outputs:\n\n1. halt publication\n2. revert to previous `model_version`\n3. publish",
+      "resource_uri": "rootfetch://docs/model_version_evolution_playbook"
+    },
+    {
+      "id": "68e25e713de7dd056893eaff4437bd4962e02d54",
+      "source_path": "docs/model_version_evolution_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "7) Governance Safeguards",
+      "text": "notice_published=true`.\n\n## 8) Rollback Protocol\n\nIf new model produces incorrect outputs:\n\n1. halt publication\n2. revert to previous `model_version`\n3. publish correction note referencing affected run IDs\n\nPreservation rule:\n\n- preserve invalidated artifacts\n- label invalidated artifacts as `superseded`\n- no deletion\n- affected run IDs must remain accessible and clearly labeled as `superseded`; no artifact removal is permitted\n\n## 9) Success Criteria for Safe Model Evolution\n\n- no silent metric drift\n- no unexplained regime shifts\n- all model changes documented\n- all version transitions artifact-linked\n- reproducibility notebook updated\n\nThis protocol prevents the highest-risk failure class: quiet changes to model meaning.",
+      "resource_uri": "rootfetch://docs/model_version_evolution_playbook"
+    },
+    {
       "id": "0df05083a0d73c361e8d60eda1a2431621872038",
       "source_path": "docs/operational_guarantees.md",
       "source_type": "doc",
@@ -226,6 +307,42 @@
       "resource_uri": "rootfetch://docs/operational_guarantees"
     },
     {
+      "id": "efc8a8536e117ac2311a5b329b1330a4211ba7dc",
+      "source_path": "docs/quarterly_drill_cadence.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Quarterly Drill Cadence",
+      "text": "# Quarterly Drill Cadence\n\nStatus: Governance  \nScope: Defines recurring validation drills for RootFetch operational integrity.\n\nDerived from:\n\n- `docs/strategy_2026.md`\n- `docs/regime_flip_playbook.md`\n- `docs/model_version_evolution_playbook.md`\n\nPurpose: Ensure governance mechanisms remain executable under pressure.\n\n## 1) Drill Philosophy\n\nDrills exist to validate:\n\n- detection correctness\n- artifact-chain integrity\n- publication discipline\n- temporal invariants\n- version governance\n- halt behavior under corruption\n\nDrills are required even when no live events occur.\n\nGovernance must be exercised, not assumed.\n\n## 2) Quarterly Drill Requirements\n\nFrequency: once per calendar quarter (minimum)  \nRecommended timing: first month of each quarter\n\nEach quarter must include:\n\n### A) Regime Flip Drill\n\nSimulated regime change between immutable runs.\n\nMust validate:\n\n- trigger detection\n- artifact validation checklist\n- bulletin draft compliance\n- SLA timing enforcement\n- KPI logging\n- drift audit\n\nReference: `docs/regime_flip_playbook.md`\n\n### B) Model Version Evolution Drill\n\nSimulated",
+      "resource_uri": "rootfetch://docs/quarterly_drill_cadence"
+    },
+    {
+      "id": "ac0163cdf2e6ac4a078e6e291022054299847d22",
+      "source_path": "docs/quarterly_drill_cadence.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "A) Regime Flip Drill",
+      "text": "raft compliance\n- SLA timing enforcement\n- KPI logging\n- drift audit\n\nReference: `docs/regime_flip_playbook.md`\n\n### B) Model Version Evolution Drill\n\nSimulated model transition (`vX -> vY`).\n\nMust validate:\n\n- diff documentation existence\n- backward compatibility audit process\n- transition compare snapshot\n- version disclosure block enforcement\n- KPI `model_transition` logging\n- temporal invariant enforcement\n\nReference: `docs/model_version_evolution_playbook.md`\n\n### C) Artifact Corruption Drill\n\nSimulated manifest mismatch or file corruption.\n\nMust validate:\n\n- `verifyManifest` failure detection\n- compare degraded-state handling\n- bulletin halt enforcement\n- no publication allowed\n- incident log entry created (location must be documented, for example `docs/incidents/` or `logs/`)\n\nReference: `docs/regime_flip_playbook.md` (Artifact Validation Checklist section)\n\n## 3) Drill Execution Rules\n\n- all drills must use stored immutable artifacts or controlled synthetic fixtures\n- no drill may bypass SDK verification\n- drill reports must be documented and retained in repository\n- each dri",
+      "resource_uri": "rootfetch://docs/quarterly_drill_cadence"
+    },
+    {
+      "id": "7b3df8a5c3dcef2c568856eb5f0065fddae6ad26",
+      "source_path": "docs/quarterly_drill_cadence.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "3) Drill Execution Rules",
+      "text": "table artifacts or controlled synthetic fixtures\n- no drill may bypass SDK verification\n- drill reports must be documented and retained in repository\n- each drill must produce a `PASS` or `FAIL` status\n\nFailure handling:\n\n- `FAIL` must result in governance hardening before next quarter\n\n## 4) Reporting Requirements\n\nEach drill must generate:\n\n- simulation metadata\n- checklist execution results\n- `PASS/FAIL` status\n- identified weakest link\n- recommended hardening (if any)\n\nDrill reports must not contain editorial narrative.\n\n## 5) KPI Logging\n\nEach quarterly drill must log:\n\n- drill type\n- date executed\n- `PASS/FAIL`\n- SLA compliance (if applicable)\n- invariants violated (if any)\n\nDrill execution counts toward governance KPIs under Phase 3.\n\n## 6) Governance Invariants\n\nQuarterly drills must confirm:\n\n- artifact immutability remains intact\n- replay index integrity maintained\n- model version discipline preserved\n- no silent drift detected\n- all governance documents remain consistent\n- `publish_commit_timestamp_utc <= detection_timestamp_utc <= publication_timestamp_utc` remains enforc",
+      "resource_uri": "rootfetch://docs/quarterly_drill_cadence"
+    },
+    {
+      "id": "699291159d97fe1be928fcc2e1449b086200b37d",
+      "source_path": "docs/quarterly_drill_cadence.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "6) Governance Invariants",
+      "text": "ft detected\n- all governance documents remain consistent\n- `publish_commit_timestamp_utc <= detection_timestamp_utc <= publication_timestamp_utc` remains enforced (else `SLA=INVALID`)\n\nIf any invariant fails, immediate governance review is required.\n\n## 7) Non-Negotiable Rule\n\nDrills must occur even in periods of structural stability.\n\nAbsence of live regime changes does not suspend governance testing.",
+      "resource_uri": "rootfetch://docs/quarterly_drill_cadence"
+    },
+    {
       "id": "45adfd0a4fb8845dffce69548e731d9774991835",
       "source_path": "docs/rag.md",
       "source_type": "doc",
@@ -233,6 +350,60 @@
       "title": "RootFetch RAG",
       "text": "# RootFetch RAG\n\nRootFetch supports two RAG forms:\n\n1. Local SQLite FTS index under `.ai/rag/` (developer tooling)\n2. Committed static chunks under `data/rag/` (Vercel MCP runtime)\n\n## Indexed Sources\n\n- `README.md`\n- `docs/*.md`\n- `data/digests/*.md` (capped)\n\n## Chunking\n\nStatic build defaults:\n\n- chunk size: 1100 chars\n- overlap: 160 chars\n- digest cap: last 60\n- hard chunk cap: 2000\n\nIf chunk cap is exceeded, oldest digest chunks are dropped first.\n\n## Static Build Command\n\n```bash\nrootfetch rag build-static\n```\n\nOutputs:\n\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n\nThese files are committed and served to Vercel MCP.\n\n## Local SQLite Build (optional)\n\n```bash\nrootfetch rag build\nrootfetch rag search \"count_ns_sld\"\n```\n\nSQLite index path:\n\n- `.ai/rag/rootfetch_rag.sqlite` (gitignored)\n\n## MCP Integration\n\nVercel `rag_search` and `rag_get_chunk` read static `rag_chunks.json`.\nSearch uses lexical scoring (token overlap + phrase boost) for fast, cheap retrieval.",
       "resource_uri": "rootfetch://docs/rag"
+    },
+    {
+      "id": "3ad70a7d0d07b324735b635342b97c88097c4145",
+      "source_path": "docs/regime_flip_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Regime Flip Playbook",
+      "text": "# Regime Flip Playbook\n\nStatus: Operational  \nScope: Applies when Regime_v1 classification changes between consecutive immutable runs.\n\n## 1) Trigger Conditions\n\nA Regime Flip Bulletin is triggered when:\n\n- `regime_left != regime_right`\n- OR\n- DVI band changes between consecutive runs, as defined by DVI_v1 band thresholds in `strategy_2026.md`.\n\nA single bulletin may be issued per consecutive run pair. Multiple triggers (for example, regime change + band change) are consolidated into one bulletin.\n\nDetection source:\n\n- consecutive immutable runs\n- verified via `/compare`\n- artifact-only diff logic\n\nNot allowed as trigger source:\n\n- pre-run alerts\n- internal signal-only triggers without immutable run evidence\n\nTime reference:\n\n- snapshot UTC timestamp of the right-hand run\n- `publish_commit_timestamp_utc` of the right-hand run (required incident metadata field)\n\n## 2) Immediate Response SLA\n\nPublication SLA:\n\n- within 24 hours of run publish\n- no exceptions\n\nSLA clock start:\n\n- `publish_commit_timestamp_utc` of the right-hand run (immutable run publish commit timestamp on `main`)\n\nTem",
+      "resource_uri": "rootfetch://docs/regime_flip_playbook"
+    },
+    {
+      "id": "1e3603507ce077d0b819b4fee615e1c385e2092b",
+      "source_path": "docs/regime_flip_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "2) Immediate Response SLA",
+      "text": "of run publish\n- no exceptions\n\nSLA clock start:\n\n- `publish_commit_timestamp_utc` of the right-hand run (immutable run publish commit timestamp on `main`)\n\nTemporal invariant (required):\n\n- `publish_commit_timestamp_utc <= detection_timestamp_utc <= publication_timestamp_utc`\n- if violated, bulletin is invalid, must not be published, and SLA must be recorded as `INVALID` (not `Y/N`)\n\nIf triggered outside business hours:\n\n- draft prepared within 12 hours\n- publish within 24 hours\n\nNo delay for narrative refinement.  \nNo \u201cwait for clarity\u201d step.\n\n## 3) Artifact Validation Checklist (Must Complete Before Publish)\n\n1. Verify both runs via SDK:\n   - `verifyManifest(run_left)`\n   - `verifyManifest(run_right)`\n2. Confirm for both runs:\n   - `valid=true`\n   - `expected_count == checked_count`\n3. Confirm compare page integrity:\n   - `/compare?left=<run_left>&right=<run_right>`\n   - no degraded state\n   - no missing files\n4. Confirm replay index updated and ordered correctly.\n5. Confirm snapshot hash and `model_version` behavior:\n   - if unchanged, proceed.\n   - if changed, bulletin must expl",
+      "resource_uri": "rootfetch://docs/regime_flip_playbook"
+    },
+    {
+      "id": "bb319876851757e774d39703615d8275669f0ec0",
+      "source_path": "docs/regime_flip_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "3) Artifact Validation Checklist (Must Complete Before Publish)",
+      "text": "play index updated and ordered correctly.\n5. Confirm snapshot hash and `model_version` behavior:\n   - if unchanged, proceed.\n   - if changed, bulletin must explicitly state the version transition and reference version change documentation for the new version before publication.\n\n6. No partial compare rule:\n   - bulletin must not be published if compare output reflects degraded state.\n\nIf any validation fails:\n\n- do not publish bulletin\n- log internal incident\n- remediate artifact integrity first\n\n## 4) Regime Flip Bulletin Template\n\nTitle:\n\n- `RootFetch Regime Change Bulletin \u2014 <UTC date>`\n\nRequired fields:\n\n- left run ID\n- right run ID\n- `publish_commit_timestamp_utc` (right-hand run)\n- compare link\n- DVI old -> new\n- band old -> new\n- regime old -> new\n- confidence old -> new\n- delta HHI\n- delta Top10 share\n- coverage delta (if any)\n- manifest hashes (both runs)\n\nEvidence policy:\n\n- include direct evidence links only\n\nProhibited content:\n\n- forecasts\n- interpretation beyond artifact deltas\n- market implications\n- policy implications\n\nTone:\n\n- structural documentation\n\n## 5) Distrib",
+      "resource_uri": "rootfetch://docs/regime_flip_playbook"
+    },
+    {
+      "id": "8a1764e450037b1a2099b6213131ba1a408ac1dc",
+      "source_path": "docs/regime_flip_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "4) Regime Flip Bulletin Template",
+      "text": "ited content:\n\n- forecasts\n- interpretation beyond artifact deltas\n- market implications\n- policy implications\n\nTone:\n\n- structural documentation\n\n## 5) Distribution Checklist\n\n1. Publish markdown bulletin under `docs/briefs/`.\n2. Push commit to `main`.\n3. Post minimal distribution thread containing only:\n   - regime old -> new\n   - DVI delta\n   - compare link\n   - manifest verified\n4. Post reply containing only verification instructions:\n   - SDK example command(s)\n   - notebook link\n\nNo additional commentary.\n\n## 6) KPI Logging\n\nLog the following:\n\n- timestamp of detection\n- timestamp of publication\n- `publish_commit_timestamp_utc` (right-hand run)\n- SLA compliance (`Y/N/INVALID`)\n- runs referenced (`left`, `right`)\n- external citation count (manual log)\n\nKPI log entry (including dashboard input update) must be completed within 24 hours of publication.\n\n## 7) Post-Incident Review (Within 7 Days)\n\nReview checklist:\n\n- detection timeliness\n- SLA compliance\n- artifact validation cleanliness\n- publication remained artifact-linked only\n- narrative drift (`Y/N`)\n\nDocument findings intern",
+      "resource_uri": "rootfetch://docs/regime_flip_playbook"
+    },
+    {
+      "id": "036091f7c7dd1ea22581d780528407534d1790ef",
+      "source_path": "docs/regime_flip_playbook.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "7) Post-Incident Review (Within 7 Days)",
+      "text": "on timeliness\n- SLA compliance\n- artifact validation cleanliness\n- publication remained artifact-linked only\n- narrative drift (`Y/N`)\n\nDocument findings internally.\n\nNo public postmortem unless artifact inconsistency occurred.\n\n## 8) Guardrails\n\n- no predictive language\n- no subjective adjectives\n- no expansion beyond structural delta\n- no linking to external speculation\n- no modification of artifact outputs\n- no changes to prior briefs post-publication (errata require separate correction note)\n\nRootFetch documents structure.  \nRootFetch does not interpret it.",
+      "resource_uri": "rootfetch://docs/regime_flip_playbook"
+    },
+    {
+      "id": "a59fdb5562beb6595b1183b8b5480c32be5fcd3d",
+      "source_path": "docs/run_checklist_template.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Next Run Checklist (Template)",
+      "text": "# RootFetch Next Run Checklist (Template)\n\nStatus: Operations Template  \nScope: Repeatable checklist for each local ingestion + publish cycle.\n\n## 1) Pre-Run\n\n- [ ] Confirm CZDS credentials are valid.\n- [ ] Confirm local runner environment is loaded.\n- [ ] Confirm `model_version` is unchanged or intentionally changed with governance docs prepared.\n- [ ] Confirm no pending governance changes affecting this run.\n\n## 2) Run\n\n- [ ] Execute `scripts/local_run_hybrid.sh`.\n- [ ] Confirm replay index updated.\n- [ ] Confirm immutable run published.\n- [ ] Confirm manifest verification is valid (`expected_count == checked_count`).\n\n## 3) Post-Run\n\n- [ ] Confirm `/runs` shows the new run.\n- [ ] Confirm `/compare` works against prior run.\n- [ ] Log run in KPI dashboard inputs.\n\n## 4) Discipline\n\n- [ ] No new interpretation step unless `meaningful delta` is triggered.\n- [ ] If `meaningful delta` triggered, route to the required playbook and publication path.",
+      "resource_uri": "rootfetch://docs/run_checklist_template"
     },
     {
       "id": "72b2841ddb2a4ac18fd733bbcef5dc10a6411225",
@@ -296,6 +467,51 @@
       "title": "Latest Snapshot",
       "text": "d_tlds_count`, `counted_today_count`, `counted_today_core_count`, `counted_today_rolling_count`, `coverage_pct_today`)\n- core mover arrays (`core_movers_abs`, `core_movers_pct`)\n- rolling updates (`rolling_updates`)\n- compatibility mover arrays (`top_movers_abs`, `top_movers_pct`, `top_decliners_abs`)\n- anomalies and sector snapshot\n- model contract fields:\n  - `model_version`\n  - `methodology_version`\n  - `dvi_components`\n  - `dvi_band`\n  - `regime`\n  - `regime_confidence`\n  - `regime_inputs`\n  - `regime_base`\n  - `regime_candidate`\n  - `regime_duration_snapshots`\n  - `model_calibration`\n\nSee `docs/model_contract_v1.md` for the exact formulas, thresholds, and versioning policy.",
       "resource_uri": "rootfetch://docs/signal_spec"
+    },
+    {
+      "id": "ff543e534d776a47148849af958ac80f3a3f873b",
+      "source_path": "docs/strategy_2026.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "RootFetch Strategy 2026 (Canonical Doctrine)",
+      "text": "# RootFetch Strategy 2026 (Canonical Doctrine)\n\nStatus: Canonical  \nPrecedence: This document defines mission, terminology, phase goals, guardrails, and success conditions for 2026.\n\nDerived documents:\n\n- `docs/cadence_calendar_2026.md` (operational schedule)\n- `docs/kpi_dashboard_spec.md` (measurement layer)\n\nDerived documents must not redefine terms or alter phase goals independently.\n\n## 1) Mission\n\nRootFetch exists to be the verifiable structural chronicle of the namespace, built from DNS-visible evidence and immutable artifacts.\n\nRootFetch is not:\n\n- news\n- opinion\n- forecasting\n\nRootFetch is:\n\n- measurement\n- documentation\n- evidence\n\nAll outputs must reflect this distinction.\n\n## 2) Operating Principles\n\n1. Determinism over convenience\n2. Evidence over narrative\n3. Immutability over recomputation\n4. Versioned contracts over silent change\n5. Discipline over speed\n\nThese principles apply to product design, publication, integration, and governance.\n\n## 3) Canonical Terms\n\nThe following terms are authoritative for all 2026 planning and reporting.\n\n- `run`  \nImmutable snapshot arti",
+      "resource_uri": "rootfetch://docs/strategy_2026"
+    },
+    {
+      "id": "0066e3f4fb76eab98e0075526a1ecb60ea840f93",
+      "source_path": "docs/strategy_2026.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "2) Operating Principles",
+      "text": "tegration, and governance.\n\n## 3) Canonical Terms\n\nThe following terms are authoritative for all 2026 planning and reporting.\n\n- `run`  \nImmutable snapshot artifact set under `data/artifacts/runs/<run_id>/...`\n\n- `compare link`  \n`/compare?left=<run_id>&right=<run_id>`  \nUsed exclusively for run-to-run delta inspection.\n\n- `structural brief`  \nScheduled monthly evidence report.\n\n- `structural update`  \nUnscheduled delta report published when trigger conditions are met.\n\n- `regime bulletin`  \nUpdate published within 24 hours of a regime flip or DVI band crossing.\n\n- `concentration bulletin`  \nUpdate published when Top10-share threshold breach occurs.\n\n- `structural risk note`  \nQuarterly summary of concentration, volatility baseline, and universe expansion.\n\n- `meaningful delta`  \nOne or more of:\n  - regime change\n  - DVI band change\n  - Top10-share shift beyond configured threshold\n  - coverage universe change (approved TLD count shift)\n\n- `artifact-linked`  \nIncludes:\n  - run ID(s)\n  - manifest hash(es)\n  - compare link (where applicable)\n\nTerminology must remain stable unless revis",
+      "resource_uri": "rootfetch://docs/strategy_2026"
+    },
+    {
+      "id": "617ec6978a8f6dca680986cd4d0894d9240e8526",
+      "source_path": "docs/strategy_2026.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "3) Canonical Terms",
+      "text": "unt shift)\n\n- `artifact-linked`  \nIncludes:\n  - run ID(s)\n  - manifest hash(es)\n  - compare link (where applicable)\n\nTerminology must remain stable unless revised in this document.\n\n## 4) Phase Architecture\n\n### Phase 1 (0\u20136 weeks) \u2014 Structural Reference\n\nGoal: Establish a recurring structural record.\n\nDeliverables:\n\n1. Monthly Structural Brief (fixed monthly cadence)\n2. Structural Update upon meaningful delta\n3. Brief archive page\n4. Regime history continuity panel\n5. RSS/JSON feed for briefs\n\nGuardrails:\n\n- No speculation\n- No forecasting\n- Every brief cites `run_id` and manifest hash\n- Every delta report references `/compare`\n\nSuccess condition:\n\n- >= 2 structural briefs published\n- >= 4 structural updates published\n- Replay index >= 10 runs\n\n### Phase 2 (6\u201312 weeks) \u2014 Integration Layer\n\nGoal: Make RootFetch embedded.\n\nDeliverables:\n\n1. SDK + Agent + Notebook announcement\n2. 2\u20133 integration templates\n3. Time-to-first-verified-run < 5 minutes\n4. \u201cVerified by RootFetch\u201d badge asset and usage guide\n\nGuardrails:\n\n- SDK remains a thin transport + verification wrapper\n- No model interpr",
+      "resource_uri": "rootfetch://docs/strategy_2026"
+    },
+    {
+      "id": "5bfbb6c2e1ac8df82537f762ca92389083eb95c8",
+      "source_path": "docs/strategy_2026.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Phase 2 (6\u201312 weeks) \u2014 Integration Layer",
+      "text": "ed-run < 5 minutes\n4. \u201cVerified by RootFetch\u201d badge asset and usage guide\n\nGuardrails:\n\n- SDK remains a thin transport + verification wrapper\n- No model interpretation logic inside SDK\n- No caching behavior that alters determinism semantics\n\nSuccess condition:\n\n- SDK adoption measurable\n- >= 1 third-party integration observed\n\n### Phase 3 (12+ weeks) \u2014 Early-Warning Layer\n\nGoal: Become a structural early-warning reference.\n\nDeliverables:\n\n1. Regime Change Bulletin template\n2. Concentration Shift Bulletin template\n3. Quarterly Structural Risk Notes\n\nGuardrails:\n\n- Bulletins are artifact-linked only\n- No editorial framing\n- Each bulletin includes run page link and compare link\n\nSuccess condition:\n\n- >= 3 regime bulletins published\n- >= 1 external citation observed\n\n## 5) Monetization Discipline\n\nMonetization may be considered only when all conditions are true:\n\n- >= 6 structural briefs published\n- >= 20 runs archived\n- >= 3 regime shifts documented\n- SDK adoption observable\n\nUntil these conditions are satisfied:\n\n- No paywalls\n- No feature gating tied to core evidence surfaces\n\nMonetiz",
+      "resource_uri": "rootfetch://docs/strategy_2026"
+    },
+    {
+      "id": "095932f0bed3b5bb2185394166556af0d171901b",
+      "source_path": "docs/strategy_2026.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "5) Monetization Discipline",
+      "text": "me shifts documented\n- SDK adoption observable\n\nUntil these conditions are satisfied:\n\n- No paywalls\n- No feature gating tied to core evidence surfaces\n\nMonetization must follow structural dependence, not precede it.\n\n## 6) Version Governance\n\n- `model_version` changes must be documented and announced\n- `methodology_version` increments must be logged with effective date\n- No silent metric redefinition\n- Historical archive remains immutable\n\nModel evolution must preserve auditability.\n\n## 7) Execution Mapping\n\nOperational schedule: `docs/cadence_calendar_2026.md`  \nMeasurement mapping: `docs/kpi_dashboard_spec.md`\n\nThese documents operationalize this doctrine and must align strictly with it.",
+      "resource_uri": "rootfetch://docs/strategy_2026"
     },
     {
       "id": "50c8bc48ddb0435d0d879bbfeabbedd2bb2076d6",
@@ -370,48 +586,48 @@
       "resource_uri": "rootfetch://digest/2026-02-25"
     },
     {
-      "id": "e4195c796166cbde83d0e1bd6278bbecd4b5e54a",
+      "id": "059e113187f2d9575297457d20edb3767c803e62",
       "source_path": "data/digests/2026-02-26.md",
       "source_type": "digest",
       "date_utc": "2026-02-26",
       "title": "RootFetch Daily Digest \u2014 2026-02-26",
-      "text": "# RootFetch Daily Digest \u2014 2026-02-26\n\n- Run ID: 9a5a117b-5413-4c43-b124-9c2b9fa9d181\n- Mode: hybrid\n- Approved TLDs observed: 908\n- Observed today: 71 (core=3, rolling=68)\n- Snapshot rows today: 908\n\n## Cross-sectional highlights\n- Total delegated counted today: 64,397,738\n- Distribution (p50 / p90 / p99 / max): 1,730 / 48,262 / 1,204,700 / 11,661,920\n- Concentration (Top1 / Top10 share): 18.11% / 65.17% (HHI=0.0711)\n- New approvals vs 2026-02-25: +57 / -0\n- Added approvals (first 10): abogado, abudhabi, adult, bayern, beer, biz, blackfriday, boston, casa, catholic\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 65.17% of delegations; median TLD has 1,730 names; 345 TLDs have <100.\n- [movers/positive] Core movers: .xyz +42,205, .app +3,613, .dev +904 (day-over-day).\n- [approvals/info] New approvals today: +57 (abogado, abudhabi, adult).\n- [coverage/positive] Observed today: 71 (core+rolling) out of 908 approved TLDs; snapshot rows today: 908.\n\n## Security Status\n- Safe aggregates checks date: 2026-02-26\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: Tru",
+      "text": "# RootFetch Daily Digest \u2014 2026-02-26\n\n- Run ID: 079e6076-7453-466c-a4a7-939e7cadb1fb\n- Mode: hybrid\n- Approved TLDs observed: 909\n- Observed today: 71 (core=3, rolling=68)\n- Snapshot rows today: 909\n\n## Cross-sectional highlights\n- Total delegated counted today: 64,405,742\n- Distribution (p50 / p90 / p99 / max): 1,744 / 48,230 / 1,203,924 / 11,661,920\n- Concentration (Top1 / Top10 share): 18.11% / 65.16% (HHI=0.0711)\n- New approvals vs 2026-02-25: +58 / -0\n- Added approvals (first 10): abogado, abudhabi, adult, bayern, beer, biz, blackfriday, boston, casa, catholic\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 65.16% of delegations; median TLD has 1,744 names; 345 TLDs have <100.\n- [movers/positive] Core movers: .xyz +42,205, .app +3,613, .dev +904 (day-over-day).\n- [approvals/info] New approvals today: +58 (abogado, abudhabi, adult).\n- [coverage/positive] Observed today: 71 (core+rolling) out of 909 approved TLDs; snapshot rows today: 909.\n\n## Security Status\n- Safe aggregates checks date: 2026-02-26\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: Tru",
       "resource_uri": "rootfetch://digest/2026-02-26"
     },
     {
-      "id": "594282dc51f78420feb97db443404e1d5c85c1aa",
+      "id": "b862e4e21be23a66d852f4a117ed74ec8ae6c724",
       "source_path": "data/digests/2026-02-26.md",
       "source_type": "digest",
       "date_utc": "2026-02-26",
       "title": "Daily Insights",
-      "text": "shot rows today: 908.\n\n## Security Status\n- Safe aggregates checks date: 2026-02-26\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- vercel_read_only: True\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| org | 11661920 | 18.109207500424937 | other | baseline |\n| xyz | 8109216 | 12.59239260857268 | other | core |\n| top | 5880168 | 9.131016372034685 | other | baseline |\n| info | 5157829 | 8.009332563823904 | other | baseline |\n| online | 3234094 | 5.022061489178394 | other | baseline |\n| store | 2084575 | 3.2370314000780587 | commerce | baseline |\n| site | 1717307 | 2.666719442847511 | other | baseline |\n| vip | 1567091 | 2.4334565912858617 | other | baseline |\n| sbs | 1346321 | 2.0906339909019787 | other | baseline |\n| biz | 1210131 | 1.8791514074609263 | other | baseline |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 |",
+      "text": "shot rows today: 909.\n\n## Security Status\n- Safe aggregates checks date: 2026-02-26\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- vercel_read_only: True\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| org | 11661920 | 18.10695698529488 | other | baseline |\n| xyz | 8109216 | 12.59082769359291 | other | core |\n| top | 5880168 | 9.129881618319065 | other | baseline |\n| info | 5157829 | 8.00833720695276 | other | baseline |\n| online | 3234094 | 5.021437374326034 | other | baseline |\n| store | 2084575 | 3.236629119186299 | commerce | baseline |\n| site | 1717307 | 2.666388037265373 | other | baseline |\n| vip | 1567091 | 2.4331541743591747 | other | baseline |\n| sbs | 1346321 | 2.0903741781284038 | other | baseline |\n| biz | 1210131 | 1.8789178766079584 | other | baseline |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 | ok",
       "resource_uri": "rootfetch://digest/2026-02-26"
     },
     {
-      "id": "409a17a813c7d352c000f0408dcdf739b2fdf2c5",
+      "id": "8c8cacc964c04b037411c8d71bcdc5b19f446a9e",
       "source_path": "data/digests/2026-02-26.md",
       "source_type": "digest",
       "date_utc": "2026-02-26",
       "title": "Core Daily Movers (Absolute)",
-      "text": "elta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 | ok |\n| dev | 598447 | 904.0 | 0.0015128618358846 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 | ok |\n| dev | 598447 | 904.0 | 0.0015128618358846 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 598447 | 904.0 | 0.0015128618358846 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 | ok |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| today | 205126 | 2026-02-25 | 1.0 | -4251.0 | -0.0203030896421287 |\n| boutique | 14445 | 2026-02-25 | 1.0 | 1897.0 | 0.1511794708320051 |\n| mobi | 405929 | 2026-02-25 | 1.0 | -174.0",
+      "text": "a_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 | ok |\n| dev | 598447 | 904.0 | 0.0015128618358846 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 | ok |\n| dev | 598447 | 904.0 | 0.0015128618358846 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 598447 | 904.0 | 0.0015128618358846 | ok |\n| app | 1089801 | 3613.0 | 0.0033263118355201 | ok |\n| xyz | 8109216 | 42205.0 | 0.0052318014689703 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| today | 205126 | 2026-02-25 | 1.0 | -4251.0 | -0.0203030896421287 |\n| boutique | 14445 | 2026-02-25 | 1.0 | 1897.0 | 0.1511794708320051 |\n| mobi | 405929 | 2026-02-25 | 1.0 | -174.0 | -",
       "resource_uri": "rootfetch://digest/2026-02-26"
     },
     {
-      "id": "5ea4a163ae7278a4081b19c8880488cc872edcc7",
+      "id": "cc344a332b75839432f312b453c147a1bf6767cb",
       "source_path": "data/digests/2026-02-26.md",
       "source_type": "digest",
       "date_utc": "2026-02-26",
       "title": "Rolling Updates (Since Last Seen)",
-      "text": "02-25 | 1.0 | -4251.0 | -0.0203030896421287 |\n| boutique | 14445 | 2026-02-25 | 1.0 | 1897.0 | 0.1511794708320051 |\n| mobi | 405929 | 2026-02-25 | 1.0 | -174.0 | -0.0004284627298985 |\n| trade | 22959 | 2026-02-25 | 1.0 | 124.0 | 0.0054302605649222 |\n| mom | 51017 | 2026-02-25 | 1.0 | 92.0 | 0.0018065783014236 |\n| social | 46011 | 2026-02-25 | 1.0 | -79.0 | -0.0017140377522239 |\n| systems | 40476 | 2026-02-25 | 1.0 | 51.0 | 0.0012615955473098 |\n| lgbt | 12145 | 2026-02-25 | 1.0 | -50.0 | -0.00410004100041 |\n| group | 117553 | 2026-02-25 | 1.0 | 39.0 | 0.000331875351022 |\n| ing | 18992 | 2026-02-25 | 1.0 | 31.0 | 0.0016349348663045 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2921306 | 7222.0 | 0.0024783087927458 | 6 |\n| commerce | 2125066 | 129.0 | 6.070768215716513e-05 | 4 |\n| finance | 60955 | 11.0 | 0.0001804935678655 | 3 |\n| geo_local | 154626 | 58079.0 | 0.6015619335660352 | 4 |\n| media_social | 1011077 | 1449.0 | 0.0014351820670583 | 4 |\n| oth",
+      "text": "25 | 1.0 | -4251.0 | -0.0203030896421287 |\n| boutique | 14445 | 2026-02-25 | 1.0 | 1897.0 | 0.1511794708320051 |\n| mobi | 405929 | 2026-02-25 | 1.0 | -174.0 | -0.0004284627298985 |\n| trade | 22959 | 2026-02-25 | 1.0 | 124.0 | 0.0054302605649222 |\n| mom | 51017 | 2026-02-25 | 1.0 | 92.0 | 0.0018065783014236 |\n| social | 46011 | 2026-02-25 | 1.0 | -79.0 | -0.0017140377522239 |\n| systems | 40476 | 2026-02-25 | 1.0 | 51.0 | 0.0012615955473098 |\n| lgbt | 12145 | 2026-02-25 | 1.0 | -50.0 | -0.00410004100041 |\n| group | 117553 | 2026-02-25 | 1.0 | 39.0 | 0.000331875351022 |\n| ing | 18992 | 2026-02-25 | 1.0 | 31.0 | 0.0016349348663045 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2921306 | 7222.0 | 0.0024783087927458 | 6 |\n| commerce | 2125066 | 129.0 | 6.070768215716513e-05 | 4 |\n| finance | 60955 | 11.0 | 0.0001804935678655 | 3 |\n| geo_local | 154626 | 58079.0 | 0.6015619335660352 | 4 |\n| media_social | 1011077 | 1449.0 | 0.0014351820670583 | 4 |\n| other",
       "resource_uri": "rootfetch://digest/2026-02-26"
     },
     {
-      "id": "30db17aba97c73d6a968f93d061d2428d9c52f1d",
+      "id": "7bb172d85277e5da8337e2c70e28e8e9e4ca0091",
       "source_path": "data/digests/2026-02-26.md",
       "source_type": "digest",
       "date_utc": "2026-02-26",
       "title": "Sector Snapshot",
-      "text": "5 | 11.0 | 0.0001804935678655 | 3 |\n| geo_local | 154626 | 58079.0 | 0.6015619335660352 | 4 |\n| media_social | 1011077 | 1449.0 | 0.0014351820670583 | 4 |\n| other | 58124708 | 4863197.0 | 0.0913079052526316 | 887 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "text": "11.0 | 0.0001804935678655 | 3 |\n| geo_local | 154626 | 58079.0 | 0.6015619335660352 | 4 |\n| media_social | 1011077 | 1449.0 | 0.0014351820670583 | 4 |\n| other | 58132712 | 4871201.0 | 0.0914581826264748 | 888 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-02-26"
     }
   ]

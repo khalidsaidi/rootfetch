@@ -1,23 +1,23 @@
 # RootFetch Daily Digest — 2026-02-26
 
-- Run ID: 9a5a117b-5413-4c43-b124-9c2b9fa9d181
+- Run ID: 079e6076-7453-466c-a4a7-939e7cadb1fb
 - Mode: hybrid
-- Approved TLDs observed: 908
+- Approved TLDs observed: 909
 - Observed today: 71 (core=3, rolling=68)
-- Snapshot rows today: 908
+- Snapshot rows today: 909
 
 ## Cross-sectional highlights
-- Total delegated counted today: 64,397,738
-- Distribution (p50 / p90 / p99 / max): 1,730 / 48,262 / 1,204,700 / 11,661,920
-- Concentration (Top1 / Top10 share): 18.11% / 65.17% (HHI=0.0711)
-- New approvals vs 2026-02-25: +57 / -0
+- Total delegated counted today: 64,405,742
+- Distribution (p50 / p90 / p99 / max): 1,744 / 48,230 / 1,203,924 / 11,661,920
+- Concentration (Top1 / Top10 share): 18.11% / 65.16% (HHI=0.0711)
+- New approvals vs 2026-02-25: +58 / -0
 - Added approvals (first 10): abogado, abudhabi, adult, bayern, beer, biz, blackfriday, boston, casa, catholic
 
 ## Daily Insights
-- [market/info] Top 10 TLDs hold 65.17% of delegations; median TLD has 1,730 names; 345 TLDs have <100.
+- [market/info] Top 10 TLDs hold 65.16% of delegations; median TLD has 1,744 names; 345 TLDs have <100.
 - [movers/positive] Core movers: .xyz +42,205, .app +3,613, .dev +904 (day-over-day).
-- [approvals/info] New approvals today: +57 (abogado, abudhabi, adult).
-- [coverage/positive] Observed today: 71 (core+rolling) out of 908 approved TLDs; snapshot rows today: 908.
+- [approvals/info] New approvals today: +58 (abogado, abudhabi, adult).
+- [coverage/positive] Observed today: 71 (core+rolling) out of 909 approved TLDs; snapshot rows today: 909.
 
 ## Security Status
 - Safe aggregates checks date: 2026-02-26
@@ -29,16 +29,16 @@
 ## Top TLDs by Count (Today)
 | tld | count | share_pct | sector | cadence |
 | --- | --- | --- | --- | --- |
-| org | 11661920 | 18.109207500424937 | other | baseline |
-| xyz | 8109216 | 12.59239260857268 | other | core |
-| top | 5880168 | 9.131016372034685 | other | baseline |
-| info | 5157829 | 8.009332563823904 | other | baseline |
-| online | 3234094 | 5.022061489178394 | other | baseline |
-| store | 2084575 | 3.2370314000780587 | commerce | baseline |
-| site | 1717307 | 2.666719442847511 | other | baseline |
-| vip | 1567091 | 2.4334565912858617 | other | baseline |
-| sbs | 1346321 | 2.0906339909019787 | other | baseline |
-| biz | 1210131 | 1.8791514074609263 | other | baseline |
+| org | 11661920 | 18.10695698529488 | other | baseline |
+| xyz | 8109216 | 12.59082769359291 | other | core |
+| top | 5880168 | 9.129881618319065 | other | baseline |
+| info | 5157829 | 8.00833720695276 | other | baseline |
+| online | 3234094 | 5.021437374326034 | other | baseline |
+| store | 2084575 | 3.236629119186299 | commerce | baseline |
+| site | 1717307 | 2.666388037265373 | other | baseline |
+| vip | 1567091 | 2.4331541743591747 | other | baseline |
+| sbs | 1346321 | 2.0903741781284038 | other | baseline |
+| biz | 1210131 | 1.8789178766079584 | other | baseline |
 
 ## Core Daily Movers (Absolute)
 | tld | count | delta_abs | delta_pct | data_quality |
@@ -86,7 +86,7 @@ _No data._
 | finance | 60955 | 11.0 | 0.0001804935678655 | 3 |
 | geo_local | 154626 | 58079.0 | 0.6015619335660352 | 4 |
 | media_social | 1011077 | 1449.0 | 0.0014351820670583 | 4 |
-| other | 58124708 | 4863197.0 | 0.0913079052526316 | 887 |
+| other | 58132712 | 4871201.0 | 0.0914581826264748 | 888 |
 
 ## Data Quality Notes
 - Failed TLD jobs: 0
