@@ -27,6 +27,7 @@ Not allowed as trigger source:
 Time reference:
 
 - snapshot UTC timestamp of the right-hand run
+- `publish_commit_timestamp_utc` of the right-hand run (required incident metadata field)
 
 ## 2) Immediate Response SLA
 
@@ -37,7 +38,12 @@ Publication SLA:
 
 SLA clock start:
 
-- timestamp of immutable run publish (commit to `main`)
+- `publish_commit_timestamp_utc` of the right-hand run (immutable run publish commit timestamp on `main`)
+
+Temporal invariant (required):
+
+- `publish_commit_timestamp_utc <= detection_timestamp_utc <= publication_timestamp_utc`
+- if violated, bulletin is invalid, must not be published, and SLA must be recorded as `INVALID` (not `Y/N`)
 
 If triggered outside business hours:
 
@@ -62,7 +68,7 @@ No “wait for clarity” step.
 4. Confirm replay index updated and ordered correctly.
 5. Confirm snapshot hash and `model_version` behavior:
    - if unchanged, proceed.
-   - if changed, bulletin must explicitly state the version transition and reference version change documentation.
+   - if changed, bulletin must explicitly state the version transition and reference version change documentation for the new version before publication.
 
 6. No partial compare rule:
    - bulletin must not be published if compare output reflects degraded state.
@@ -83,6 +89,7 @@ Required fields:
 
 - left run ID
 - right run ID
+- `publish_commit_timestamp_utc` (right-hand run)
 - compare link
 - DVI old -> new
 - band old -> new
@@ -129,7 +136,8 @@ Log the following:
 
 - timestamp of detection
 - timestamp of publication
-- SLA compliance (`Y/N`)
+- `publish_commit_timestamp_utc` (right-hand run)
+- SLA compliance (`Y/N/INVALID`)
 - runs referenced (`left`, `right`)
 - external citation count (manual log)
 
