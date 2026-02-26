@@ -1,0 +1,20 @@
+{
+  "name": "rootfetch-agent-monitor-js",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "tsx src/monitor.ts",
+    "start:dry": "tsx src/monitor.ts --dry-run"
+  },
+  "dependencies": {
+    "rootfetch-sdk-js": "file:../../../packages/rootfetch-sdk-js"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5"
+  }
+}
+

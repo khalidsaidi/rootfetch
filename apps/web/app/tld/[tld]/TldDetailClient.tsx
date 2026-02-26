@@ -91,7 +91,7 @@ export default function TldDetailClient({
               {value}d
             </button>
           ))}
-          <TrackedLink href="/compare" label="open_compare_from_tld" pageType="tld" className="ml-auto text-xs text-primary hover:text-primary/80">
+          <TrackedLink href="/compare/tlds" label="open_compare_from_tld" pageType="tld" className="ml-auto text-xs text-primary hover:text-primary/80">
             Compare TLDs
           </TrackedLink>
         </div>

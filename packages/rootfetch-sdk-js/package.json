@@ -1,0 +1,16 @@
+{
+  "name": "rootfetch-sdk-js",
+  "version": "0.1.0",
+  "description": "Verifiable artifact wrapper for RootFetch.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": "./src/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test tests/contract.test.js"
+  },
+  "license": "MIT"
+}
+

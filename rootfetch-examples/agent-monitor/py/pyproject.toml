@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling>=1.26.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rootfetch-agent-monitor-py"
+version = "0.1.0"
+description = "Canonical Python RootFetch agent monitor example."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+  "requests>=2.32.0"
+]
+
+[project.scripts]
+rootfetch-agent-monitor = "rootfetch_agent.monitor:main"
+

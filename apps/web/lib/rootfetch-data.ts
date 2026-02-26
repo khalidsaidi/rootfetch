@@ -1,4 +1,5 @@
 import { existsSync, promises as fs } from "node:fs";
+import { createHash } from "node:crypto";
 import path from "node:path";
 
 export type LatestSignals = {
@@ -190,12 +191,70 @@ export type ArtifactLatestPointer = {
   };
 };
 
+export type ReplayRunEntry = {
+  run_id: string;
+  snapshot_ts_utc?: string;
+  snapshot_utc_day?: string;
+  snapshot_hash?: string;
+  model_version?: string;
+  dvi?: {
+    score?: number;
+    level?: string;
+  };
+  regime?: string;
+  regime_confidence?: number;
+};
+
+export type ReplayIndexArtifact = {
+  runs: ReplayRunEntry[];
+};
+
 export type PublishedRunBundle = {
   pointer: ArtifactLatestPointer;
   signals: LatestSignals;
   coverage: CoverageLatest;
   model: Record<string, unknown>;
   manifest: Record<string, unknown>;
+};
+
+export type RunManifestFile = {
+  path: string;
+  size?: number;
+  sha256?: string;
+};
+
+export type RunManifest = {
+  run_id?: string;
+  model_version?: string;
+  snapshot_hash?: string;
+  snapshot_ts_utc?: string;
+  snapshot_utc_day?: string;
+  files?: RunManifestFile[];
+};
+
+export type RunScopedBundle = {
+  runId: string;
+  baseHref: string;
+  manifest: RunManifest;
+  manifestSha256: string;
+  model: Record<string, unknown>;
+  coverage: CoverageLatest;
+  signals: LatestSignals;
+  digest: string | null;
+  expectedCount: number;
+  checkedCount: number;
+  missingPaths: string[];
+};
+
+export type RunCompareBundle = {
+  runId: string;
+  baseHref: string;
+  manifest: RunManifest;
+  model: Record<string, unknown>;
+  coverage: CoverageLatest;
+  signals: LatestSignals;
+  missingPaths: string[];
+  degraded: boolean;
 };
 
 export type CsvRow = Record<string, string>;
@@ -293,6 +352,17 @@ async function readJsonAbsolute<T>(filePath: string, fallback: T): Promise<T> {
   } catch {
     return fallback;
   }
+}
+
+function normalizeRunId(runId: string): string | null {
+  const safeRunId = String(runId || "").trim();
+  if (!safeRunId) {
+    return null;
+  }
+  if (!/^[A-Za-z0-9._:-]+$/.test(safeRunId)) {
+    return null;
+  }
+  return safeRunId;
 }
 
 async function readCsv(filename: string): Promise<CsvRow[]> {
@@ -412,6 +482,222 @@ export async function loadPublishedRunBundle(): Promise<PublishedRunBundle | nul
     coverage,
     model,
     manifest,
+  };
+}
+
+export async function loadArtifactLatestPointer(): Promise<ArtifactLatestPointer | null> {
+  const pointer = await readJson<ArtifactLatestPointer>("artifacts/latest.json", { run_id: "" });
+  return String(pointer.run_id || "").trim() ? pointer : null;
+}
+
+export async function loadReplayIndex(): Promise<ReplayIndexArtifact> {
+  const replay = await readJson<ReplayIndexArtifact>("artifacts/replay/index.json", { runs: [] });
+  return {
+    runs: Array.isArray(replay.runs) ? replay.runs : [],
+  };
+}
+
+export async function loadRunCompareBundleById(runId: string): Promise<RunCompareBundle | null> {
+  const safeRunId = normalizeRunId(runId);
+  if (!safeRunId) {
+    return null;
+  }
+
+  const runBase = path.join(ROOTFETCH_PUBLIC, "artifacts", "runs", safeRunId);
+  try {
+    await fs.access(runBase);
+  } catch {
+    return null;
+  }
+
+  const manifestPath = path.join(runBase, "manifest.json");
+  const modelPath = path.join(runBase, "model_latest.json");
+  const coveragePath = path.join(runBase, "coverage_latest.json");
+  const signalsPath = path.join(runBase, "signals_latest.json");
+
+  const fallbackCoverage: CoverageLatest = {
+    date_utc: "n/a",
+    approved_tlds_count: 0,
+    approved_tlds: [],
+    counted_today_tlds: [],
+    counted_today_count: 0,
+    counted_today_core_count: 0,
+    counted_today_rolling_count: 0,
+    counted_ever_tlds: [],
+    counted_ever_count: 0,
+    missing_ever_tlds: [],
+    missing_ever_count: 0,
+    last_seen_by_tld: {},
+  };
+
+  const fallbackSignals: LatestSignals = {
+    date_utc: "n/a",
+    run_id: safeRunId,
+    approved_tlds_count: 0,
+    counted_today_count: 0,
+    counted_today_core_count: 0,
+    counted_today_rolling_count: 0,
+    snapshot_rows_today: 0,
+    coverage_pct_today: 0,
+    top_tlds: [],
+    distribution: {},
+    concentration: {},
+    approvals_diff: {},
+    pulse: {},
+    dvi: {},
+    anomaly_spotlight: [],
+    market_map: [],
+    power_curve: { today: [], d30: [], d90: [] },
+    radar_points: [],
+    sector_indices: [],
+    market_risk: {},
+    insights: [],
+    security_status: {},
+    top_movers_abs: [],
+    top_movers_pct: [],
+    core_movers_abs: [],
+    core_movers_pct: [],
+    rolling_updates: [],
+    anomalies: [],
+    sector_snapshot: [],
+  };
+
+  const missingPaths: string[] = [];
+  const readRequiredJson = async <T>(absolutePath: string, relativePath: string, fallback: T): Promise<T> => {
+    try {
+      const raw = await fs.readFile(absolutePath, "utf-8");
+      return parseJsonArtifact<T>(raw);
+    } catch {
+      missingPaths.push(relativePath);
+      return fallback;
+    }
+  };
+
+  const manifest = await readRequiredJson<RunManifest>(manifestPath, "manifest.json", {});
+  const model = await readRequiredJson<Record<string, unknown>>(modelPath, "model_latest.json", {});
+  const coverage = await readRequiredJson<CoverageLatest>(coveragePath, "coverage_latest.json", fallbackCoverage);
+  const signals = await readRequiredJson<LatestSignals>(signalsPath, "signals_latest.json", fallbackSignals);
+
+  return {
+    runId: safeRunId,
+    baseHref: `/rootfetch/artifacts/runs/${encodeURIComponent(safeRunId)}`,
+    manifest,
+    model,
+    coverage: {
+      ...coverage,
+      date_utc: coverage.date_utc || "n/a",
+    },
+    signals: {
+      ...signals,
+      run_id: safeRunId,
+      date_utc: signals.date_utc || "n/a",
+    },
+    missingPaths: Array.from(new Set(missingPaths)).sort(),
+    degraded: missingPaths.length > 0,
+  };
+}
+
+export async function loadRunBundleById(runId: string): Promise<RunScopedBundle | null> {
+  const safeRunId = normalizeRunId(runId);
+  if (!safeRunId) {
+    return null;
+  }
+
+  const runBase = path.join(ROOTFETCH_PUBLIC, "artifacts", "runs", safeRunId);
+  const manifestPath = path.join(runBase, "manifest.json");
+  const modelPath = path.join(runBase, "model_latest.json");
+  const coveragePath = path.join(runBase, "coverage_latest.json");
+  const signalsPath = path.join(runBase, "signals_latest.json");
+  const digestPath = path.join(runBase, "digest_latest.txt");
+
+  try {
+    await fs.access(manifestPath);
+    await fs.access(modelPath);
+    await fs.access(coveragePath);
+    await fs.access(signalsPath);
+  } catch {
+    return null;
+  }
+
+  const manifest = await readJsonAbsolute<RunManifest>(manifestPath, {});
+  const manifestSha256 = createHash("sha256").update(await fs.readFile(manifestPath)).digest("hex");
+  const model = await readJsonAbsolute<Record<string, unknown>>(modelPath, {});
+  const coverage = await readJsonAbsolute<CoverageLatest>(coveragePath, {
+    date_utc: "n/a",
+    approved_tlds_count: 0,
+    approved_tlds: [],
+    counted_today_tlds: [],
+    counted_today_count: 0,
+    counted_today_core_count: 0,
+    counted_today_rolling_count: 0,
+    counted_ever_tlds: [],
+    counted_ever_count: 0,
+    missing_ever_tlds: [],
+    missing_ever_count: 0,
+    last_seen_by_tld: {},
+  });
+  const signals = await readJsonAbsolute<LatestSignals>(signalsPath, {
+    date_utc: "n/a",
+    run_id: safeRunId,
+    approved_tlds_count: 0,
+    counted_today_count: 0,
+    counted_today_core_count: 0,
+    counted_today_rolling_count: 0,
+    snapshot_rows_today: 0,
+    coverage_pct_today: 0,
+  } as LatestSignals);
+
+  if ((coverage.date_utc || "n/a") === "n/a" || (signals.date_utc || "n/a") === "n/a") {
+    return null;
+  }
+
+  let digest: string | null = null;
+  try {
+    digest = await fs.readFile(digestPath, "utf-8");
+  } catch {
+    digest = null;
+  }
+
+  const files = Array.isArray(manifest.files) ? manifest.files : [];
+  const expectedCount = files.length;
+  const hasSha = (value: string | undefined): boolean => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+
+  let checkedCount = 0;
+  const missingPaths: string[] = [];
+
+  await Promise.all(
+    files.map(async (entry) => {
+      const relPath = String(entry?.path || "").trim();
+      if (!relPath) {
+        return;
+      }
+      if (hasSha(entry.sha256)) {
+        checkedCount += 1;
+      }
+      const absolute = path.join(runBase, relPath);
+      try {
+        await fs.access(absolute);
+      } catch {
+        missingPaths.push(relPath);
+      }
+    }),
+  );
+
+  return {
+    runId: safeRunId,
+    baseHref: `/rootfetch/artifacts/runs/${encodeURIComponent(safeRunId)}`,
+    manifest,
+    manifestSha256,
+    model,
+    coverage,
+    signals: {
+      ...signals,
+      run_id: safeRunId,
+    },
+    digest,
+    expectedCount,
+    checkedCount,
+    missingPaths: missingPaths.sort(),
   };
 }
 
