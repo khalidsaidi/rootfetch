@@ -381,6 +381,9 @@ export default function LiveIntelligenceZoneClient({
           <TrackedLink href="/compare" label="nav_compare" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
             Compare
           </TrackedLink>
+          <TrackedLink href="/recipes" label="nav_recipes" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
+            Agent recipes
+          </TrackedLink>
           <TrackedLink href="/api/latest" label="nav_json" pageType="home" eventName="rf_open_json_api" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
             Artifact API
           </TrackedLink>

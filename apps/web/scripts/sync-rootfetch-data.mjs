@@ -161,7 +161,7 @@ async function generateSeoTextArtifacts() {
   const topTlds = parseCsvTlds(topTldsCsv, 200);
   const lastmod = new Date().toISOString();
 
-  const baseRoutes = ["/", "/approved", "/about", "/methodology", "/security", "/sectors", "/compare", "/ask", "/docs/mcp"];
+  const baseRoutes = ["/", "/approved", "/about", "/methodology", "/security", "/sectors", "/compare", "/ask", "/recipes", "/docs/mcp"];
   const urls = [...baseRoutes, ...topTlds.map((tld) => `/tld/${encodeURIComponent(tld)}`)];
   const sitemapBody = urls
     .map((route) => `  <url><loc>${escapeXml(`${siteUrl}${route}`)}</loc><lastmod>${lastmod}</lastmod></url>`)

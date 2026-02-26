@@ -317,6 +317,14 @@ export default async function Home() {
           >
             Connect via MCP
           </TrackedLink>
+          <TrackedLink
+            href="/runs"
+            label="hero_browse_runs"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Browse historical runs →
+          </TrackedLink>
         </div>
       </section>
 
@@ -585,6 +593,9 @@ state=${state}
           </Link>
           <Link href="/security" className="hover:text-foreground">
             security
+          </Link>
+          <Link href="/recipes" className="hover:text-foreground">
+            recipes
           </Link>
           <Link href="/llms.txt" className="hover:text-foreground">
             llms.txt
