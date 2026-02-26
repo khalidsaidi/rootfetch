@@ -1,6 +1,6 @@
 # RootFetch Daily Digest — 2026-02-26
 
-- Run ID: 079e6076-7453-466c-a4a7-939e7cadb1fb
+- Run ID: 8845c286-1d59-4fe7-ac88-925c5504c452
 - Mode: hybrid
 - Approved TLDs observed: 909
 - Observed today: 71 (core=3, rolling=68)
