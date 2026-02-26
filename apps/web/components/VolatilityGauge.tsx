@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { track } from "@/lib/analytics/ga";
 
@@ -27,6 +27,7 @@ function Sparkline({ points }: { points: number[] }) {
 }
 
 export default function VolatilityGauge({ dvi, trendSeries }: { dvi: DviPayload; trendSeries?: number[] }) {
+  const [showDrivers, setShowDrivers] = useState(false);
   const score = Math.max(0, Math.min(100, Number(dvi.score ?? 0)));
   const level = useMemo(() => {
     if (score >= 75) return "turbulent";
@@ -54,9 +55,14 @@ export default function VolatilityGauge({ dvi, trendSeries }: { dvi: DviPayload;
         <button
           type="button"
           className="rounded border border-border/70 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground hover:border-primary/40"
-          onClick={() => track("volatility_toggle", { score, level, page_type: "home" })}
+          aria-expanded={showDrivers}
+          onClick={() => {
+            const next = !showDrivers;
+            setShowDrivers(next);
+            track("volatility_toggle", { score, level, page_type: "home", open: next });
+          }}
         >
-          drivers
+          {showDrivers ? "hide drivers" : "show drivers"}
         </button>
       </div>
 
@@ -90,17 +96,19 @@ export default function VolatilityGauge({ dvi, trendSeries }: { dvi: DviPayload;
         <Sparkline points={spark} />
       </div>
 
-      <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
-        <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
-          Dispersion <span className="rf-mono-digits text-muted-foreground">{disp.toFixed(2)}</span>
-        </p>
-        <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
-          Top-10 shift <span className="rf-mono-digits text-muted-foreground">{shift.toFixed(2)}</span>
-        </p>
-        <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
-          Anomaly cluster <span className="rf-mono-digits text-muted-foreground">{cluster.toFixed(2)}</span>
-        </p>
-      </div>
+      {showDrivers ? (
+        <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+          <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
+            Dispersion <span className="rf-mono-digits text-muted-foreground">{disp.toFixed(2)}</span>
+          </p>
+          <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
+            Top-10 shift <span className="rf-mono-digits text-muted-foreground">{shift.toFixed(2)}</span>
+          </p>
+          <p className="rounded-md border border-border/60 bg-background/40 px-2 py-1">
+            Anomaly cluster <span className="rf-mono-digits text-muted-foreground">{cluster.toFixed(2)}</span>
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
