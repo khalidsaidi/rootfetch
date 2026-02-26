@@ -41,12 +41,7 @@ curl -s "${VERCEL_BASE}/rootfetch/approved_latest.json" \
 curl -s "${VERCEL_BASE}/rootfetch/coverage_latest.json" \
   | python3 -c 'import json,sys; d=json.load(sys.stdin); print("vercel_missing_ever=", d.get("missing_ever_count"), "vercel_counted_ever=", d.get("counted_ever_count"))'
 
-if [[ -n "${ROOTFETCH_MCP_TOKEN:-}" ]]; then
-  echo "[retest] ROOTFETCH_MCP_TOKEN detected; running live MCP checks"
-  python3 scripts/mcp_live_check.py "$@"
-else
-  echo "[retest] ROOTFETCH_MCP_TOKEN is not set; skipping live MCP checks"
-  echo "[retest] set ROOTFETCH_MCP_TOKEN in .env.mcp (local-only) to enable step 9 checks"
-fi
+echo "[retest] running live MCP checks"
+python3 scripts/mcp_live_check.py "$@"
 
 echo "[retest] done"

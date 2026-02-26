@@ -13,29 +13,40 @@ No mode performs CZDS auth or zone downloads.
 
 Pattern in use: static artifact sync into web `public/rootfetch/*` at build time.
 
-Synced artifacts include:
+MCP reads from immutable artifact paths:
 
-- `latest.json`
-- `coverage_latest.json`
-- `approved_latest.json`
-- `rag_chunks.json`
-- `rag_meta.json`
+- `artifacts/latest.json`
+- `artifacts/replay/index.json`
+- `artifacts/runs/<run_id>/manifest.json`
+- `artifacts/runs/<run_id>/model_latest.json`
+- `artifacts/runs/<run_id>/coverage_latest.json`
+- `artifacts/runs/<run_id>/signals_latest.json`
 
 ## Security
 
-Vercel `/api/mcp` requires:
+Vercel `/api/mcp` is public and rate-limited:
 
-- `Authorization: Bearer <ROOTFETCH_MCP_TOKEN>`
-- origin allowlist via `ROOTFETCH_MCP_ALLOWED_ORIGINS`
+- no auth token required
+- token bucket per IP (default: 60 requests/minute, burst 20)
+- returns `429` + `Retry-After` when limited
+- artifact allowlist only (no arbitrary path reads, no recompute)
+- optional shared limiter backend via `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+
+## MCP Behavioral Contract
+
+- read-only surface only
+- immutable artifact-backed responses only
+- no compute or signal recomputation in MCP handlers
+- bounded response payload size (`ROOTFETCH_MCP_MAX_PAYLOAD_BYTES`, default 5 MB)
+- rate limits enforced on all MCP methods
 
 ## Vercel MCP Tools
 
-- `rootfetch_get_approved_tlds`
-- `rootfetch_get_coverage`
-- `rootfetch_search_approved`
-- `rootfetch_health`
-- `rag_search`
-- `rag_get_chunk`
+- `rootfetch.latest`
+- `rootfetch.replay_index`
+- `rootfetch.run_manifest`
+- `rootfetch.run_bundle`
+- `rootfetch.compare_link`
 
 Tool payloads are returned as JSON text content.
 

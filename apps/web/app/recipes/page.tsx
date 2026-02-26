@@ -166,7 +166,7 @@ export default function RecipesPage() {
         </div>
       </Section>
 
-      <Section title="5) MCP Snippet" subtitle="Use the read-only MCP endpoint; token remains server-side in your client tooling.">
+      <Section title="5) MCP Snippet" subtitle="Use the public, rate-limited MCP endpoint serving immutable artifact-backed tools.">
         <pre className="overflow-x-auto rounded-lg border border-border/70 bg-background/70 p-4 text-xs rf-mono-digits">
           {mcpSnippet}
         </pre>
@@ -234,4 +234,3 @@ export default function RecipesPage() {
     </main>
   );
 }
-

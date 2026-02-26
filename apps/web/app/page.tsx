@@ -122,7 +122,7 @@ export default async function Home() {
         delta_abs: 0,
         delta_pct: Number(row.delta_pct || 0),
         robust_z: row.robust_z == null ? undefined : Number(row.robust_z),
-        z_score: row.z_score == null ? undefined : Number(row.z_score),
+        z_score: row.z == null ? undefined : Number(row.z),
         anomaly_score: undefined,
         volatility: undefined,
         count: 0,

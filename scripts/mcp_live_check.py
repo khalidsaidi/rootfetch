@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -60,11 +61,12 @@ def _http_post_json(
 ) -> tuple[dict[str, Any], str | None]:
     headers = {
         "Content-Type": "application/json",
-        # mcp-handler enforces both media types in Accept.
         "Accept": "application/json, text/event-stream",
-        "Authorization": f"Bearer {token}",
-        "Origin": origin,
     }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    if origin:
+        headers["Origin"] = origin
     if session_id:
         headers["mcp-session-id"] = session_id
 
@@ -80,7 +82,6 @@ def _http_post_json(
         next_session = response.headers.get("mcp-session-id") or session_id
 
     if "text/event-stream" in content_type:
-        # mcp-handler on Vercel can respond with SSE even for single JSON-RPC replies.
         parsed: dict[str, Any] | None = None
         for raw_line in body.splitlines():
             line = raw_line.strip()
@@ -165,7 +166,6 @@ def _initialize_session(
     if "error" in init_resp:
         raise RuntimeError(f"mcp_initialize_error: {init_resp['error']}")
 
-    # Best-effort initialized notification; some handlers are fully stateless.
     initialized_payload = {"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}}
     try:
         _http_post_json(endpoint, initialized_payload, token, origin, timeout, session_id)
@@ -184,17 +184,12 @@ def main() -> int:
     parser.add_argument(
         "--origin",
         default=None,
-        help="Origin header value (default from ROOTFETCH_MCP_ORIGIN or https://rootfetch.vercel.app)",
-    )
-    parser.add_argument(
-        "--query",
-        default=None,
-        help="RAG query text (default from ROOTFETCH_MCP_RAG_QUERY or anomaly)",
+        help="Optional Origin header value (default from ROOTFETCH_MCP_ORIGIN)",
     )
     parser.add_argument(
         "--token",
         default=None,
-        help="Bearer token (default from ROOTFETCH_MCP_TOKEN; do not pass in shell history on shared hosts)",
+        help="Optional bearer token (default from ROOTFETCH_MCP_TOKEN).",
     )
     parser.add_argument(
         "--artifact-base-url",
@@ -222,50 +217,77 @@ def main() -> int:
     _load_env_files(env_files)
 
     endpoint = (args.endpoint or os.getenv("ROOTFETCH_MCP_URL") or "https://rootfetch.vercel.app/api/mcp").strip()
-    origin = (args.origin or os.getenv("ROOTFETCH_MCP_ORIGIN") or "https://rootfetch.vercel.app").strip()
-    query = (args.query or os.getenv("ROOTFETCH_MCP_RAG_QUERY") or "anomaly").strip()
+    origin = (args.origin or os.getenv("ROOTFETCH_MCP_ORIGIN") or "").strip()
+    token = (args.token or os.getenv("ROOTFETCH_MCP_TOKEN") or "").strip()
     artifact_base_url = (
         args.artifact_base_url or os.getenv("ROOTFETCH_PUBLIC_BASE_URL") or "https://rootfetch.vercel.app"
     ).rstrip("/")
 
-    token = (args.token or os.getenv("ROOTFETCH_MCP_TOKEN") or "").strip()
-    if not token:
-        print("error: missing ROOTFETCH_MCP_TOKEN (set env, .env.mcp, or pass --token)", file=sys.stderr)
-        return 2
-
     try:
-        approved_latest = _http_get_json(f"{artifact_base_url}/rootfetch/approved_latest.json", args.timeout)
-        coverage_latest = _http_get_json(f"{artifact_base_url}/rootfetch/coverage_latest.json", args.timeout)
+        pointer_artifact = _http_get_json(f"{artifact_base_url}/rootfetch/artifacts/latest.json", args.timeout)
+        run_id = str(pointer_artifact.get("run_id") or "").strip()
+        if not run_id:
+            print("error: artifact latest pointer missing run_id", file=sys.stderr)
+            return 2
+
+        run_id_enc = urllib.parse.quote(run_id, safe="")
+        coverage_artifact = _http_get_json(
+            f"{artifact_base_url}/rootfetch/artifacts/runs/{run_id_enc}/coverage_latest.json", args.timeout
+        )
+        signals_artifact = _http_get_json(
+            f"{artifact_base_url}/rootfetch/artifacts/runs/{run_id_enc}/signals_latest.json", args.timeout
+        )
 
         session_id = _initialize_session(endpoint, token, origin, args.timeout)
-        approved_tool, session_id = _mcp_tool_call(
+
+        latest_tool, session_id = _mcp_tool_call(
             endpoint,
             token,
             origin,
             args.timeout,
-            "rootfetch_get_approved_tlds",
+            "rootfetch.latest",
             {},
             2,
             session_id,
         )
-        coverage_tool, session_id = _mcp_tool_call(
+        replay_tool, session_id = _mcp_tool_call(
             endpoint,
             token,
             origin,
             args.timeout,
-            "rootfetch_get_coverage",
+            "rootfetch.replay_index",
             {},
             3,
             session_id,
         )
-        rag_tool, session_id = _mcp_tool_call(
+        manifest_tool, session_id = _mcp_tool_call(
             endpoint,
             token,
             origin,
             args.timeout,
-            "rag_search",
-            {"query": query, "k": 5},
+            "rootfetch.run_manifest",
+            {"run_id": run_id},
             4,
+            session_id,
+        )
+        bundle_tool, session_id = _mcp_tool_call(
+            endpoint,
+            token,
+            origin,
+            args.timeout,
+            "rootfetch.run_bundle",
+            {"run_id": run_id},
+            5,
+            session_id,
+        )
+        compare_tool, session_id = _mcp_tool_call(
+            endpoint,
+            token,
+            origin,
+            args.timeout,
+            "rootfetch.compare_link",
+            {"left": run_id, "right": run_id},
+            6,
             session_id,
         )
     except urllib.error.HTTPError as exc:
@@ -276,55 +298,56 @@ def main() -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 3
 
-    approved_count_tool = int(approved_tool.get("count") or 0)
-    coverage_missing_tool = int(coverage_tool.get("missing_ever_count") or 0)
-    coverage_counted_ever_tool = int(coverage_tool.get("counted_ever_count") or 0)
-    rag_hits = rag_tool.get("hits") or []
-    rag_hits_count = len(rag_hits) if isinstance(rag_hits, list) else 0
-    rag_query_used = query
-    if rag_hits_count <= 0:
-        fallback_queries = ["rootfetch", "count_ns_sld", "coverage"]
-        req_id = 5
-        for candidate_query in fallback_queries:
-            if candidate_query == query:
-                continue
-            rag_tool, session_id = _mcp_tool_call(
-                endpoint,
-                token,
-                origin,
-                args.timeout,
-                "rag_search",
-                {"query": candidate_query, "k": 5},
-                req_id,
-                session_id,
-            )
-            req_id += 1
-            rag_hits = rag_tool.get("hits") or []
-            rag_hits_count = len(rag_hits) if isinstance(rag_hits, list) else 0
-            rag_query_used = candidate_query
-            if rag_hits_count > 0:
-                break
+    latest_run_tool = str(latest_tool.get("run_id") or "")
+    replay_count = int(replay_tool.get("count") or 0)
 
-    approved_count_artifact = int(approved_latest.get("count") or 0)
-    coverage_missing_artifact = int(coverage_latest.get("missing_ever_count") or 0)
-    coverage_counted_ever_artifact = int(coverage_latest.get("counted_ever_count") or 0)
+    manifest_expected = int(manifest_tool.get("expected_count") or 0)
+    manifest_checked = int(manifest_tool.get("checked_count") or 0)
+    manifest_missing = manifest_tool.get("missing_files") or []
 
-    print(f"mcp_tool_approved_count={approved_count_tool}")
-    print(f"mcp_tool_missing_ever={coverage_missing_tool}")
-    print(f"mcp_tool_counted_ever={coverage_counted_ever_tool}")
-    print(f"mcp_rag_query_used={rag_query_used}")
-    print(f"mcp_rag_hits={rag_hits_count}")
-    print(f"artifact_approved_count={approved_count_artifact}")
-    print(f"artifact_missing_ever={coverage_missing_artifact}")
-    print(f"artifact_counted_ever={coverage_counted_ever_artifact}")
-    print(f"approved_match={approved_count_tool == approved_count_artifact}")
-    print(f"missing_match={coverage_missing_tool == coverage_missing_artifact}")
-    print(f"counted_ever_match={coverage_counted_ever_tool == coverage_counted_ever_artifact}")
+    bundle_run_tool = str(bundle_tool.get("run_id") or "")
+    bundle_coverage = bundle_tool.get("coverage") if isinstance(bundle_tool.get("coverage"), dict) else {}
+    bundle_signals = bundle_tool.get("signals") if isinstance(bundle_tool.get("signals"), dict) else {}
 
-    if rag_hits_count <= 0:
-        print("error: rag_search returned zero hits", file=sys.stderr)
-        return 4
-    return 0
+    approved_tool = int(bundle_coverage.get("approved_tlds_count") or 0)
+    approved_artifact = int(coverage_artifact.get("approved_tlds_count") or 0)
+
+    snapshot_tool = str(bundle_signals.get("date_utc") or "")
+    snapshot_artifact = str(signals_artifact.get("date_utc") or "")
+
+    compare_url = str(compare_tool.get("compare_url") or "")
+
+    print(f"mcp_tool_run_id={latest_run_tool}")
+    print(f"artifact_run_id={run_id}")
+    print(f"replay_count={replay_count}")
+    print(f"manifest_expected_count={manifest_expected}")
+    print(f"manifest_checked_count={manifest_checked}")
+    print(f"manifest_missing_files={len(manifest_missing) if isinstance(manifest_missing, list) else 0}")
+    print(f"coverage_approved_tool={approved_tool}")
+    print(f"coverage_approved_artifact={approved_artifact}")
+    print(f"snapshot_date_tool={snapshot_tool}")
+    print(f"snapshot_date_artifact={snapshot_artifact}")
+    print(f"compare_url={compare_url}")
+
+    run_id_match = latest_run_tool == run_id == bundle_run_tool
+    manifest_ok = manifest_expected > 0 and manifest_expected == manifest_checked and isinstance(manifest_missing, list) and len(manifest_missing) == 0
+    coverage_match = approved_tool == approved_artifact
+    snapshot_match = snapshot_tool == snapshot_artifact and snapshot_tool != ""
+    replay_ok = replay_count > 0
+    compare_ok = compare_url.endswith(f"left={run_id}&right={run_id}")
+
+    print(f"run_id_match={run_id_match}")
+    print(f"manifest_ok={manifest_ok}")
+    print(f"coverage_match={coverage_match}")
+    print(f"snapshot_match={snapshot_match}")
+    print(f"replay_ok={replay_ok}")
+    print(f"compare_ok={compare_ok}")
+
+    if all([run_id_match, manifest_ok, coverage_match, snapshot_match, replay_ok, compare_ok]):
+        return 0
+
+    print("error: mcp_live_check assertion failed", file=sys.stderr)
+    return 4
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ import TrackedLink from "@/components/TrackedLink";
 
 export const metadata: Metadata = {
   title: "MCP Usage",
-  description: "How to connect MCP clients to RootFetch read-only tools and RAG search.",
+  description: "How to connect MCP clients to RootFetch read-only artifact tools.",
   alternates: {
     canonical: "/docs/mcp",
   },
@@ -16,19 +16,34 @@ export default function McpDocsPage() {
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
       <Section title="RootFetch MCP Docs" subtitle="Read-only tools over committed artifacts.">
         <p className="text-sm text-muted-foreground">
-          Endpoint: <code>https://rootfetch.vercel.app/api/mcp</code>. Requires <code>Authorization: Bearer ...</code> and allowed
-          origin.
+          Endpoint: <code>https://rootfetch.vercel.app/api/mcp</code>. Public and rate-limited. Responses are artifact-backed only
+          (no server-side recompute).
         </p>
       </Section>
 
       <Section title="Available Tools">
         <ul className="ml-5 list-disc space-y-2 text-sm text-muted-foreground">
-          <li>rootfetch_get_approved_tlds</li>
-          <li>rootfetch_get_coverage</li>
-          <li>rootfetch_search_approved</li>
-          <li>rootfetch_health</li>
-          <li>rag_search</li>
-          <li>rag_get_chunk</li>
+          <li>rootfetch.latest</li>
+          <li>rootfetch.replay_index</li>
+          <li>rootfetch.run_manifest</li>
+          <li>rootfetch.run_bundle</li>
+          <li>rootfetch.compare_link</li>
+        </ul>
+      </Section>
+
+      <Section title="Rate Limit">
+        <p className="text-sm text-muted-foreground">
+          Default policy: 60 requests/minute per IP with burst capacity of 20. Exceeded requests return <code>429</code> with
+          <code>Retry-After</code>. No key is required.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Optional: configure <code>UPSTASH_REDIS_REST_URL</code> + <code>UPSTASH_REDIS_REST_TOKEN</code> for shared,
+          cross-instance limiting. Without Upstash, a built-in per-instance limiter is used.
+        </p>
+        <ul className="mt-3 ml-5 list-disc space-y-1 text-sm text-muted-foreground">
+          <li>MCP is read-only and artifact-backed.</li>
+          <li>MCP does not compute new signals.</li>
+          <li>Tool responses are size-bounded.</li>
         </ul>
       </Section>
 
