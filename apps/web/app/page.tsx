@@ -4,6 +4,7 @@ import {
   Activity,
   Bot,
   Database,
+  FolderTree,
   Shield,
   TerminalSquare,
 } from "lucide-react";
@@ -329,6 +330,14 @@ export default async function Home() {
           >
             Browse historical runs →
           </TrackedLink>
+          <TrackedLink
+            href="/tlds"
+            label="hero_browse_tlds"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Browse TLD index →
+          </TrackedLink>
         </div>
       </section>
 
@@ -558,6 +567,9 @@ export default async function Home() {
                 </TrackedLink>
                 <TrackedLink href="/ask" label="cmd_simulation" pageType="home" eventName="rf_ask_submit" eventParams={{ q_len: 24 }} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
                   <TerminalSquare className="h-4 w-4" /> Run simulation
+                </TrackedLink>
+                <TrackedLink href="/tlds" label="cmd_tld_index" pageType="home" className="inline-flex items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                  <FolderTree className="h-4 w-4" /> Open TLD index
                 </TrackedLink>
               </div>
               <pre className="mt-3 rounded-lg border border-border/70 bg-black/55 p-3 font-mono text-xs text-emerald-300">
