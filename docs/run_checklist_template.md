@@ -5,8 +5,8 @@ Scope: Repeatable checklist for each local ingestion + publish cycle.
 
 ## 1) Pre-Run
 
-- [ ] Confirm CZDS credentials are valid.
-- [ ] Confirm local runner environment is loaded.
+- [ ] Confirm `.env.czds` exists locally and credentials are valid (`rootfetch auth-check`).
+- [ ] Confirm local runner environment loads `.env.czds` (or intentional legacy `.env`) plus optional `.env.mcp`.
 - [ ] Confirm `model_version` is unchanged or intentionally changed with governance docs prepared.
 - [ ] Confirm no pending governance changes affecting this run.
 

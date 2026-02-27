@@ -4,19 +4,41 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-if [[ -f .env ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source .env
-  set +a
-fi
+declare -a ROOTFETCH_ENV_FILES_LOADED=()
 
-if [[ -f .env.mcp ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source .env.mcp
-  set +a
-fi
+load_env_file_if_present() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$file"
+    set +a
+    ROOTFETCH_ENV_FILES_LOADED+=("$file")
+  fi
+}
+
+require_czds_credentials() {
+  local missing=()
+  [[ -n "${CZDS_USERNAME:-}" ]] || missing+=("CZDS_USERNAME")
+  [[ -n "${CZDS_PASSWORD:-}" ]] || missing+=("CZDS_PASSWORD")
+  if (( ${#missing[@]} > 0 )); then
+    echo "[rootfetch] missing required credentials: ${missing[*]}" >&2
+    echo "[rootfetch] expected local credential file: .env.czds (gitignored)" >&2
+    echo "[rootfetch] setup:" >&2
+    echo "  cp .env.example .env.czds" >&2
+    echo "  edit .env.czds and set CZDS_USERNAME/CZDS_PASSWORD" >&2
+    echo "  chmod 600 .env.czds" >&2
+    echo "  rootfetch auth-check" >&2
+    exit 2
+  fi
+}
+
+# Load order: canonical credential file first, then legacy env, then MCP settings.
+load_env_file_if_present ".env.czds"
+load_env_file_if_present ".env"
+load_env_file_if_present ".env.mcp"
+echo "[rootfetch] env files loaded: ${ROOTFETCH_ENV_FILES_LOADED[*]:-(none)}"
+require_czds_credentials
 
 TODAY="$(date -u +%F)"
 

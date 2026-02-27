@@ -4,15 +4,20 @@ RootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted
 
 ## Required Local Environment
 
-Create a local `.env` (never committed):
+Create a local credential file `.env.czds` (never committed):
 
 ```bash
-cp .env.example .env
+cp .env.example .env.czds
+chmod 600 .env.czds
+rootfetch auth-check
 ```
 
 - `CZDS_USERNAME`
 - `CZDS_PASSWORD`
 - `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)
+
+Legacy fallback: `.env` is still loaded if present. Canonical path is `.env.czds`.
+See [CZDS Credentials (Canonical Local Setup)](./czds_credentials.md) for troubleshooting and scheduler notes.
 
 Optional local MCP settings file `.env.mcp` (never committed):
 
@@ -59,6 +64,8 @@ Full retest (includes live MCP checks when MCP URL is configured):
 ./scripts/retest_new_approvals.sh
 ```
 
+Both scripts load local env files in this order: `.env.czds` -> `.env` -> `.env.mcp`.
+
 The script does:
 
 1. `rootfetch discover`
@@ -86,6 +93,12 @@ Alert delivery is local-only and persistent:
 ## Scheduling
 
 ### Option 1: cron
+
+```bash
+mkdir -p /path/to/rootfetch/.ai/logs
+```
+
+Add this entry to crontab:
 
 ```bash
 CRON_TZ=UTC

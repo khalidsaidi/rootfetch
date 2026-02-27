@@ -46,7 +46,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-Set local env vars (or use local `.env`):
+Set local env vars with a local credential file (`.env.czds` recommended; `.env` remains legacy-compatible):
 
 - `CZDS_USERNAME`
 - `CZDS_PASSWORD`
@@ -55,7 +55,9 @@ Set local env vars (or use local `.env`):
 Quick start:
 
 ```bash
-cp .env.example .env
+cp .env.example .env.czds
+chmod 600 .env.czds
+rootfetch auth-check
 ```
 
 Optional local MCP endpoint override for step-9 live checks (keep this local-only, never commit):
@@ -103,6 +105,8 @@ Full retest entrypoint (includes MCP checks when MCP URL is configured):
 ./scripts/retest_new_approvals.sh
 ```
 
+Both run scripts load local env files in this order: `.env.czds` -> `.env` -> `.env.mcp`.
+
 The script auto-switches:
 
 1. runs `rootfetch discover`
@@ -135,6 +139,7 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
 - RAG: [docs/rag.md](docs/rag.md)
+- CZDS credentials: [docs/czds_credentials.md](docs/czds_credentials.md)
 - Local runner: [docs/local_runner.md](docs/local_runner.md)
 
 RootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.
