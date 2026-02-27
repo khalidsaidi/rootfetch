@@ -183,7 +183,10 @@ export default function AlertControlPanel({
         </div>
 
         <div className="space-y-3 rounded-xl border border-border/55 bg-background/10 p-3">
-          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Destinations</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Preview destinations (UI only)</p>
+          <p className="text-[11px] text-muted-foreground">
+            These toggles affect only the preview payload in this page. They do not persist subscription settings.
+          </p>
           <label className="flex items-center justify-between text-sm">
             <span>Email</span>
             <input type="checkbox" checked={destEmail} onChange={() => setDestEmail((prev) => !prev)} />
@@ -207,11 +210,11 @@ export default function AlertControlPanel({
             <p>Anomaly trigger rows: {triggered.length}</p>
           </div>
           <div className="rounded-lg border border-border/70 bg-background/35 p-2 text-xs">
-            <p className="mb-1 uppercase tracking-[0.12em] text-muted-foreground">Alert subscriptions</p>
-            <p>Email: {destEmail ? "enabled" : "disabled"}</p>
-            <p>Webhook: {destWebhook ? "enabled" : "disabled"}</p>
-            <p>MCP stream: {destMcp ? "enabled" : "disabled"}</p>
-            <p>Slack: {destSlack ? "enabled" : "disabled"}</p>
+            <p className="mb-1 uppercase tracking-[0.12em] text-muted-foreground">Preview payload channels</p>
+            <p>Email: {destEmail ? "included" : "excluded"}</p>
+            <p>Webhook: {destWebhook ? "included" : "excluded"}</p>
+            <p>MCP stream: {destMcp ? "included" : "excluded"}</p>
+            <p>Slack: {destSlack ? "included" : "excluded"}</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -230,11 +233,11 @@ export default function AlertControlPanel({
               className="rounded-md border border-border/70 px-3 py-1.5 text-xs hover:border-primary/40"
               onClick={() => track("anomaly_open", { tld: "alert_test", sector: "control_plane" })}
             >
-              Trigger test event
+              Track UI test click
             </button>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Local runtime sends alerts via <code>rootfetch alerts run</code>; Vercel remains read-only.
+            No alerts are sent from this page. Local runtime sends alerts via <code>rootfetch alerts run</code>; Vercel remains read-only.
           </p>
         </div>
       </div>
