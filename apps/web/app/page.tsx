@@ -385,10 +385,14 @@ export default async function Home() {
               <span className="text-muted-foreground">Model</span>
               <span className="rf-mono-digits">{modelVersion}</span>
             </p>
-            <p className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
-              <span className="text-muted-foreground">Artifact run</span>
-              <span className="rf-mono-digits">{activeRunId}</span>
-              <CopyValueButton value={activeRunId} keyName="artifact_run_id" context="guarantees_panel" />
+            <p className="flex items-center gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
+              <span className="shrink-0 text-muted-foreground">Artifact run</span>
+              <span className="rf-mono-digits min-w-0 flex-1 truncate text-right" title={activeRunId}>
+                {activeRunId}
+              </span>
+              <span className="shrink-0">
+                <CopyValueButton value={activeRunId} keyName="artifact_run_id" context="guarantees_panel" />
+              </span>
             </p>
             <p className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
               <span className="text-muted-foreground">Manifest</span>
