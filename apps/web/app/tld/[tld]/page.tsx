@@ -334,7 +334,7 @@ export default async function TldPage({ params }: { params: Promise<{ tld: strin
         <div className="grid gap-3 md:grid-cols-4">
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Run ID</p>
-            <p className="mt-1 rf-mono-digits text-sm font-semibold">{activeRunId}</p>
+            <p className="mt-1 rf-mono-digits text-sm font-semibold leading-tight break-all">{activeRunId}</p>
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Snapshot UTC</p>
@@ -346,7 +346,7 @@ export default async function TldPage({ params }: { params: Promise<{ tld: strin
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Manifest SHA256</p>
-            <p className="mt-1 rf-mono-digits text-xs font-semibold">{manifestSha}</p>
+            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all">{manifestSha}</p>
           </div>
         </div>
 

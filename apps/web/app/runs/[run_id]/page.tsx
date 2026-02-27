@@ -191,11 +191,11 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Snapshot hash</p>
-            <p className="mt-1 rf-mono-digits text-xs font-semibold">{snapshotHash}</p>
+            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all">{snapshotHash}</p>
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Manifest SHA256</p>
-            <p className="mt-1 rf-mono-digits text-xs font-semibold">{run.manifestSha256}</p>
+            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all">{run.manifestSha256}</p>
           </div>
         </div>
       </Section>

@@ -453,9 +453,11 @@ export default async function Home() {
           <div className="space-y-3">
             <div className="rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Snapshot hash</p>
-              <div className="mt-2 flex items-center gap-2">
-                <p className="rf-mono-digits text-lg font-semibold">{snapshotHash}</p>
-                <CopyValueButton value={snapshotHash} keyName="snapshot_hash" context="security_panel" />
+              <div className="mt-2 flex items-start gap-2">
+                <p className="rf-mono-digits min-w-0 flex-1 break-all text-sm font-semibold leading-tight md:text-base">{snapshotHash}</p>
+                <span className="shrink-0">
+                  <CopyValueButton value={snapshotHash} keyName="snapshot_hash" context="security_panel" />
+                </span>
               </div>
             </div>
             <div className="rounded-xl border border-border/70 bg-background/45 p-3 text-sm">

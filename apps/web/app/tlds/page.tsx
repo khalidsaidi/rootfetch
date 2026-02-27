@@ -161,7 +161,7 @@ export default async function TldsPage() {
         <div className="grid gap-3 md:grid-cols-4">
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Active run</p>
-            <p className="mt-1 rf-mono-digits text-sm font-semibold">{activeRunId || "n/a"}</p>
+            <p className="mt-1 rf-mono-digits text-sm font-semibold leading-tight break-all">{activeRunId || "n/a"}</p>
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Snapshot UTC</p>
@@ -173,7 +173,7 @@ export default async function TldsPage() {
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Manifest SHA256</p>
-            <p className="mt-1 rf-mono-digits text-xs font-semibold">{manifestSha}</p>
+            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all">{manifestSha}</p>
           </div>
         </div>
 
@@ -252,4 +252,3 @@ export default async function TldsPage() {
     </main>
   );
 }
-
