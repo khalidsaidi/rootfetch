@@ -18,7 +18,7 @@ export default function SecurityPage() {
         <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
           <li>No secrets are committed to git (`.env`, `.env.mcp`, tokens are local-only).</li>
           <li>No raw zone files are stored or committed (`*.zone`, `*.zone.gz`, `*.txt.gz`).</li>
-          <li>Vercel runtime is read-only; CZDS ingestion runs locally only.</li>
+          <li>Web runtime is read-only; CZDS ingestion runs locally only.</li>
           <li>Public site serves committed aggregates under `/rootfetch/*` only.</li>
           <li>`.ai/` is agent workspace and never committed.</li>
           <li>MCP endpoint enforces bearer-token and origin allowlist checks; no PII is exposed.</li>
@@ -31,7 +31,7 @@ export default function SecurityPage() {
             Primary risks: secret leakage, accidental publication of raw zone data, and exposing mutable ingestion runtime to the public app.
           </p>
           <p>
-            Mitigations: strict gitignore + staged-path checks, aggregate-only artifacts, read-only Vercel serving path, and protected MCP endpoint.
+            Mitigations: strict gitignore + staged-path checks, aggregate-only artifacts, read-only web serving path, and protected MCP endpoint.
           </p>
         </div>
       </Section>

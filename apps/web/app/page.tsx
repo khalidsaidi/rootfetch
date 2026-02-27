@@ -492,7 +492,7 @@ export default async function Home() {
                 <li>• no_raw_zones_tracked: {String(Boolean(securityStatus.no_raw_zones_tracked))}</li>
                 <li>• no_ai_dir_tracked: {String(Boolean(securityStatus.no_ai_dir_tracked))}</li>
                 <li>• no_env_tracked: {String(Boolean(securityStatus.no_env_tracked))}</li>
-                <li>• vercel_read_only: {String(Boolean(securityStatus.vercel_read_only))}</li>
+                <li>• web_runtime_read_only: {String(Boolean(securityStatus.vercel_read_only))}</li>
               </ul>
             </div>
           </div>

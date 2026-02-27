@@ -37,7 +37,7 @@ export default function SecurityStatusCard({ status }: { status: SecurityStatus 
         <StatusRow label="No raw zone files tracked" ok={noRaw} />
         <StatusRow label=".ai directory not tracked" ok={noAi} />
         <StatusRow label=".env files not tracked" ok={noEnv} />
-        <StatusRow label="Vercel runtime is read-only" ok={readOnly} />
+        <StatusRow label="Web runtime is read-only" ok={readOnly} />
       </ul>
       <p className="mt-3 text-xs text-muted-foreground">
         last_local_run_id: <span className="font-mono">{status.last_local_run_id || "n/a"}</span>

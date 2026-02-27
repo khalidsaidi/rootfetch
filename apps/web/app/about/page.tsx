@@ -16,7 +16,7 @@ export default function AboutPage() {
     <main className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
       <Section title="About RootFetch" subtitle="Delegation intelligence built from DNS-visible evidence.">
         <p className="text-sm leading-relaxed text-muted-foreground">
-          RootFetch tracks CZDS-approved TLD delegation activity from local ingestion runs. It does not ingest on Vercel, does not publish
+          RootFetch tracks CZDS-approved TLD delegation activity from local ingestion runs. It does not ingest in the web runtime, does not publish
           raw zones, and does not rely on marketing dashboards.
         </p>
       </Section>
@@ -32,8 +32,8 @@ export default function AboutPage() {
 
       <Section title="Safety Guarantees">
         <ul className="ml-5 list-disc space-y-2 text-sm leading-relaxed text-muted-foreground">
-          <li>CZDS ingestion runs locally only and never on Vercel runtime.</li>
-          <li>Vercel serves read-only, committed artifacts (`/rootfetch/*`).</li>
+          <li>CZDS ingestion runs locally only and never in the web runtime.</li>
+          <li>The web runtime serves read-only, committed artifacts (`/rootfetch/*`).</li>
           <li>Secrets are local (`.env`, `.env.mcp`) and gitignored.</li>
         </ul>
       </Section>

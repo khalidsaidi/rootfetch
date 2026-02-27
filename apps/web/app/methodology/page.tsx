@@ -51,7 +51,7 @@ export default function MethodologyPage() {
    -> signals (market + trend + coverage)
    -> digest + static RAG
    -> committed artifacts
-   -> read-only Vercel + MCP`}
+   -> read-only web runtime + MCP`}
         </pre>
       </Section>
 

@@ -237,7 +237,7 @@ export default function AlertControlPanel({
             </button>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            No alerts are sent from this page. Local runtime sends alerts via <code>rootfetch alerts run</code>; Vercel remains read-only.
+            No alerts are sent from this page. Local runtime sends alerts via <code>rootfetch alerts run</code>; the web runtime is read-only.
           </p>
         </div>
       </div>
