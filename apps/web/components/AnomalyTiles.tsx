@@ -31,6 +31,12 @@ function fmtSigned(value: number): string {
   return `${sign}${fmtInt(value)}`;
 }
 
+function formatMaybeNumber(value: unknown): string {
+  if (value == null || value === "") return "n/a";
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed.toFixed(2) : "n/a";
+}
+
 function intensityClass(intensity?: string): string {
   if (intensity === "high") {
     return "border-fuchsia-400/70 bg-fuchsia-400/10";
@@ -78,8 +84,8 @@ export default function AnomalyTiles({ rows }: { rows: AnomalyTile[] }) {
           <p className="mt-2 text-xl font-semibold">{fmtSigned(row.delta_abs)}</p>
           <p className="text-xs text-muted-foreground">{fmtPct(row.delta_pct)} day delta</p>
           <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-            <span className="rounded border border-border/70 px-1.5 py-0.5">z {Number(row.z_score || 0).toFixed(2)}</span>
-            <span className="rounded border border-border/70 px-1.5 py-0.5">robust {Number(row.robust_z || 0).toFixed(2)}</span>
+            <span className="rounded border border-border/70 px-1.5 py-0.5">z {formatMaybeNumber(row.z_score)}</span>
+            <span className="rounded border border-border/70 px-1.5 py-0.5">robust {formatMaybeNumber(row.robust_z)}</span>
             <span className="rounded border border-border/70 px-1.5 py-0.5">{fmtInt(row.count)} delegated</span>
           </div>
         </motion.div>

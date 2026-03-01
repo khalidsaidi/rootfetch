@@ -21,9 +21,11 @@ export default function CopyValueButton({
         await navigator.clipboard.writeText(value);
         track("rf_copy_value", { key: keyName, context });
       }}
+      title="Copy value"
+      aria-label="Copy value"
     >
       <Copy className="h-3.5 w-3.5" />
-      copy
+      <span className="hidden sm:inline">copy</span>
     </button>
   );
 }

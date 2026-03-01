@@ -189,13 +189,13 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
             <p className="text-xs text-muted-foreground">Methodology version</p>
             <p className="mt-1 rf-mono-digits text-sm font-semibold">{methodologyVersion}</p>
           </div>
-          <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+          <div className="overflow-hidden rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Snapshot hash</p>
-            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all">{snapshotHash}</p>
+            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all [overflow-wrap:anywhere]">{snapshotHash}</p>
           </div>
-          <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+          <div className="overflow-hidden rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs text-muted-foreground">Manifest SHA256</p>
-            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all">{run.manifestSha256}</p>
+            <p className="mt-1 rf-mono-digits text-xs font-semibold leading-tight break-all [overflow-wrap:anywhere]">{run.manifestSha256}</p>
           </div>
         </div>
       </Section>

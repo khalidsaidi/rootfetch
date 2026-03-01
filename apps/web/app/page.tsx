@@ -385,9 +385,9 @@ export default async function Home() {
               <span className="text-muted-foreground">Model</span>
               <span className="rf-mono-digits">{modelVersion}</span>
             </p>
-            <p className="flex items-center gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
+            <p className="flex min-w-0 items-center gap-2 rounded-lg border border-border/70 bg-background/45 px-3 py-2">
               <span className="shrink-0 text-muted-foreground">Artifact run</span>
-              <span className="rf-mono-digits min-w-0 flex-1 truncate text-right" title={activeRunId}>
+              <span className="rf-mono-digits min-w-0 flex-1 break-all text-right leading-tight" title={activeRunId}>
                 {activeRunId}
               </span>
               <span className="shrink-0">
@@ -451,10 +451,10 @@ export default async function Home() {
 
         <div className="grid gap-4 xl:grid-cols-[1fr,1fr]">
           <div className="space-y-3">
-            <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <div className="overflow-hidden rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Snapshot hash</p>
               <div className="mt-2 flex items-start gap-2">
-                <p className="rf-mono-digits min-w-0 flex-1 break-all text-sm font-semibold leading-tight md:text-base">{snapshotHash}</p>
+                <p className="rf-mono-digits min-w-0 flex-1 break-all [overflow-wrap:anywhere] text-sm font-semibold leading-tight md:text-base">{snapshotHash}</p>
                 <span className="shrink-0">
                   <CopyValueButton value={snapshotHash} keyName="snapshot_hash" context="security_panel" />
                 </span>
@@ -492,7 +492,7 @@ export default async function Home() {
                 <li>• no_raw_zones_tracked: {String(Boolean(securityStatus.no_raw_zones_tracked))}</li>
                 <li>• no_ai_dir_tracked: {String(Boolean(securityStatus.no_ai_dir_tracked))}</li>
                 <li>• no_env_tracked: {String(Boolean(securityStatus.no_env_tracked))}</li>
-                <li>• web_runtime_read_only: {String(Boolean(securityStatus.vercel_read_only))}</li>
+                <li>• runtime_read_only: {String(Boolean(securityStatus.vercel_read_only))}</li>
               </ul>
             </div>
           </div>

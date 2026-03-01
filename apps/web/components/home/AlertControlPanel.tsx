@@ -17,8 +17,14 @@ function toNum(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function toOptionalNum(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function severity(row: AlertRow, zThreshold: number, pctThreshold: number): "critical" | "high" | "moderate" | "info" {
-  const z = Math.abs(toNum(row.robust_z));
+  const z = Math.abs(toOptionalNum(row.robust_z) ?? 0);
   const pct = Math.abs(toNum(row.delta_pct));
   if (z >= Math.max(4, zThreshold + 1) || pct >= Math.max(0.06, pctThreshold * 2)) return "critical";
   if (z >= zThreshold || pct >= pctThreshold) return "high";
@@ -44,6 +50,7 @@ export default function AlertControlPanel({
   const [destMcp, setDestMcp] = useState(true);
   const [destSlack, setDestSlack] = useState(false);
   const [showPayload, setShowPayload] = useState(false);
+  const [lastTestEventUtc, setLastTestEventUtc] = useState<string | null>(null);
 
   const triggered = useMemo(() => {
     return rows
@@ -93,7 +100,7 @@ export default function AlertControlPanel({
       triggered_preview: triggered.slice(0, 6).map((row) => ({
         tld: row.tld,
         severity: row.severity,
-        z: Number(toNum(row.robust_z).toFixed(2)),
+        z: toOptionalNum(row.robust_z) == null ? null : Number(toNum(row.robust_z).toFixed(2)),
         delta_pct: Number((toNum(row.delta_pct) * 100).toFixed(2)),
         sector: row.sector || "other",
       })),
@@ -183,9 +190,9 @@ export default function AlertControlPanel({
         </div>
 
         <div className="space-y-3 rounded-xl border border-border/55 bg-background/10 p-3">
-          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Preview destinations (UI only)</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Simulation destinations (preview only)</p>
           <p className="text-[11px] text-muted-foreground">
-            These toggles affect only the preview payload in this page. They do not persist subscription settings.
+            This section simulates payload routing only. It does not update live alert subscriptions.
           </p>
           <label className="flex items-center justify-between text-sm">
             <span>Email</span>
@@ -210,7 +217,7 @@ export default function AlertControlPanel({
             <p>Anomaly trigger rows: {triggered.length}</p>
           </div>
           <div className="rounded-lg border border-border/70 bg-background/35 p-2 text-xs">
-            <p className="mb-1 uppercase tracking-[0.12em] text-muted-foreground">Preview payload channels</p>
+            <p className="mb-1 uppercase tracking-[0.12em] text-muted-foreground">Simulated payload channels</p>
             <p>Email: {destEmail ? "included" : "excluded"}</p>
             <p>Webhook: {destWebhook ? "included" : "excluded"}</p>
             <p>MCP stream: {destMcp ? "included" : "excluded"}</p>
@@ -231,13 +238,23 @@ export default function AlertControlPanel({
             <button
               type="button"
               className="rounded-md border border-border/70 px-3 py-1.5 text-xs hover:border-primary/40"
-              onClick={() => track("anomaly_open", { tld: "alert_test", sector: "control_plane" })}
+              onClick={() => {
+                const now = new Date().toISOString();
+                setLastTestEventUtc(now);
+                setShowPayload(true);
+                track("anomaly_open", { tld: "alert_test", sector: "control_plane" });
+              }}
             >
-              Track UI test click
+              Trigger test event (preview)
             </button>
           </div>
+          {lastTestEventUtc ? (
+            <p className="text-[11px] text-muted-foreground">
+              Last simulated event: <span className="rf-mono-digits">{lastTestEventUtc}</span>
+            </p>
+          ) : null}
           <p className="text-[11px] text-muted-foreground">
-            No alerts are sent from this page. Local runtime sends alerts via <code>rootfetch alerts run</code>; the web runtime is read-only.
+            No alerts are delivered from this page. This UI simulates evaluation and payload shape only.
           </p>
         </div>
       </div>

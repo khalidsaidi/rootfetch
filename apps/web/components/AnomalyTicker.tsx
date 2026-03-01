@@ -33,17 +33,22 @@ function fmtPct(value: number): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+function toFiniteOrNull(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function zValue(row: AnomalyRow): number | null {
-  const robust = Number(row.robust_z);
-  if (Number.isFinite(robust)) return robust;
-  const z = Number(row.z_score);
-  if (Number.isFinite(z)) return z;
+  const robust = toFiniteOrNull(row.robust_z);
+  if (robust != null) return robust;
+  const z = toFiniteOrNull(row.z_score);
+  if (z != null) return z;
   return null;
 }
 
 function anomalyValue(row: AnomalyRow): number | null {
-  const score = Number(row.anomaly_score);
-  return Number.isFinite(score) ? score : null;
+  return toFiniteOrNull(row.anomaly_score);
 }
 
 function rankMagnitude(row: AnomalyRow): number {

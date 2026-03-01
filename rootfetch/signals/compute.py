@@ -1040,7 +1040,14 @@ def _anomaly_spotlight_payload(
                 float(day["delta_pct_num"]) if day is not None and pd.notna(day["delta_pct_num"]) else math.nan
             )
             score = float(row.get("score") or 0.0)
-            if score >= 3.5:
+            reason = str(row.get("reason") or "").strip().lower()
+            if reason == "suspicious_jump":
+                intensity = "medium"
+                label = "data quality jump"
+            elif reason == "missing_data_recovery":
+                intensity = "low"
+                label = "missing-data recovery"
+            elif score >= 3.5:
                 intensity = "high"
                 label = "z-score spike"
             elif score >= 2.0:
@@ -1054,14 +1061,15 @@ def _anomaly_spotlight_payload(
                 if day is not None and pd.notna(day["count_num"])
                 else int(round(float(row.get("count") or 0)))
             )
+            expose_statistical_z = reason in {"zscore", "robust_z"}
             rows.append(
                 {
                     "tld": tld,
                     "count": count_val,
                     "delta_abs": delta_abs if not math.isnan(delta_abs) else 0.0,
                     "delta_pct": delta_pct if not math.isnan(delta_pct) else 0.0,
-                    "z_score": float(row["z"]) if pd.notna(row.get("z")) else math.nan,
-                    "robust_z": float(row["robust_z"]) if pd.notna(row.get("robust_z")) else math.nan,
+                    "z_score": float(row["z"]) if expose_statistical_z and pd.notna(row.get("z")) else math.nan,
+                    "robust_z": float(row["robust_z"]) if expose_statistical_z and pd.notna(row.get("robust_z")) else math.nan,
                     "anomaly_score": score,
                     "volatility": float(vol_lookup.get(tld, math.nan)),
                     "sector": _map_tld_to_sectors(tld, sector_map)[0],
