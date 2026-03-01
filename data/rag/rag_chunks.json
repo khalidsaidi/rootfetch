@@ -10,39 +10,48 @@
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "10e24451de48582f5dab448786edc2a314eb4a5a",
+      "id": "02d4233e60bc629e3e7dd179e22ddbb0d3c43a6a",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
       "title": "Operating Model",
-      "text": "ur machine (local runner), not on Vercel.\n- Vercel serves read-only precomputed artifacts from the repo.\n- Two ingestion modes:\n  - Day-1 baseline: ingest all approved CZDS TLDs in one resumable run.\n  - Daily hybrid (after baseline completion): core set daily + deterministic rolling long tail.\n\n## Primary Metric\n\n- `count_ns_sld`: unique second-level owners with at least one `NS` record.\n\nThis is a delegation footprint proxy, not total registrations.\n\n## Safety\n\n- Never commit credentials/tokens/MFA seeds.\n- Never commit `.env` files.\n- Never commit raw zone files (`*.gz`, `*.zone`, `*.txt.gz`).\n- Commit only safe aggregates under `data/` and code/docs.\n\n## Setup\n\n```bash\npython -m venv .venv\nsource .venv/bin/activate\npip install -e \".[dev]\"\n```\n\nSet local env vars (or use local `.env`):\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- optional `CZDS_TOTP_SECRET`\n\nQuick start:\n\n```bash\ncp .env.example .env\n```\n\nOptional local MCP endpoint override for step-9 live checks (keep this local-only, never commit):\n\n```bash\ncat > .env.mcp <<'EOF'\nROOTFETCH_MCP_URL=https://rootfetch.vercel.app/api/mcp",
+      "text": "ur machine (local runner), not on Vercel.\n- Vercel serves read-only precomputed artifacts from the repo.\n- Two ingestion modes:\n  - Day-1 baseline: ingest all approved CZDS TLDs in one resumable run.\n  - Daily hybrid (after baseline completion): core set daily + deterministic rolling long tail.\n\n## Primary Metric\n\n- `count_ns_sld`: unique second-level owners with at least one `NS` record.\n\nThis is a delegation footprint proxy, not total registrations.\n\n## Safety\n\n- Never commit credentials/tokens/MFA seeds.\n- Never commit `.env` files.\n- Never commit raw zone files (`*.gz`, `*.zone`, `*.txt.gz`).\n- Commit only safe aggregates under `data/` and code/docs.\n\n## Setup\n\n```bash\npython -m venv .venv\nsource .venv/bin/activate\npip install -e \".[dev]\"\n```\n\nSet local env vars with a local credential file (`.env.czds` recommended; `.env` remains legacy-compatible):\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- optional `CZDS_TOTP_SECRET`\n\nQuick start:\n\n```bash\ncp .env.example .env.czds\nchmod 600 .env.czds\nrootfetch auth-check\n```\n\nOptional local MCP endpoint override for step-9 live checks (keep this",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "a40136daa784243c49b655dc6a1cce5b416db661",
+      "id": "7e6be9fa59ea4a6f4a5462b7900c03bc601fd61f",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
       "title": "Setup",
-      "text": "int override for step-9 live checks (keep this local-only, never commit):\n\n```bash\ncat > .env.mcp <<'EOF'\nROOTFETCH_MCP_URL=https://rootfetch.vercel.app/api/mcp\nEOF\nchmod 600 .env.mcp\n```\n\n## CLI\n\n```bash\nrootfetch auth-check\nrootfetch discover\nrootfetch run-baseline --dry-run\nrootfetch run-baseline --resume\nrootfetch baseline-status\nrootfetch run-hybrid\nrootfetch run-hybrid --dry-run\nrootfetch compute-signals --date YYYY-MM-DD\npython compute_model_v1.py snapshot.json\nrootfetch rag build\nrootfetch rag build-static\nrootfetch rag search \"count_ns_sld\"\nrootfetch mcp serve --transport stdio\nrootfetch alerts run --date YYYY-MM-DD\nrootfetch alerts run --date YYYY-MM-DD --recover-corrupt-state\nrootfetch publish prepare --date YYYY-MM-DD --out-dir .ai/publish/latest\nrootfetch publish run --source-dir .ai/publish/latest --artifacts-root data/artifacts --model-version rootfetch_model_v1 --snapshot-ts-utc 2026-02-25T23:15:01Z\n```\n\n## Local Automation\n\nPrimary daily entrypoint:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest entrypoint (includes MCP checks when MCP URL is configured):\n\n`",
+      "text": "start:\n\n```bash\ncp .env.example .env.czds\nchmod 600 .env.czds\nrootfetch auth-check\n```\n\nOptional local MCP endpoint override for step-9 live checks (keep this local-only, never commit):\n\n```bash\ncat > .env.mcp <<'EOF'\nROOTFETCH_MCP_URL=https://rootfetch.vercel.app/api/mcp\nEOF\nchmod 600 .env.mcp\n```\n\n## CLI\n\n```bash\nrootfetch auth-check\nrootfetch discover\nrootfetch run-baseline --dry-run\nrootfetch run-baseline --resume\nrootfetch baseline-status\nrootfetch run-hybrid\nrootfetch run-hybrid --dry-run\nrootfetch compute-signals --date YYYY-MM-DD\npython compute_model_v1.py snapshot.json\nrootfetch rag build\nrootfetch rag build-static\nrootfetch rag search \"count_ns_sld\"\nrootfetch mcp serve --transport stdio\nrootfetch alerts run --date YYYY-MM-DD\nrootfetch alerts run --date YYYY-MM-DD --recover-corrupt-state\nrootfetch publish prepare --date YYYY-MM-DD --out-dir .ai/publish/latest\nrootfetch publish run --source-dir .ai/publish/latest --artifacts-root data/artifacts --model-version rootfetch_model_v1 --snapshot-ts-utc 2026-02-25T23:15:01Z\n```\n\n## Local Automation\n\nPrimary daily entrypoint:\n\n```ba",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "4dd1ef05201defc34635a65e69b6de536e19afa0",
+      "id": "f98c68b6b22fc1498aebeb02e0805b08495ec561",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
-      "title": "Local Automation",
-      "text": "al Automation\n\nPrimary daily entrypoint:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest entrypoint (includes MCP checks when MCP URL is configured):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script auto-switches:\n\n1. runs `rootfetch discover`\n2. if baseline is incomplete, repeatedly runs `rootfetch run-baseline --resume` until 100% coverage\n3. once baseline is complete, runs `rootfetch run-hybrid`\n4. rebuilds static RAG + commits safe artifacts only\n\nSee scheduler setups in [docs/local_runner.md](docs/local_runner.md).\n\n## Outputs\n\n- `data/approved_tlds/latest.json`\n- `data/daily_counts/<YYYY-MM-DD>.csv`\n- `data/growth_trends.csv`\n- `data/signals/*`\n- `data/digests/*`\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n- `data/artifacts/latest.json`\n- `data/artifacts/replay/index.json`\n- `data/artifacts/runs/<run_id>/*`\n- `data/state/baseline_complete.json` (written once baseline reaches 100%)\n\n## Docs\n\n- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- Model contract v1: [docs/model_contract_v1.md](d",
+      "title": "CLI",
+      "text": "tifacts-root data/artifacts --model-version rootfetch_model_v1 --snapshot-ts-utc 2026-02-25T23:15:01Z\n```\n\n## Local Automation\n\nPrimary daily entrypoint:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest entrypoint (includes MCP checks when MCP URL is configured):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nBoth run scripts load local env files in this order: `.env.czds` -> `.env` -> `.env.mcp`.\n\nThe script auto-switches:\n\n1. runs `rootfetch discover`\n2. if baseline is incomplete, repeatedly runs `rootfetch run-baseline --resume` until 100% coverage\n3. once baseline is complete, runs `rootfetch run-hybrid`\n4. rebuilds static RAG + commits safe artifacts only\n\nSee scheduler setups in [docs/local_runner.md](docs/local_runner.md).\n\n## Outputs\n\n- `data/approved_tlds/latest.json`\n- `data/daily_counts/<YYYY-MM-DD>.csv`\n- `data/growth_trends.csv`\n- `data/signals/*`\n- `data/digests/*`\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n- `data/artifacts/latest.json`\n- `data/artifacts/replay/index.json`\n- `data/artifacts/runs/<run_id>/*`\n- `data/state/baseline_complete.json` (wr",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "1106578c29008702cc3c6dc377ad1f1acfa6c22a",
+      "id": "b948b2f821259316fc7c1e7a05ccf5bf214b7a75",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
-      "title": "Docs",
-      "text": "- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)\n- Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)\n- Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\nRootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs on `self-hosted` only.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/vercel_deploy.yml` deploys dashboard on safe artifact/code changes.",
+      "title": "Outputs",
+      "text": "/rag_meta.json`\n- `data/artifacts/latest.json`\n- `data/artifacts/replay/index.json`\n- `data/artifacts/runs/<run_id>/*`\n- `data/state/baseline_complete.json` (written once baseline reaches 100%)\n\n## Docs\n\n- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)\n- Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)\n- Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- CZDS credentials: [docs/czds_credentials.md](docs/czds_credentials.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\nRootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs on `self-hosted` only.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/vercel_deploy.yml` deploys dashbo",
+      "resource_uri": "rootfetch://docs/readme"
+    },
+    {
+      "id": "ddf97371adf02d809f41c69b6d8921921911cf8f",
+      "source_path": "README.md",
+      "source_type": "readme",
+      "date_utc": null,
+      "title": "GitHub Actions",
+      "text": "etch_daily.yml` runs on `self-hosted` only.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/vercel_deploy.yml` deploys dashboard on safe artifact/code changes.",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
@@ -100,6 +109,24 @@
       "resource_uri": "rootfetch://docs/cadence_calendar_2026"
     },
     {
+      "id": "b4c27ac79852b1618ff6dbf9a528427eca178406",
+      "source_path": "docs/czds_credentials.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "CZDS Credentials (Canonical Local Setup)",
+      "text": "# CZDS Credentials (Canonical Local Setup)\n\nRootFetch ingestion requires local CZDS credentials and does not run without them.\n\n## Canonical Credential File\n\nUse `.env.czds` in repo root (gitignored):\n\n```bash\ncp .env.example .env.czds\nchmod 600 .env.czds\n```\n\nSet:\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- optional `CZDS_TOTP_SECRET`\n\nValidate before running automation:\n\n```bash\nrootfetch auth-check\n```\n\n## Script Load Order\n\n`./scripts/local_run_hybrid.sh` and `./scripts/retest_new_approvals.sh` load env files in this order:\n\n1. `.env.czds` (canonical)\n2. `.env` (legacy fallback)\n3. `.env.mcp` (optional MCP/runtime overrides)\n\nIf credentials are missing, scripts fail fast with setup instructions.\n\n## Scheduler Notes\n\nCron/systemd inherits only what the script loads from repo files. Keep `.env.czds` present on the runner host and locked down (`chmod 600`).\n\n## Troubleshooting\n\n- `Missing CZDS credentials`: ensure `.env.czds` exists and has `CZDS_USERNAME`/`CZDS_PASSWORD`.\n- `auth-check` fails: refresh credentials/TOTP seed and rerun `rootfetch auth-check`.\n- Cron run fails but manual ru",
+      "resource_uri": "rootfetch://docs/czds_credentials"
+    },
+    {
+      "id": "362bc45c5bc4fe4c1ab8d439818cd14d9dc65b65",
+      "source_path": "docs/czds_credentials.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Troubleshooting",
+      "text": "ts and has `CZDS_USERNAME`/`CZDS_PASSWORD`.\n- `auth-check` fails: refresh credentials/TOTP seed and rerun `rootfetch auth-check`.\n- Cron run fails but manual run works: verify cron `WorkingDirectory`/`cd` points to repo root containing `.env.czds`.",
+      "resource_uri": "rootfetch://docs/czds_credentials"
+    },
+    {
       "id": "eb075b5febcb65aeb602271f14362872a8b351e8",
       "source_path": "docs/dashboard.md",
       "source_type": "doc",
@@ -136,39 +163,48 @@
       "resource_uri": "rootfetch://docs/kpi_dashboard_spec"
     },
     {
-      "id": "3d080e86b3e6b818435c2dc85232c16195c2f745",
+      "id": "90797dbe20376a8401822a18ac53498c383d34fc",
       "source_path": "docs/local_runner.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "RootFetch Local Runner",
-      "text": "# RootFetch Local Runner\n\nRootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted runners.\n\n## Required Local Environment\n\nCreate a local `.env` (never committed):\n\n```bash\ncp .env.example .env\n```\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)\n\nOptional local MCP settings file `.env.mcp` (never committed):\n\n- optional `ROOTFETCH_MCP_URL` (default `https://rootfetch.vercel.app/api/mcp`)\n\nOptional hybrid overrides:\n\n- `ROOTFETCH_ROLLING_PERIOD_DAYS`\n- `ROOTFETCH_ROLLING_MIN_PER_DAY`\n- `ROOTFETCH_ROLLING_MAX_PER_DAY`\n- `ROOTFETCH_MAX_WORKERS`\n- `ROOTFETCH_HTTP_TIMEOUT`\n- `ROOTFETCH_RETRY_MAX`\n- `ROOTFETCH_LOG_EVERY`\n- `ROOTFETCH_REPLAY_INDEX_MAX_RUNS` (default `365`)\n\nOptional local alerting and delivery-reliability overrides:\n\n- `ROOTFETCH_SLACK_WEBHOOK_URL`\n- `ROOTFETCH_DISCORD_WEBHOOK_URL`\n- `ROOTFETCH_ALERT_MOVER_ABS_THRESHOLD`\n- `ROOTFETCH_ALERT_MOVER_PCT_THRESHOLD`\n- `ROOTFETCH_ALERT_ANOMALY_Z_THRESHOLD`\n- `ROOTFETCH_ALERT_FAILURE_THRESHOLD`\n- `ROOTFETCH_ALERT_RETRY_MAX`\n- `ROOTFETCH_ALERT_RETRY_BASE_SECONDS",
+      "text": "# RootFetch Local Runner\n\nRootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted runners.\n\n## Required Local Environment\n\nCreate a local credential file `.env.czds` (never committed):\n\n```bash\ncp .env.example .env.czds\nchmod 600 .env.czds\nrootfetch auth-check\n```\n\n- `CZDS_USERNAME`\n- `CZDS_PASSWORD`\n- `CZDS_TOTP_SECRET` (only if your account uses TOTP MFA)\n\nLegacy fallback: `.env` is still loaded if present. Canonical path is `.env.czds`.\nSee [CZDS Credentials (Canonical Local Setup)](./czds_credentials.md) for troubleshooting and scheduler notes.\n\nOptional local MCP settings file `.env.mcp` (never committed):\n\n- optional `ROOTFETCH_MCP_URL` (default `https://rootfetch.vercel.app/api/mcp`)\n\nOptional hybrid overrides:\n\n- `ROOTFETCH_ROLLING_PERIOD_DAYS`\n- `ROOTFETCH_ROLLING_MIN_PER_DAY`\n- `ROOTFETCH_ROLLING_MAX_PER_DAY`\n- `ROOTFETCH_MAX_WORKERS`\n- `ROOTFETCH_HTTP_TIMEOUT`\n- `ROOTFETCH_RETRY_MAX`\n- `ROOTFETCH_LOG_EVERY`\n- `ROOTFETCH_REPLAY_INDEX_MAX_RUNS` (default `365`)\n\nOptional local alerting and delivery-reliability overrides:\n\n- `ROOTFETCH_SLACK_WEBHOOK_UR",
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
-      "id": "c53aa2279a9ace7b62686455dd23848404817e08",
+      "id": "6bb78d2605c24615e4ccec7b23ec2155d8dd574b",
       "source_path": "docs/local_runner.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Required Local Environment",
-      "text": "PCT_THRESHOLD`\n- `ROOTFETCH_ALERT_ANOMALY_Z_THRESHOLD`\n- `ROOTFETCH_ALERT_FAILURE_THRESHOLD`\n- `ROOTFETCH_ALERT_RETRY_MAX`\n- `ROOTFETCH_ALERT_RETRY_BASE_SECONDS`\n- `ROOTFETCH_ALERT_RETRY_MAX_SECONDS`\n- `ROOTFETCH_ALERT_RETRY_JITTER_PCT`\n- `ROOTFETCH_ALERT_LOCK_TIMEOUT_SECONDS`\n- `ROOTFETCH_ALERT_DEDUP_HOURS`\n- `ROOTFETCH_ALERT_RECOVER_CORRUPT_STATE` (default `false`; requires explicit opt-in)\n\n## Daily Local Command\n\nRun:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest (includes live MCP checks when MCP URL is configured):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nThe script does:\n\n1. `rootfetch discover`\n2. checks `rootfetch baseline-status --date <today>`\n3. loops `rootfetch run-baseline --resume` until baseline completion (`missing_ever_count=0`)\n4. after baseline completion, runs `rootfetch run-hybrid --date <today>`\n5. `rootfetch compute-signals --date <run_date>`\n6. `rootfetch rag build-static`\n7. `rootfetch publish prepare --date <run_date> --out-dir .ai/publish/latest ...`\n8. `rootfetch publish run --source-dir .ai/publish/latest --artifacts-root data/artifacts",
+      "text": "FETCH_LOG_EVERY`\n- `ROOTFETCH_REPLAY_INDEX_MAX_RUNS` (default `365`)\n\nOptional local alerting and delivery-reliability overrides:\n\n- `ROOTFETCH_SLACK_WEBHOOK_URL`\n- `ROOTFETCH_DISCORD_WEBHOOK_URL`\n- `ROOTFETCH_ALERT_MOVER_ABS_THRESHOLD`\n- `ROOTFETCH_ALERT_MOVER_PCT_THRESHOLD`\n- `ROOTFETCH_ALERT_ANOMALY_Z_THRESHOLD`\n- `ROOTFETCH_ALERT_FAILURE_THRESHOLD`\n- `ROOTFETCH_ALERT_RETRY_MAX`\n- `ROOTFETCH_ALERT_RETRY_BASE_SECONDS`\n- `ROOTFETCH_ALERT_RETRY_MAX_SECONDS`\n- `ROOTFETCH_ALERT_RETRY_JITTER_PCT`\n- `ROOTFETCH_ALERT_LOCK_TIMEOUT_SECONDS`\n- `ROOTFETCH_ALERT_DEDUP_HOURS`\n- `ROOTFETCH_ALERT_RECOVER_CORRUPT_STATE` (default `false`; requires explicit opt-in)\n\n## Daily Local Command\n\nRun:\n\n```bash\n./scripts/local_run_hybrid.sh\n```\n\nFull retest (includes live MCP checks when MCP URL is configured):\n\n```bash\n./scripts/retest_new_approvals.sh\n```\n\nBoth scripts load local env files in this order: `.env.czds` -> `.env` -> `.env.mcp`.\n\nThe script does:\n\n1. `rootfetch discover`\n2. checks `rootfetch baseline-status --date <today>`\n3. loops `rootfetch run-baseline --resume` until baseline completion (`",
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
-      "id": "df883a62529d36125a1b47321e5e34629be756b9",
+      "id": "bd3e8d037d0bdacf773d90a1642a61133f5e4dd6",
       "source_path": "docs/local_runner.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Daily Local Command",
-      "text": "h publish prepare --date <run_date> --out-dir .ai/publish/latest ...`\n8. `rootfetch publish run --source-dir .ai/publish/latest --artifacts-root data/artifacts ...`\n9. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json` and `data/artifacts/*`)\n\nAlert delivery is local-only and persistent:\n\n- queue state is stored at `.ai/alerts/state.json`\n- delivery attempts are append-logged at `.ai/alerts/delivery_log.jsonl`\n- failed notifications are retried with exponential backoff\n- exhausted retries are retained in `dead_letters` for operator review\n- dedup keys are bucketed by snapshot UTC date (`YYYY-MM-DD`), not wall-clock runtime\n- if `state.json` is corrupt, it is quarantined to `.ai/alerts/state.corrupt.<run_id>.<timestamp>.json`\n- by default, runner halts on corrupt state and requires explicit recovery:\n  - CLI: `rootfetch alerts run --date <YYYY-MM-DD> --recover-corrupt-state`\n  - env: `ROOTFETCH_ALERT_RECOVER_CORRUPT_STATE=true`\n\n## Scheduling\n\n### Option 1: cron\n\n```bash\nCRON_TZ=UTC\n30 2 * * * /bin/bash -lc \"cd /path/to/rootfetch && ./scripts/",
+      "text": "ript does:\n\n1. `rootfetch discover`\n2. checks `rootfetch baseline-status --date <today>`\n3. loops `rootfetch run-baseline --resume` until baseline completion (`missing_ever_count=0`)\n4. after baseline completion, runs `rootfetch run-hybrid --date <today>`\n5. `rootfetch compute-signals --date <run_date>`\n6. `rootfetch rag build-static`\n7. `rootfetch publish prepare --date <run_date> --out-dir .ai/publish/latest ...`\n8. `rootfetch publish run --source-dir .ai/publish/latest --artifacts-root data/artifacts ...`\n9. commit/push safe artifacts only under `data/` (including `data/state/baseline_complete.json` and `data/artifacts/*`)\n\nAlert delivery is local-only and persistent:\n\n- queue state is stored at `.ai/alerts/state.json`\n- delivery attempts are append-logged at `.ai/alerts/delivery_log.jsonl`\n- failed notifications are retried with exponential backoff\n- exhausted retries are retained in `dead_letters` for operator review\n- dedup keys are bucketed by snapshot UTC date (`YYYY-MM-DD`), not wall-clock runtime\n- if `state.json` is corrupt, it is quarantined to `.ai/alerts/state.corrupt.<",
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
-      "id": "e7e58371dfb035ade7b34c69d9deb6d30aa065d4",
+      "id": "ce816b3867e242bb609bdf20cf02122fffacd720",
       "source_path": "docs/local_runner.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Daily Local Command",
-      "text": "OOTFETCH_ALERT_RECOVER_CORRUPT_STATE=true`\n\n## Scheduling\n\n### Option 1: cron\n\n```bash\nCRON_TZ=UTC\n30 2 * * * /bin/bash -lc \"cd /path/to/rootfetch && ./scripts/local_run_hybrid.sh >> .ai/logs/cron.log 2>&1\"\n```\n\n### Option 2: systemd timer (recommended)\n\nService (`/etc/systemd/system/rootfetch-hybrid.service`):\n\n```ini\n[Unit]\nDescription=RootFetch Hybrid Daily Run\n\n[Service]\nType=oneshot\nWorkingDirectory=/path/to/rootfetch\nExecStart=/bin/bash -lc './scripts/local_run_hybrid.sh'\n```\n\nTimer (`/etc/systemd/system/rootfetch-hybrid.timer`):\n\n```ini\n[Unit]\nDescription=Run RootFetch Hybrid Daily at 02:30 UTC\n\n[Timer]\nOnCalendar=*-*-* 02:30:00 UTC\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n```\n\nEnable:\n\n```bash\nsudo systemctl daemon-reload\nsudo systemctl enable --now rootfetch-hybrid.timer\n```",
+      "text": "dup keys are bucketed by snapshot UTC date (`YYYY-MM-DD`), not wall-clock runtime\n- if `state.json` is corrupt, it is quarantined to `.ai/alerts/state.corrupt.<run_id>.<timestamp>.json`\n- by default, runner halts on corrupt state and requires explicit recovery:\n  - CLI: `rootfetch alerts run --date <YYYY-MM-DD> --recover-corrupt-state`\n  - env: `ROOTFETCH_ALERT_RECOVER_CORRUPT_STATE=true`\n\n## Scheduling\n\n### Option 1: cron\n\n```bash\nmkdir -p /path/to/rootfetch/.ai/logs\n```\n\nAdd this entry to crontab:\n\n```bash\nCRON_TZ=UTC\n30 2 * * * /bin/bash -lc \"cd /path/to/rootfetch && ./scripts/local_run_hybrid.sh >> .ai/logs/cron.log 2>&1\"\n```\n\n### Option 2: systemd timer (recommended)\n\nService (`/etc/systemd/system/rootfetch-hybrid.service`):\n\n```ini\n[Unit]\nDescription=RootFetch Hybrid Daily Run\n\n[Service]\nType=oneshot\nWorkingDirectory=/path/to/rootfetch\nExecStart=/bin/bash -lc './scripts/local_run_hybrid.sh'\n```\n\nTimer (`/etc/systemd/system/rootfetch-hybrid.timer`):\n\n```ini\n[Unit]\nDescription=Run RootFetch Hybrid Daily at 02:30 UTC\n\n[Timer]\nOnCalendar=*-*-* 02:30:00 UTC\nPersistent=true\n\n[Install",
+      "resource_uri": "rootfetch://docs/local_runner"
+    },
+    {
+      "id": "3197360c277d3bf920eb74b2b8951a59a3394508",
+      "source_path": "docs/local_runner.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Option 2: systemd timer (recommended)",
+      "text": "em/rootfetch-hybrid.timer`):\n\n```ini\n[Unit]\nDescription=Run RootFetch Hybrid Daily at 02:30 UTC\n\n[Timer]\nOnCalendar=*-*-* 02:30:00 UTC\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n```\n\nEnable:\n\n```bash\nsudo systemctl daemon-reload\nsudo systemctl enable --now rootfetch-hybrid.timer\n```",
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
@@ -406,12 +442,12 @@
       "resource_uri": "rootfetch://docs/regime_flip_playbook"
     },
     {
-      "id": "a59fdb5562beb6595b1183b8b5480c32be5fcd3d",
+      "id": "90e97506f588769aba7caa8ba018ba5899d06c31",
       "source_path": "docs/run_checklist_template.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "RootFetch Next Run Checklist (Template)",
-      "text": "# RootFetch Next Run Checklist (Template)\n\nStatus: Operations Template  \nScope: Repeatable checklist for each local ingestion + publish cycle.\n\n## 1) Pre-Run\n\n- [ ] Confirm CZDS credentials are valid.\n- [ ] Confirm local runner environment is loaded.\n- [ ] Confirm `model_version` is unchanged or intentionally changed with governance docs prepared.\n- [ ] Confirm no pending governance changes affecting this run.\n\n## 2) Run\n\n- [ ] Execute `scripts/local_run_hybrid.sh`.\n- [ ] Confirm replay index updated.\n- [ ] Confirm immutable run published.\n- [ ] Confirm manifest verification is valid (`expected_count == checked_count`).\n\n## 3) Post-Run\n\n- [ ] Confirm `/runs` shows the new run.\n- [ ] Confirm `/compare` works against prior run.\n- [ ] Log run in KPI dashboard inputs.\n\n## 4) Discipline\n\n- [ ] No new interpretation step unless `meaningful delta` is triggered.\n- [ ] If `meaningful delta` triggered, route to the required playbook and publication path.",
+      "text": "# RootFetch Next Run Checklist (Template)\n\nStatus: Operations Template  \nScope: Repeatable checklist for each local ingestion + publish cycle.\n\n## 1) Pre-Run\n\n- [ ] Confirm `.env.czds` exists locally and credentials are valid (`rootfetch auth-check`).\n- [ ] Confirm local runner environment loads `.env.czds` (or intentional legacy `.env`) plus optional `.env.mcp`.\n- [ ] Confirm `model_version` is unchanged or intentionally changed with governance docs prepared.\n- [ ] Confirm no pending governance changes affecting this run.\n\n## 2) Run\n\n- [ ] Execute `scripts/local_run_hybrid.sh`.\n- [ ] Confirm replay index updated.\n- [ ] Confirm immutable run published.\n- [ ] Confirm manifest verification is valid (`expected_count == checked_count`).\n\n## 3) Post-Run\n\n- [ ] Confirm `/runs` shows the new run.\n- [ ] Confirm `/compare` works against prior run.\n- [ ] Log run in KPI dashboard inputs.\n\n## 4) Discipline\n\n- [ ] No new interpretation step unless `meaningful delta` is triggered.\n- [ ] If `meaningful delta` triggered, route to the required playbook and publication path.",
       "resource_uri": "rootfetch://docs/run_checklist_template"
     },
     {
@@ -638,6 +674,42 @@
       "title": "Sector Snapshot",
       "text": "11.0 | 0.0001804935678655 | 3 |\n| geo_local | 154626 | 58079.0 | 0.6015619335660352 | 4 |\n| media_social | 1011077 | 1449.0 | 0.0014351820670583 | 4 |\n| other | 58132712 | 4871201.0 | 0.0914581826264748 | 888 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-02-26"
+    },
+    {
+      "id": "197f38fe7daf8784563a5816c31ce16f1c80c668",
+      "source_path": "data/digests/2026-03-01.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-01",
+      "title": "RootFetch Daily Digest \u2014 2026-03-01",
+      "text": "# RootFetch Daily Digest \u2014 2026-03-01\n\n- Run ID: bb2c27a1-5dfa-458e-8fc1-89e8c433bd62\n- Mode: hybrid\n- Approved TLDs observed: 954\n- Observed today: 65 (core=3, rolling=62)\n- Snapshot rows today: 954\n\n## Cross-sectional highlights\n- Total delegated counted today: 64,498,881\n- Distribution (p50 / p90 / p99 / max): 1,216 / 44,330 / 1,169,015 / 11,665,032\n- Concentration (Top1 / Top10 share): 18.09% / 65.15% (HHI=0.0710)\n- New approvals vs 2026-02-26: +45 / -0\n- Added approvals (first 10): aaa, aarp, americanfamily, amfam, athleta, audi, bestbuy, booking, caravan, chase\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 65.15% of delegations; median TLD has 1,216 names; 386 TLDs have <100.\n- [movers/neutral] Core movers are not available yet; consecutive core observations are required.\n- [approvals/info] New approvals today: +45 (aaa, aarp, americanfamily).\n- [coverage/positive] Observed today: 65 (core+rolling) out of 954 approved TLDs; snapshot rows today: 954.\n\n## Security Status\n- Safe aggregates checks date: 2026-03-01\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_en",
+      "resource_uri": "rootfetch://digest/2026-03-01"
+    },
+    {
+      "id": "bd169db88335623ed759abfc69f9d44777d2e639",
+      "source_path": "data/digests/2026-03-01.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-01",
+      "title": "Daily Insights",
+      "text": "ved TLDs; snapshot rows today: 954.\n\n## Security Status\n- Safe aggregates checks date: 2026-03-01\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- vercel_read_only: True\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| org | 11665032 | 18.085634694964707 | other | baseline |\n| xyz | 8124970 | 12.597071257716856 | other | core |\n| top | 5896404 | 9.141870228725365 | other | baseline |\n| info | 5166741 | 8.010590137214939 | other | baseline |\n| online | 3241951 | 5.0263678217921335 | other | baseline |\n| store | 2082593 | 3.228882373943821 | commerce | rolling |\n| site | 1718376 | 2.664195057895656 | other | baseline |\n| vip | 1564891 | 2.4262296891631343 | other | baseline |\n| sbs | 1347990 | 2.089943234829144 | other | baseline |\n| biz | 1209123 | 1.8746418251814323 | other | baseline |\n\n## Core Daily Movers (Absolute)\n_No data._\n\n## Core Daily Movers (Percentage)\n_No data._\n\n## Core Daily Decliners\n_No data._\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_pr",
+      "resource_uri": "rootfetch://digest/2026-03-01"
+    },
+    {
+      "id": "de705f0ba348ab570e38993b4101343137762b67",
+      "source_path": "data/digests/2026-03-01.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-01",
+      "title": "Core Daily Movers (Percentage)",
+      "text": "ore Daily Movers (Percentage)\n_No data._\n\n## Core Daily Decliners\n_No data._\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| digital | 275045 | 2026-02-26 | 3.0 | 2141.0 | 0.007845249611585 |\n| store | 2082593 | 2026-02-26 | 3.0 | -1982.0 | -0.000950793327177 |\n| loan | 72104 | 2026-02-26 | 3.0 | -1480.0 | -0.0201130680582735 |\n| link | 280726 | 2026-02-26 | 3.0 | 1175.0 | 0.0042031686525893 |\n| beauty | 75911 | 2026-02-26 | 3.0 | -399.0 | -0.0052286725199842 |\n| pictures | 10716 | 2026-02-26 | 3.0 | -397.0 | -0.0357239269324214 |\n| bet | 117525 | 2026-02-26 | 3.0 | 95.0 | 0.000808992591331 |\n| mobile | 3572 | 2026-02-26 | 3.0 | 73.0 | 0.0208631037439268 |\n| green | 8276 | 2026-02-26 | 3.0 | 24.0 | 0.0029083858458555 |\n| xn--55qx5d | 21164 | 2026-02-26 | 3.0 | -20.0 | -0.0009441087613293 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2934035 | 1272",
+      "resource_uri": "rootfetch://digest/2026-03-01"
+    },
+    {
+      "id": "de7e8e841d8a23e580cd7dd1c6de54730c818fda",
+      "source_path": "data/digests/2026-03-01.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-01",
+      "title": "Sector Snapshot",
+      "text": "# Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2934035 | 12729.0 | 0.0043572977291663 | 6 |\n| commerce | 2123109 | -1957.0 | -0.0009209125740094 | 4 |\n| finance | 60945 | -10.0 | -0.0001640554507423 | 3 |\n| geo_local | 154704 | 78.0 | 0.0005044429785417 | 4 |\n| media_social | 1010453 | -624.0 | -0.0006171636779394 | 4 |\n| other | 58215635 | 82923.0 | 0.001426442998221 | 933 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "resource_uri": "rootfetch://digest/2026-03-01"
     }
   ]
 }
