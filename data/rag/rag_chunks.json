@@ -710,6 +710,51 @@
       "title": "Sector Snapshot",
       "text": "# Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2934035 | 12729.0 | 0.0043572977291663 | 6 |\n| commerce | 2123109 | -1957.0 | -0.0009209125740094 | 4 |\n| finance | 60945 | -10.0 | -0.0001640554507423 | 3 |\n| geo_local | 154704 | 78.0 | 0.0005044429785417 | 4 |\n| media_social | 1010453 | -624.0 | -0.0006171636779394 | 4 |\n| other | 58215635 | 82923.0 | 0.001426442998221 | 933 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-03-01"
+    },
+    {
+      "id": "09db1e829b62572424e6adb53d5136f76267dd17",
+      "source_path": "data/digests/2026-03-02.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-02",
+      "title": "RootFetch Daily Digest \u2014 2026-03-02",
+      "text": "# RootFetch Daily Digest \u2014 2026-03-02\n\n- Run ID: 797d5c52-999a-48b6-a1e7-435e7cfa6e42\n- Mode: hybrid\n- Approved TLDs observed: 956\n- Observed today: 70 (core=3, rolling=67)\n- Snapshot rows today: 956\n\n## Cross-sectional highlights\n- Total delegated counted today: 64,510,586\n- Distribution (p50 / p90 / p99 / max): 1,198 / 44,022 / 1,167,558 / 11,665,002\n- Concentration (Top1 / Top10 share): 18.08% / 65.15% (HHI=0.0710)\n- New approvals vs 2026-03-01: +2 / -0\n- Added approvals (first 10): mtr, ntt\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 65.15% of delegations; median TLD has 1,198 names; 388 TLDs have <100.\n- [movers/positive] Core movers: .app +1,974, .dev -5, .xyz -388 (day-over-day).\n- [approvals/info] New approvals today: +2 (mtr, ntt).\n- [coverage/positive] Observed today: 70 (core+rolling) out of 956 approved TLDs; snapshot rows today: 956.\n\n## Security Status\n- Safe aggregates checks date: 2026-03-02\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- vercel_read_only: True\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | c",
+      "resource_uri": "rootfetch://digest/2026-03-02"
+    },
+    {
+      "id": "8ea0332681e395d0f2ed23317602a7d3c33d63f3",
+      "source_path": "data/digests/2026-03-02.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-02",
+      "title": "Security Status",
+      "text": "nes_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- vercel_read_only: True\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| org | 11665002 | 18.08230667754281 | other | baseline |\n| xyz | 8124582 | 12.594184154520004 | other | core |\n| top | 5904584 | 9.152891588986652 | other | baseline |\n| info | 5167694 | 8.010613947918563 | other | baseline |\n| online | 3240555 | 5.023291836164688 | other | rolling |\n| store | 2081570 | 3.2267107293057298 | commerce | baseline |\n| site | 1718851 | 2.6644479713763567 | other | baseline |\n| vip | 1566028 | 2.427551967982433 | other | baseline |\n| sbs | 1349064 | 2.0912288721110053 | other | baseline |\n| biz | 1208675 | 1.873607224711925 | other | baseline |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| app | 1096831 | 1974.0 | 0.0018029751830604 | ok |\n| dev | 600763 | -5.0 | -8.322680302546074e-06 | ok |\n| xyz | 8124582 | -388.0 | -4.775402247639068e-05 | ok |\n\n## Core Daily Movers (Percentage)",
+      "resource_uri": "rootfetch://digest/2026-03-02"
+    },
+    {
+      "id": "de6328c28ded101c7e4f4c5eaf994b059b892688",
+      "source_path": "data/digests/2026-03-02.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-02",
+      "title": "Core Daily Movers (Absolute)",
+      "text": "830604 | ok |\n| dev | 600763 | -5.0 | -8.322680302546074e-06 | ok |\n| xyz | 8124582 | -388.0 | -4.775402247639068e-05 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| app | 1096831 | 1974.0 | 0.0018029751830604 | ok |\n| dev | 600763 | -5.0 | -8.322680302546074e-06 | ok |\n| xyz | 8124582 | -388.0 | -4.775402247639068e-05 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8124582 | -388.0 | -4.775402247639068e-05 | ok |\n| dev | 600763 | -5.0 | -8.322680302546074e-06 | ok |\n| app | 1096831 | 1974.0 | 0.0018029751830604 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| online | 3240555 | 2026-03-01 | 1.0 | -1396.0 | -0.000430604904269 |\n| click | 687290 | 2026-03-01 | 1.0 | -532.0 | -0.0007734559231894 |\n| blog | 366085 | 2026-03-01 | 1.0 | -213.0 | -0.0005814937564496 |\n| studio | 165224 | 2026-03-01 | 1.0 | 159.0 | 0.000963",
+      "resource_uri": "rootfetch://digest/2026-03-02"
+    },
+    {
+      "id": "e4e36e7a80a1e73b145a390c70ebfee1115b7fcf",
+      "source_path": "data/digests/2026-03-02.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-02",
+      "title": "Rolling Updates (Since Last Seen)",
+      "text": "1.0 | -532.0 | -0.0007734559231894 |\n| blog | 366085 | 2026-03-01 | 1.0 | -213.0 | -0.0005814937564496 |\n| studio | 165224 | 2026-03-01 | 1.0 | 159.0 | 0.0009632568987974 |\n| help | 145250 | 2026-03-01 | 1.0 | 45.0 | 0.0003099066836541 |\n| homes | 78363 | 2026-03-01 | 1.0 | 19.0 | 0.0002425201674665 |\n| loans | 7336 | 2026-03-01 | 1.0 | -13.0 | -0.0017689481562117 |\n| llc | 47799 | 2026-03-01 | 1.0 | -10.0 | -0.0002091656382689 |\n| fashion | 12113 | 2026-03-01 | 1.0 | -10.0 | -0.0008248783304462 |\n| photos | 19337 | 2026-03-01 | 1.0 | -9.0 | -0.0004652124470174 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2936695 | 2660.0 | 0.0009066013186618 | 6 |\n| commerce | 2122087 | -1022.0 | -0.0004813695387283 | 4 |\n| finance | 60903 | -42.0 | -0.0006891459512675 | 3 |\n| geo_local | 154675 | -29.0 | -0.0001874547523011 | 4 |\n| media_social | 1009691 | -762.0 | -0.0007541172127748 | 4 |\n| other | 58226535 | 10900.0 | 0.0001872349240886 | 935 |\n\n## Data Qualit",
+      "resource_uri": "rootfetch://digest/2026-03-02"
+    },
+    {
+      "id": "2d9800dba4ed0412752d0c844ec2453137014cf3",
+      "source_path": "data/digests/2026-03-02.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-02",
+      "title": "Sector Snapshot",
+      "text": "0.0001874547523011 | 4 |\n| media_social | 1009691 | -762.0 | -0.0007541172127748 | 4 |\n| other | 58226535 | 10900.0 | 0.0001872349240886 | 935 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "resource_uri": "rootfetch://digest/2026-03-02"
     }
   ]
 }
