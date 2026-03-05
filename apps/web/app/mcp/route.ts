@@ -123,8 +123,7 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const isObjectPayload = payload && typeof payload === "object";
-  if (!isObjectPayload) {
+  if (!payload || typeof payload !== "object") {
     return json(
       {
         jsonrpc: "2.0",
@@ -138,8 +137,10 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  if (payload.method === "initialize") {
-    const id: JsonRpcId = payload.id ?? null;
+  const requestPayload: JsonRpcInitializeRequest = payload;
+
+  if (requestPayload.method === "initialize") {
+    const id: JsonRpcId = requestPayload.id ?? null;
     return initializeResponse(id);
   }
 
