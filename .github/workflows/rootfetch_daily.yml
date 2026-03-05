@@ -43,4 +43,13 @@ jobs:
       - name: Run full local hybrid pipeline
         run: |
           chmod +x ./scripts/local_run_hybrid.sh
+          (
+            while true; do
+              echo "[rootfetch] heartbeat $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              sleep 30
+            done
+          ) &
+          HEARTBEAT_PID=$!
+          trap 'kill ${HEARTBEAT_PID} 2>/dev/null || true' EXIT
           ./scripts/local_run_hybrid.sh
+          kill "${HEARTBEAT_PID}" 2>/dev/null || true

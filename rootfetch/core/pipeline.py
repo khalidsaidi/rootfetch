@@ -711,6 +711,8 @@ def _prepare_baseline_rows(
             }
             completed = 0
             total_pending = len(pending_links)
+            # For small delta runs, emit progress each completion to avoid long silent windows.
+            dynamic_log_every = 1 if total_pending <= log_every else log_every
             for future in as_completed(future_map):
                 item = future_map[future]
                 metric = future.result()
@@ -719,7 +721,7 @@ def _prepare_baseline_rows(
                 processed_rows.append(row)
                 completed += 1
 
-                if completed % log_every == 0 or completed == total_pending:
+                if completed % dynamic_log_every == 0 or completed == total_pending:
                     checkpoint_rows = sorted(merged_rows.values(), key=lambda r: str(r.get("tld", "")))
                     _write_daily_rows(daily_path, checkpoint_rows)
                     processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, progress_set)
