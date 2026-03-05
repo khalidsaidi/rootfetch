@@ -75,6 +75,7 @@ def _cmd_run_hybrid(args: argparse.Namespace) -> int:
         dry_run=args.dry_run,
         verbose=args.verbose,
         skip_discovery=args.skip_discovery,
+        allow_incomplete_baseline=bool(args.allow_incomplete_baseline),
     )
     print(
         json.dumps(
@@ -248,6 +249,11 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_flags(run_hybrid_cmd)
     run_hybrid_cmd.add_argument("--date", default=None, help="UTC date YYYY-MM-DD (default: today)")
     run_hybrid_cmd.add_argument("--skip-discovery", action="store_true", help="Reuse internal approved links snapshot")
+    run_hybrid_cmd.add_argument(
+        "--allow-incomplete-baseline",
+        action="store_true",
+        help="Proceed even if baseline coverage is incomplete (useful for daily cadence while backfill continues).",
+    )
     run_hybrid_cmd.set_defaults(func=_cmd_run_hybrid)
 
     run_baseline_cmd = subparsers.add_parser("run-baseline", help="Run full baseline ingestion for all approved TLDs")

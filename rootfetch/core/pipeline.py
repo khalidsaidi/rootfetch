@@ -709,6 +709,7 @@ def _prepare_baseline_rows(
                 executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
                 for item in pending_links
             }
+            future_started_at = {future: time.monotonic() for future in future_map}
             completed = 0
             total_pending = len(pending_links)
             # For small delta runs, emit progress each completion to avoid long silent windows.
@@ -723,13 +724,22 @@ def _prepare_baseline_rows(
                         checkpoint_rows = sorted(merged_rows.values(), key=lambda r: str(r.get("tld", "")))
                         processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, progress_set)
                         remaining = max(0, len(progress_set) - processed_ok)
+                        in_flight_items = sorted(
+                            ((future_map[f]["tld"], now - future_started_at.get(f, now)) for f in pending_futures),
+                            key=lambda item: item[1],
+                            reverse=True,
+                        )
+                        in_flight_preview = ", ".join(
+                            f"{tld}:{int(seconds)}s" for tld, seconds in in_flight_items[:6]
+                        )
                         logger.info(
-                            "baseline waiting in_flight=%s processed_ok=%s remaining=%s attempted=%s/%s",
+                            "baseline waiting in_flight=%s processed_ok=%s remaining=%s attempted=%s/%s tlds=[%s]",
                             len(pending_futures),
                             processed_ok,
                             remaining,
                             completed,
                             total_pending,
+                            in_flight_preview,
                         )
                         last_wait_log_at = now
                     continue
@@ -901,6 +911,7 @@ def run_hybrid(
     dry_run: bool = False,
     verbose: bool = False,
     skip_discovery: bool = False,
+    allow_incomplete_baseline: bool = False,
     settings: Settings | None = None,
 ) -> RunResult:
     settings = settings or get_settings()
@@ -919,12 +930,22 @@ def run_hybrid(
     if not dry_run:
         _migrate_legacy_cadence_once(settings)
 
+    baseline_status: dict[str, Any] | None = None
     if not dry_run:
         completion = baseline_completion_status(date_utc=date_utc, settings=settings)
+        baseline_status = completion
         if not completion["baseline_complete"]:
-            raise RuntimeError(
-                "Baseline is incomplete. Run `rootfetch run-baseline --resume` until "
-                "approved_tlds_count == counted_ever_count and missing_ever_count == 0."
+            if not allow_incomplete_baseline:
+                raise RuntimeError(
+                    "Baseline is incomplete. Run `rootfetch run-baseline --resume` until "
+                    "approved_tlds_count == counted_ever_count and missing_ever_count == 0."
+                )
+            logger.warning(
+                "baseline incomplete, continuing due to allow_incomplete_baseline=true "
+                "(approved=%s counted_ever=%s missing_ever=%s)",
+                completion.get("approved_tlds_count"),
+                completion.get("counted_ever_count"),
+                completion.get("missing_ever_count"),
             )
 
     approved_links: list[dict[str, str]] = []
@@ -963,7 +984,15 @@ def run_hybrid(
         "rolling_today_count": len(selection["rolling_today"]),
         "total_target_count": len(target_tlds),
         "rolling_first_10": selection["rolling_first_10"],
+        "baseline_gate": "allow_incomplete" if allow_incomplete_baseline else "strict",
     }
+    if baseline_status:
+        summary["baseline_status"] = {
+            "baseline_complete": bool(baseline_status.get("baseline_complete")),
+            "approved_tlds_count": int(baseline_status.get("approved_tlds_count") or 0),
+            "counted_ever_count": int(baseline_status.get("counted_ever_count") or 0),
+            "missing_ever_count": int(baseline_status.get("missing_ever_count") or 0),
+        }
 
     if dry_run:
         return RunResult(

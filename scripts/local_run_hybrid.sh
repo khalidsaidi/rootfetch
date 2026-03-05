@@ -95,6 +95,12 @@ if [[ "${BASELINE_COMPLETE}" == "1" ]]; then
   RUN_RESULT_JSON="$(rootfetch run-hybrid --date "${TODAY}")"
 else
   echo "[rootfetch] baseline incomplete, running baseline resume loop until 100%"
+  BASELINE_MAX_PASSES="${ROOTFETCH_BASELINE_MAX_PASSES:-6}"
+  BASELINE_MAX_SECONDS="${ROOTFETCH_BASELINE_MAX_SECONDS:-900}"
+  BASELINE_STALL_PASSES="${ROOTFETCH_BASELINE_STALL_PASSES:-2}"
+  BASELINE_LOOP_STARTED_AT="$(date -u +%s)"
+  PREV_MISSING_EVER="${MISSING_EVER:-0}"
+  STALL_COUNT=0
   PASS=0
   while true; do
     PASS="$((PASS + 1))"
@@ -129,6 +135,31 @@ else
     if [[ "${BASELINE_COMPLETE}" == "1" ]]; then
       echo "[rootfetch] baseline complete, switching to hybrid ${TODAY}"
       RUN_RESULT_JSON="$(rootfetch run-hybrid --date "${TODAY}")"
+      break
+    fi
+
+    if [[ "${MISSING_EVER}" -eq "${PREV_MISSING_EVER}" ]]; then
+      STALL_COUNT="$((STALL_COUNT + 1))"
+    else
+      STALL_COUNT=0
+    fi
+    PREV_MISSING_EVER="${MISSING_EVER}"
+
+    NOW_EPOCH="$(date -u +%s)"
+    ELAPSED_SECONDS="$((NOW_EPOCH - BASELINE_LOOP_STARTED_AT))"
+    if [[ "${PASS}" -ge "${BASELINE_MAX_PASSES}" ]]; then
+      echo "[rootfetch] baseline resume reached pass limit (${BASELINE_MAX_PASSES}); continuing with hybrid using incomplete baseline"
+      RUN_RESULT_JSON="$(rootfetch run-hybrid --date "${TODAY}" --allow-incomplete-baseline)"
+      break
+    fi
+    if [[ "${ELAPSED_SECONDS}" -ge "${BASELINE_MAX_SECONDS}" ]]; then
+      echo "[rootfetch] baseline resume reached time budget (${BASELINE_MAX_SECONDS}s); continuing with hybrid using incomplete baseline"
+      RUN_RESULT_JSON="$(rootfetch run-hybrid --date "${TODAY}" --allow-incomplete-baseline)"
+      break
+    fi
+    if [[ "${STALL_COUNT}" -ge "${BASELINE_STALL_PASSES}" ]]; then
+      echo "[rootfetch] baseline resume stalled (remaining unchanged for ${STALL_COUNT} pass(es)); continuing with hybrid using incomplete baseline"
+      RUN_RESULT_JSON="$(rootfetch run-hybrid --date "${TODAY}" --allow-incomplete-baseline)"
       break
     fi
   done

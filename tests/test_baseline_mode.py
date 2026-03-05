@@ -163,6 +163,49 @@ def test_run_hybrid_requires_baseline_completion(temp_settings) -> None:
         run_hybrid(date_utc="2026-02-24", dry_run=False, settings=temp_settings)
 
 
+def test_run_hybrid_allows_incomplete_baseline_with_flag(temp_settings, monkeypatch) -> None:
+    links = [
+        {"tld": "app", "url": "https://example.test/app.zone.gz"},
+        {"tld": "dev", "url": "https://example.test/dev.zone.gz"},
+        {"tld": "xyz", "url": "https://example.test/xyz.zone.gz"},
+    ]
+
+    monkeypatch.setattr("rootfetch.core.pipeline.get_access_token", lambda **_: "token")
+    monkeypatch.setattr("rootfetch.core.pipeline.fetch_approved_links", lambda *_args, **_kwargs: links)
+
+    def _fake_download(url: str, tld: str, token: str, settings) -> dict[str, object]:
+        assert url
+        assert token == "token"
+        return {
+            "tld": tld,
+            "count_ns_sld": 100,
+            "count_ds_sld": 0,
+            "count_glue_hosts": 0,
+            "count_ns_rr": 0,
+            "is_estimate": False,
+            "count_mode": settings.count_mode,
+            "bytes_downloaded": 10,
+            "fetch_seconds": 0.1,
+            "fetched_at_utc": "2026-02-24T00:00:00+00:00",
+            "status": "ok",
+            "error": "",
+        }
+
+    monkeypatch.setattr("rootfetch.core.pipeline._download_and_count", _fake_download)
+
+    result = run_hybrid(
+        date_utc="2026-02-24",
+        dry_run=False,
+        settings=temp_settings,
+        allow_incomplete_baseline=True,
+    )
+
+    assert result.summary["baseline_gate"] == "allow_incomplete"
+    baseline_status = result.summary["baseline_status"]
+    assert baseline_status["baseline_complete"] is False
+    assert baseline_status["approved_tlds_count"] == 0
+
+
 def test_run_baseline_writes_completion_marker(temp_settings, monkeypatch) -> None:
     links = [
         {"tld": "app", "url": "https://example.test/app.zone.gz"},
