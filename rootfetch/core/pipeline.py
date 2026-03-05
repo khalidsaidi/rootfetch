@@ -552,13 +552,15 @@ def _resolve_baseline_date(
     return utc_today_str()
 
 
-def _read_ok_tlds_for_date(settings: Settings, date_utc: str) -> set[str]:
-    rows = _read_daily_rows(_daily_counts_path(settings, date_utc))
-    return {
-        str(row.get("tld", "")).strip().lower()
-        for row in rows
-        if str(row.get("status", "")).strip().lower() == "ok" and str(row.get("tld", "")).strip()
-    }
+def _normalize_tld_set(values: Any) -> set[str]:
+    if not isinstance(values, list):
+        return set()
+    out: set[str] = set()
+    for value in values:
+        tld = str(value).strip().lower()
+        if tld:
+            out.add(tld)
+    return out
 
 
 def _count_ok_rows_for_tlds(rows: list[dict[str, Any]], tlds: set[str]) -> int:
@@ -672,6 +674,7 @@ def _prepare_baseline_rows(
     date_utc: str,
     approved_tlds: list[str],
     target_links: list[dict[str, str]],
+    progress_tlds: list[str],
     token: str,
     settings: Settings,
     logger: Any,
@@ -679,6 +682,7 @@ def _prepare_baseline_rows(
     daily_path = _daily_counts_path(settings, date_utc)
     existing_rows = _read_daily_rows(daily_path)
     approved_set = set(approved_tlds)
+    progress_set = set(progress_tlds) if progress_tlds else approved_set
 
     merged_rows: dict[str, dict[str, Any]] = {row["tld"]: row for row in existing_rows if row.get("tld")}
     for tld, row in list(merged_rows.items()):
@@ -718,8 +722,8 @@ def _prepare_baseline_rows(
                 if completed % log_every == 0 or completed == total_pending:
                     checkpoint_rows = sorted(merged_rows.values(), key=lambda r: str(r.get("tld", "")))
                     _write_daily_rows(daily_path, checkpoint_rows)
-                    processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, approved_set)
-                    remaining = max(0, len(approved_set) - processed_ok)
+                    processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, progress_set)
+                    remaining = max(0, len(progress_set) - processed_ok)
                     logger.info(
                         "baseline progress processed_ok=%s remaining=%s attempted=%s/%s",
                         processed_ok,
@@ -1065,8 +1069,18 @@ def run_baseline(
             source = "czds_discovery"
 
     approved_set = set(approved_tlds)
-    already_ok = _read_ok_tlds_for_date(settings, baseline_date_utc)
-    baseline_target_tlds = sorted(approved_set - already_ok)
+    coverage_meta = compute_coverage_latest(baseline_date_utc, settings=settings)
+    coverage_payload = coverage_meta["coverage_payload"]
+    missing_ever = _normalize_tld_set(coverage_payload.get("missing_ever_tlds", []))
+    counted_ever = _normalize_tld_set(coverage_payload.get("counted_ever_tlds", []))
+
+    # Baseline resume should target only TLDs missing from historical coverage,
+    # not all TLDs missing in today's date-specific file.
+    if missing_ever:
+        baseline_target_tlds = sorted(approved_set & missing_ever)
+    else:
+        baseline_target_tlds = sorted(approved_set - counted_ever)
+    already_ok = approved_set - set(baseline_target_tlds)
 
     summary = {
         "mode": "baseline",
@@ -1107,6 +1121,7 @@ def run_baseline(
         date_utc=baseline_date_utc,
         approved_tlds=approved_tlds,
         target_links=target_links,
+        progress_tlds=baseline_target_tlds,
         token=token,
         settings=settings,
         logger=logger,
