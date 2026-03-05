@@ -6,7 +6,7 @@ import io
 import random
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -713,26 +713,47 @@ def _prepare_baseline_rows(
             total_pending = len(pending_links)
             # For small delta runs, emit progress each completion to avoid long silent windows.
             dynamic_log_every = 1 if total_pending <= log_every else log_every
-            for future in as_completed(future_map):
-                item = future_map[future]
-                metric = future.result()
-                row = _as_daily_row(date_utc, metric, cadence="baseline")
-                merged_rows[item["tld"]] = row
-                processed_rows.append(row)
-                completed += 1
+            pending_futures = set(future_map.keys())
+            last_wait_log_at = time.monotonic()
+            while pending_futures:
+                done, pending_futures = wait(pending_futures, timeout=5, return_when=FIRST_COMPLETED)
+                if not done:
+                    now = time.monotonic()
+                    if now - last_wait_log_at >= 30:
+                        checkpoint_rows = sorted(merged_rows.values(), key=lambda r: str(r.get("tld", "")))
+                        processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, progress_set)
+                        remaining = max(0, len(progress_set) - processed_ok)
+                        logger.info(
+                            "baseline waiting in_flight=%s processed_ok=%s remaining=%s attempted=%s/%s",
+                            len(pending_futures),
+                            processed_ok,
+                            remaining,
+                            completed,
+                            total_pending,
+                        )
+                        last_wait_log_at = now
+                    continue
 
-                if completed % dynamic_log_every == 0 or completed == total_pending:
-                    checkpoint_rows = sorted(merged_rows.values(), key=lambda r: str(r.get("tld", "")))
-                    _write_daily_rows(daily_path, checkpoint_rows)
-                    processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, progress_set)
-                    remaining = max(0, len(progress_set) - processed_ok)
-                    logger.info(
-                        "baseline progress processed_ok=%s remaining=%s attempted=%s/%s",
-                        processed_ok,
-                        remaining,
-                        completed,
-                        total_pending,
-                    )
+                for future in done:
+                    item = future_map[future]
+                    metric = future.result()
+                    row = _as_daily_row(date_utc, metric, cadence="baseline")
+                    merged_rows[item["tld"]] = row
+                    processed_rows.append(row)
+                    completed += 1
+
+                    if completed % dynamic_log_every == 0 or completed == total_pending:
+                        checkpoint_rows = sorted(merged_rows.values(), key=lambda r: str(r.get("tld", "")))
+                        _write_daily_rows(daily_path, checkpoint_rows)
+                        processed_ok = _count_ok_rows_for_tlds(checkpoint_rows, progress_set)
+                        remaining = max(0, len(progress_set) - processed_ok)
+                        logger.info(
+                            "baseline progress processed_ok=%s remaining=%s attempted=%s/%s",
+                            processed_ok,
+                            remaining,
+                            completed,
+                            total_pending,
+                        )
 
     rows_for_write = sorted(merged_rows.values(), key=lambda row: str(row.get("tld", "")))
     _write_daily_rows(daily_path, rows_for_write)
