@@ -1,15 +1,14 @@
-name: rootfetch-daily
+name: rootfetch-manual
 
 on:
-  schedule:
-    - cron: "30 2 * * *"
+  workflow_dispatch:
 
 concurrency:
-  group: rootfetch-daily-${{ github.ref }}
+  group: rootfetch-manual-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  run-daily:
+  run-manual:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
