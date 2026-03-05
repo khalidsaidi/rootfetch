@@ -1,0 +1,310 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RootFetch Public API",
+    "version": "1.0.0",
+    "description": "Read-only, artifact-backed API surface for MCP discovery and immutable run artifacts."
+  },
+  "servers": [
+    {
+      "url": "https://rootfetch.com"
+    }
+  ],
+  "paths": {
+    "/mcp": {
+      "get": {
+        "summary": "MCP endpoint metadata",
+        "operationId": "getMcpMetadata",
+        "responses": {
+          "200": {
+            "description": "MCP endpoint metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpMetadata"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "name": "RootFetch MCP",
+                      "status": "ok",
+                      "protocol": "json-rpc-2.0",
+                      "transport": "http",
+                      "endpoint": "https://rootfetch.com/mcp",
+                      "docs_url": "https://rootfetch.com/docs/mcp",
+                      "artifact_backed": true,
+                      "read_only": true,
+                      "no_recompute": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "JSON-RPC MCP endpoint",
+        "operationId": "postMcpJsonRpc",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonRpcRequest"
+              },
+              "examples": {
+                "initialize": {
+                  "summary": "Initialize request",
+                  "value": {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {
+                      "protocolVersion": "2024-11-05",
+                      "capabilities": {},
+                      "clientInfo": {
+                        "name": "example-client",
+                        "version": "0.1.0"
+                      }
+                    }
+                  }
+                },
+                "tools_list": {
+                  "summary": "Forwarded tools/list request",
+                  "value": {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "tools/list",
+                    "params": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON-RPC response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JsonRpcResponse"
+                },
+                "examples": {
+                  "initialize": {
+                    "value": {
+                      "jsonrpc": "2.0",
+                      "id": 1,
+                      "result": {
+                        "protocolVersion": "2024-11-05",
+                        "serverInfo": {
+                          "name": "rootfetch-mcp",
+                          "version": "1.0.0"
+                        },
+                        "capabilities": {
+                          "tools": {
+                            "listChanged": false
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON-RPC request"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/rootfetch/artifacts/latest.json": {
+      "get": {
+        "summary": "Latest immutable run pointer",
+        "operationId": "getLatestArtifactPointer",
+        "responses": {
+          "200": {
+            "description": "Latest pointer",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "run_id": "20260226T090051Z_f229c6bb7bba_rootfetch_model_v1",
+                      "snapshot_ts_utc": "2026-02-26T09:00:51Z",
+                      "model_version": "rootfetch_model_v1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rootfetch/artifacts/replay/index.json": {
+      "get": {
+        "summary": "Replay index",
+        "operationId": "getReplayIndex",
+        "responses": {
+          "200": {
+            "description": "Replay runs list"
+          }
+        }
+      }
+    },
+    "/rootfetch/artifacts/runs/{run_id}/manifest.json": {
+      "get": {
+        "summary": "Run manifest",
+        "operationId": "getRunManifest",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manifest with file hashes"
+          },
+          "404": {
+            "description": "Run not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "McpMetadata": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "transport": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "docs_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "artifact_backed": {
+            "type": "boolean"
+          },
+          "read_only": {
+            "type": "boolean"
+          },
+          "no_recompute": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "protocol",
+          "transport",
+          "endpoint",
+          "docs_url"
+        ]
+      },
+      "JsonRpcRequest": {
+        "type": "object",
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "enum": [
+              "2.0"
+            ]
+          },
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "method": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "jsonrpc",
+          "method"
+        ],
+        "additionalProperties": false
+      },
+      "JsonRpcResponse": {
+        "type": "object",
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "enum": [
+              "2.0"
+            ]
+          },
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "jsonrpc"
+        ]
+      }
+    }
+  }
+}

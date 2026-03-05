@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "RootFetch",
+  "name_for_model": "rootfetch",
+  "description_for_human": "Read-only namespace structural intelligence from immutable artifacts.",
+  "description_for_model": "Use this API to read immutable RootFetch run artifacts and MCP metadata. Responses are artifact-backed only and do not recompute signals server-side.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://rootfetch.com/openapi.json",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://rootfetch.com/favicon.ico",
+  "contact_email": "ops@rootfetch.com",
+  "legal_info_url": "https://rootfetch.com/methodology"
+}

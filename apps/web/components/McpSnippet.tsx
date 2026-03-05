@@ -18,7 +18,7 @@ export default function McpSnippet({ siteUrl }: { siteUrl?: string }) {
 
   const endpoint = useMemo(() => {
     const base = origin;
-    return `${base}/api/mcp`;
+    return `${base}/mcp`;
   }, [origin]);
 
   const snippet = `{

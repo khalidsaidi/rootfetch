@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 
 import Section from "@/components/Section";
 import TrackedLink from "@/components/TrackedLink";
@@ -16,8 +17,8 @@ export default function McpDocsPage() {
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
       <Section title="RootFetch MCP Docs" subtitle="Read-only tools over committed artifacts.">
         <p className="text-sm text-muted-foreground">
-          Endpoint: <code>https://rootfetch.vercel.app/api/mcp</code>. Public and rate-limited. Responses are artifact-backed only
-          (no server-side recompute).
+          Endpoint: <code>https://rootfetch.com/mcp</code>. Public and rate-limited. Responses are artifact-backed only (no
+          server-side recompute).
         </p>
       </Section>
 
@@ -51,10 +52,15 @@ export default function McpDocsPage() {
         <pre className="overflow-auto rounded-lg border border-border/70 bg-background/70 p-4 font-mono text-xs leading-relaxed">
 {`{
   "mcpServers": {
-    "rootfetch": { "url": "https://rootfetch.vercel.app/api/mcp" }
+    "rootfetch": { "url": "https://rootfetch.com/mcp" }
   }
 }`}
         </pre>
+      </Section>
+
+      <Section title="Agentability">
+        <div data-agentability-domain="rootfetch.com" data-agentability-style="card"></div>
+        <Script src="https://agentability.org/embed/widget.js" async />
       </Section>
 
       <TrackedLink href="/" label="back_home_mcp_docs" pageType="mcp_docs" className="text-sm text-primary hover:text-primary/80">

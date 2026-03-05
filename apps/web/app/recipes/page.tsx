@@ -66,7 +66,7 @@ const webhookPayload = `{
 
 const mcpSnippet = `{
   "mcpServers": {
-    "rootfetch": { "url": "${siteUrl}/api/mcp" }
+    "rootfetch": { "url": "${siteUrl}/mcp" }
   }
 }`;
 
