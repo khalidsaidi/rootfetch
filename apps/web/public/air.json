@@ -2,11 +2,31 @@
   "name": "RootFetch",
   "version": "1.0.0",
   "description": "Read-only namespace structural intelligence from immutable artifacts.",
+  "canonical_base_url": "https://rootfetch.com",
   "documentation_url": "https://rootfetch.com/docs/mcp",
   "docs_url": "https://rootfetch.com/docs/mcp",
   "mcp_url": "https://rootfetch.com/mcp",
   "openapi_url": "https://rootfetch.com/openapi.json",
   "ai_plugin_url": "https://rootfetch.com/ai-plugin.json",
+  "contact": {
+    "email": "ops@rootfetch.com"
+  },
+  "legal": {
+    "terms_url": "https://rootfetch.com/methodology",
+    "privacy_url": "https://rootfetch.com/security"
+  },
+  "verification": {
+    "discovery_audit_json": "https://rootfetch.com/discovery_audit.json",
+    "discovery_audit_html": "https://rootfetch.com/discovery_audit.html"
+  },
+  "callable_surface": {
+    "openapi": "https://rootfetch.com/openapi.json",
+    "mcp_endpoint": "https://rootfetch.com/mcp"
+  },
+  "llm_entrypoints": {
+    "llms_txt": "https://rootfetch.com/llms.txt",
+    "llms_full_txt": "https://rootfetch.com/llms-full.txt"
+  },
   "endpoints": {
     "mcp": "https://rootfetch.com/mcp",
     "openapi": "https://rootfetch.com/openapi.json",

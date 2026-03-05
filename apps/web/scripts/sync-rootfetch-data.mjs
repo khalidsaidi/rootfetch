@@ -199,13 +199,27 @@ async function generateSeoTextArtifacts() {
     `- top*_share_pct and hhi: concentration metrics\n` +
     `${latest?.date_utc ? `\nCurrent snapshot date: ${latest.date_utc}\n` : ""}`;
 
+  const llmsFullTxt =
+    `${llmsTxt}\n` +
+    `## Machine entrypoints\n` +
+    `- AIR: ${siteUrl}/air.json\n` +
+    `- AIR (well-known): ${siteUrl}/.well-known/air.json\n` +
+    `- OpenAPI: ${siteUrl}/openapi.json\n` +
+    `- OpenAPI (well-known): ${siteUrl}/.well-known/openapi.json\n` +
+    `- AI Plugin: ${siteUrl}/ai-plugin.json\n` +
+    `- AI Plugin (well-known): ${siteUrl}/.well-known/ai-plugin.json\n` +
+    `- MCP endpoint: ${siteUrl}/mcp\n` +
+    `- MCP docs: ${siteUrl}/docs/mcp\n`;
+
   await mkdir(publicDir, { recursive: true });
   await writeFile(path.join(publicDir, "sitemap.xml"), sitemapXml, "utf-8");
   await writeFile(path.join(publicDir, "robots.txt"), robotsTxt, "utf-8");
   await writeFile(path.join(publicDir, "llms.txt"), llmsTxt, "utf-8");
+  await writeFile(path.join(publicDir, "llms-full.txt"), llmsFullTxt, "utf-8");
   console.log("generated public/sitemap.xml");
   console.log("generated public/robots.txt");
   console.log("generated public/llms.txt");
+  console.log("generated public/llms-full.txt");
 }
 
 async function main() {
