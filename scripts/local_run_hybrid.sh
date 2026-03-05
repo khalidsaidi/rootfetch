@@ -98,6 +98,7 @@ else
   BASELINE_MAX_PASSES="${ROOTFETCH_BASELINE_MAX_PASSES:-6}"
   BASELINE_MAX_SECONDS="${ROOTFETCH_BASELINE_MAX_SECONDS:-900}"
   BASELINE_STALL_PASSES="${ROOTFETCH_BASELINE_STALL_PASSES:-2}"
+  BASELINE_PASS_TIMEOUT_SECONDS="${ROOTFETCH_BASELINE_PASS_TIMEOUT_SECONDS:-480}"
   BASELINE_LOOP_STARTED_AT="$(date -u +%s)"
   PREV_MISSING_EVER="${MISSING_EVER:-0}"
   STALL_COUNT=0
@@ -105,7 +106,20 @@ else
   while true; do
     PASS="$((PASS + 1))"
     echo "[rootfetch] baseline pass ${PASS}"
-    RUN_RESULT_JSON="$(rootfetch run-baseline --resume)"
+    if command -v timeout >/dev/null 2>&1; then
+      if ! RUN_RESULT_JSON="$(timeout "${BASELINE_PASS_TIMEOUT_SECONDS}" rootfetch run-baseline --resume)"; then
+        RC=$?
+        if [[ "${RC}" -eq 124 || "${RC}" -eq 137 ]]; then
+          echo "[rootfetch] baseline pass timed out after ${BASELINE_PASS_TIMEOUT_SECONDS}s; continuing with hybrid using incomplete baseline"
+          RUN_RESULT_JSON="$(rootfetch run-hybrid --date "${TODAY}" --allow-incomplete-baseline)"
+          break
+        fi
+        echo "[rootfetch] baseline pass failed with exit code ${RC}" >&2
+        exit "${RC}"
+      fi
+    else
+      RUN_RESULT_JSON="$(rootfetch run-baseline --resume)"
+    fi
     echo "${RUN_RESULT_JSON}"
 
     RUN_DATE="$(
