@@ -5,9 +5,14 @@ on:
   schedule:
     - cron: "30 2 * * *"
 
+concurrency:
+  group: rootfetch-daily-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   run-daily:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     permissions:
       contents: write
     env:

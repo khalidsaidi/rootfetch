@@ -59,6 +59,35 @@ if [[ "${BASELINE_MARKER}" == "1" && "${MISSING_EVER}" -eq 0 ]]; then
   BASELINE_COMPLETE="1"
 fi
 
+if [[ "${BASELINE_COMPLETE}" != "1" ]]; then
+  COVERAGE_PATH="$(
+    printf '%s' "${STATUS_JSON}" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("coverage_path") or "").strip())'
+  )"
+  if [[ -n "${COVERAGE_PATH}" && -f "${COVERAGE_PATH}" ]]; then
+    echo "[rootfetch] baseline missing_ever_tlds (up to 25 shown):"
+    python3 - <<'PY' "${COVERAGE_PATH}"
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+except Exception as exc:
+    print(f"[rootfetch] unable to read coverage payload: {exc}")
+    raise SystemExit(0)
+
+missing = payload.get("missing_ever_tlds", [])
+if not isinstance(missing, list):
+    missing = []
+for tld in missing[:25]:
+    print(f"  - {str(tld).strip().lower()}")
+if len(missing) > 25:
+    print(f"  ... ({len(missing) - 25} more)")
+PY
+  fi
+fi
+
 RUN_RESULT_JSON=""
 RUN_DATE="${TODAY}"
 if [[ "${BASELINE_COMPLETE}" == "1" ]]; then
