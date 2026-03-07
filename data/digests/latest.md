@@ -1,23 +1,23 @@
 # RootFetch Daily Digest — 2026-03-07
 
-- Run ID: 0ce606de-8ca9-42a4-95c1-08f0be427e74
+- Run ID: 68f0a0bd-fbc5-4936-a187-8d09ffb95117
 - Mode: hybrid
 - Approved TLDs observed: 1056
 - Observed today: 80 (core=3, rolling=77)
-- Snapshot rows today: 149
+- Snapshot rows today: 168
 
 ## Cross-sectional highlights
-- Total delegated counted today: 29,191,533
-- Distribution (p50 / p90 / p99 / max): 43 / 59,126 / 6,037,653 / 12,182,083
-- Concentration (Top1 / Top10 share): 41.73% / 96.93% (HHI=0.2735)
+- Total delegated counted today: 29,214,668
+- Distribution (p50 / p90 / p99 / max): 39 / 34,141 / 5,211,000 / 12,182,083
+- Concentration (Top1 / Top10 share): 41.70% / 96.85% (HHI=0.2731)
 - New approvals vs 2026-03-03: +97 / -0
 - Added approvals (first 10): amazon, audible, author, aws, book, bot, buy, call, canon, circle
 
 ## Daily Insights
-- [market/info] Top 10 TLDs hold 96.93% of delegations; median TLD has 43 names; 80 TLDs have <100.
+- [market/info] Top 10 TLDs hold 96.85% of delegations; median TLD has 39 names; 94 TLDs have <100.
 - [movers/neutral] Core movers are not available yet; consecutive core observations are required.
 - [approvals/info] New approvals today: +97 (amazon, audible, author).
-- [coverage/neutral] Observed today: 80 (core+rolling) out of 1,056 approved TLDs; snapshot rows today: 149. Missing ever: 20.
+- [coverage/neutral] Observed today: 80 (core+rolling) out of 1,056 approved TLDs; snapshot rows today: 168. Missing ever: 1.
 
 ## Security Status
 - Safe aggregates checks date: 2026-03-07
@@ -29,16 +29,16 @@
 ## Top TLDs by Count (Today)
 | tld | count | share_pct | sector | cadence |
 | --- | --- | --- | --- | --- |
-| net | 12182083 | 41.73156305288934 | other | rolling |
-| xyz | 8126039 | 27.83697245362208 | other | core |
-| shop | 3775235 | 12.9326370081352 | commerce | baseline |
-| vip | 1573522 | 5.390336985728019 | other | rolling |
-| app | 1104400 | 3.783288805010686 | ai_tech | core |
-| dev | 603109 | 2.06604086191705 | ai_tech | core |
-| lol | 355679 | 1.218432070696664 | other | rolling |
-| work | 337554 | 1.156342148937502 | other | rolling |
-| run | 129199 | 0.4425906649027305 | other | rolling |
-| win | 107639 | 0.3687336324543147 | other | rolling |
+| net | 12182083 | 41.698515964651726 | other | rolling |
+| xyz | 8126039 | 27.814928446217497 | other | core |
+| shop | 3775235 | 12.92239569520352 | commerce | baseline |
+| vip | 1573522 | 5.386068395505983 | other | rolling |
+| app | 1104400 | 3.780292830984764 | ai_tech | core |
+| dev | 603109 | 2.0644047709184985 | ai_tech | core |
+| lol | 355679 | 1.2174671983265393 | other | rolling |
+| work | 337554 | 1.1554264453732623 | other | rolling |
+| run | 129199 | 0.4422401788033326 | other | rolling |
+| win | 107639 | 0.3684416334972555 | other | rolling |
 
 ## Core Daily Movers (Absolute)
 _No data._
