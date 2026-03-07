@@ -107,8 +107,11 @@ else
     PASS="$((PASS + 1))"
     echo "[rootfetch] baseline pass ${PASS}"
     if command -v timeout >/dev/null 2>&1; then
-      if ! RUN_RESULT_JSON="$(timeout "${BASELINE_PASS_TIMEOUT_SECONDS}" rootfetch run-baseline --resume)"; then
-        RC=$?
+      set +e
+      RUN_RESULT_JSON="$(timeout "${BASELINE_PASS_TIMEOUT_SECONDS}" rootfetch run-baseline --resume)"
+      RC=$?
+      set -e
+      if [[ "${RC}" -ne 0 ]]; then
         if [[ "${RC}" -eq 124 || "${RC}" -eq 137 ]]; then
           echo "[rootfetch] baseline pass timed out after ${BASELINE_PASS_TIMEOUT_SECONDS}s; continuing with hybrid using incomplete baseline"
           RUN_RESULT_JSON="$(rootfetch run-hybrid --date "${TODAY}" --allow-incomplete-baseline)"
