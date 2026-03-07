@@ -21,7 +21,7 @@ See [CZDS Credentials (Canonical Local Setup)](./czds_credentials.md) for troubl
 
 Optional local MCP settings file `.env.mcp` (never committed):
 
-- optional `ROOTFETCH_MCP_URL` (default `https://rootfetch.vercel.app/api/mcp`)
+- optional `ROOTFETCH_MCP_URL` (default `https://rootfetch.com/mcp`)
 
 Optional hybrid overrides:
 

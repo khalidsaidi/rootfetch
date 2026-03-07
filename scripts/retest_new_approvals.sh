@@ -55,7 +55,7 @@ print("counted_ever_count=", cov.get("counted_ever_count"))
 print("missing_ever_count=", cov.get("missing_ever_count"))
 PY
 
-VERCEL_BASE="${ROOTFETCH_PUBLIC_BASE_URL:-https://rootfetch.vercel.app}"
+VERCEL_BASE="${ROOTFETCH_PUBLIC_BASE_URL:-https://rootfetch.com}"
 VERCEL_BASE="${VERCEL_BASE%/}"
 echo "[retest] verifying deployed read-only artifacts from ${VERCEL_BASE}"
 curl -s "${VERCEL_BASE}/rootfetch/approved_latest.json" \

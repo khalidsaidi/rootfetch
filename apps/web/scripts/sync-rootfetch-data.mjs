@@ -107,7 +107,7 @@ async function copyDirRecursive(sourceDir, destDir) {
 }
 
 function normalizeSiteUrl(raw) {
-  return (raw || "https://rootfetch.vercel.app").trim().replace(/\/+$/, "");
+  return (raw || "https://rootfetch.com").trim().replace(/\/+$/, "");
 }
 
 function escapeXml(value) {
@@ -161,7 +161,20 @@ async function generateSeoTextArtifacts() {
   const topTlds = parseCsvTlds(topTldsCsv, 200);
   const lastmod = new Date().toISOString();
 
-  const baseRoutes = ["/", "/approved", "/about", "/methodology", "/security", "/sectors", "/compare", "/ask", "/recipes", "/docs/mcp", "/tlds"];
+  const baseRoutes = [
+    "/",
+    "/approved",
+    "/about",
+    "/methodology",
+    "/security",
+    "/sectors",
+    "/compare",
+    "/ask",
+    "/recipes",
+    "/docs/mcp",
+    "/docs/public-endpoints",
+    "/tlds",
+  ];
   const urls = [...baseRoutes, ...topTlds.map((tld) => `/tld/${encodeURIComponent(tld)}`)];
   const sitemapBody = urls
     .map((route) => `  <url><loc>${escapeXml(`${siteUrl}${route}`)}</loc><lastmod>${lastmod}</lastmod></url>`)
@@ -211,15 +224,59 @@ async function generateSeoTextArtifacts() {
     `- MCP endpoint: ${siteUrl}/mcp\n` +
     `- MCP docs: ${siteUrl}/docs/mcp\n`;
 
+  const agentDiscovery = JSON.stringify(
+    {
+      name: "RootFetch",
+      description: "Read-only structural intelligence over immutable namespace run artifacts.",
+      url: siteUrl,
+      version: "0.1.0",
+      documentationUrl: `${siteUrl}/docs/mcp`,
+      apiEndpoints: [{ name: "openapi", url: `${siteUrl}/openapi.json` }],
+      mcpServers: [{ name: "rootfetch", transport: "streamable-http", url: `${siteUrl}/mcp` }],
+      mcpInstall: {
+        stdio: {
+          command: "npx",
+          args: ["-y", "@khalidsaidi/rootfetch-mcp@latest", "rootfetch-mcp"],
+        },
+      },
+      capabilities: {
+        readOnly: true,
+        artifactBacked: true,
+        noRecompute: true,
+      },
+    },
+    null,
+    2,
+  );
+
   await mkdir(publicDir, { recursive: true });
+  const wellKnownDir = path.join(publicDir, ".well-known");
+  await mkdir(wellKnownDir, { recursive: true });
   await writeFile(path.join(publicDir, "sitemap.xml"), sitemapXml, "utf-8");
   await writeFile(path.join(publicDir, "robots.txt"), robotsTxt, "utf-8");
   await writeFile(path.join(publicDir, "llms.txt"), llmsTxt, "utf-8");
   await writeFile(path.join(publicDir, "llms-full.txt"), llmsFullTxt, "utf-8");
+  await writeFile(path.join(wellKnownDir, "agent.json"), agentDiscovery + "\n", "utf-8");
+  await writeFile(path.join(wellKnownDir, "agent-card.json"), agentDiscovery + "\n", "utf-8");
+
+  for (const name of ["air.json", "openapi.json", "ai-plugin.json"]) {
+    const source = path.join(publicDir, name);
+    const target = path.join(wellKnownDir, name);
+    try {
+      const raw = await readFile(source, "utf-8");
+      await writeFile(target, raw, "utf-8");
+      console.log(`synced public/${name} -> public/.well-known/${name}`);
+    } catch {
+      console.warn(`skipped .well-known sync for missing public/${name}`);
+    }
+  }
+
   console.log("generated public/sitemap.xml");
   console.log("generated public/robots.txt");
   console.log("generated public/llms.txt");
   console.log("generated public/llms-full.txt");
+  console.log("generated public/.well-known/agent.json");
+  console.log("generated public/.well-known/agent-card.json");
 }
 
 async function main() {

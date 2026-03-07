@@ -3,13 +3,13 @@
 RootFetch provides read-only delegation analytics from locally ingested CZDS zone data.
 
 ## Public artifacts
-- https://rootfetch.vercel.app/rootfetch/latest.json
-- https://rootfetch.vercel.app/rootfetch/top_tlds_latest.csv
-- https://rootfetch.vercel.app/rootfetch/distribution_latest.json
-- https://rootfetch.vercel.app/rootfetch/concentration_latest.json
-- https://rootfetch.vercel.app/rootfetch/security_status_latest.json
-- https://rootfetch.vercel.app/rootfetch/coverage_latest.json
-- https://rootfetch.vercel.app/rootfetch/latest.md
+- https://rootfetch.com/rootfetch/latest.json
+- https://rootfetch.com/rootfetch/top_tlds_latest.csv
+- https://rootfetch.com/rootfetch/distribution_latest.json
+- https://rootfetch.com/rootfetch/concentration_latest.json
+- https://rootfetch.com/rootfetch/security_status_latest.json
+- https://rootfetch.com/rootfetch/coverage_latest.json
+- https://rootfetch.com/rootfetch/latest.md
 
 ## Metric definitions
 - approved_tlds_count: approved TLDs visible in latest discovery snapshot
@@ -19,14 +19,14 @@ RootFetch provides read-only delegation analytics from locally ingested CZDS zon
 - missing_ever_count: approved - counted_ever
 - top*_share_pct and hhi: concentration metrics
 
-Current snapshot date: 2026-03-03
+Current snapshot date: 2026-03-07
 
 ## Machine entrypoints
-- AIR: https://rootfetch.vercel.app/air.json
-- AIR (well-known): https://rootfetch.vercel.app/.well-known/air.json
-- OpenAPI: https://rootfetch.vercel.app/openapi.json
-- OpenAPI (well-known): https://rootfetch.vercel.app/.well-known/openapi.json
-- AI Plugin: https://rootfetch.vercel.app/ai-plugin.json
-- AI Plugin (well-known): https://rootfetch.vercel.app/.well-known/ai-plugin.json
-- MCP endpoint: https://rootfetch.vercel.app/mcp
-- MCP docs: https://rootfetch.vercel.app/docs/mcp
+- AIR: https://rootfetch.com/air.json
+- AIR (well-known): https://rootfetch.com/.well-known/air.json
+- OpenAPI: https://rootfetch.com/openapi.json
+- OpenAPI (well-known): https://rootfetch.com/.well-known/openapi.json
+- AI Plugin: https://rootfetch.com/ai-plugin.json
+- AI Plugin (well-known): https://rootfetch.com/.well-known/ai-plugin.json
+- MCP endpoint: https://rootfetch.com/mcp
+- MCP docs: https://rootfetch.com/docs/mcp

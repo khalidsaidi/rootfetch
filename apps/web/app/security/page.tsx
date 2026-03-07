@@ -21,7 +21,7 @@ export default function SecurityPage() {
           <li>Web runtime is read-only; CZDS ingestion runs locally only.</li>
           <li>Public site serves committed aggregates under `/rootfetch/*` only.</li>
           <li>`.ai/` is agent workspace and never committed.</li>
-          <li>MCP endpoint enforces bearer-token and origin allowlist checks; no PII is exposed.</li>
+          <li>MCP endpoint is public read-only, rate-limited, and artifact-allowlisted; no PII is exposed.</li>
         </ul>
       </Section>
 
@@ -31,7 +31,8 @@ export default function SecurityPage() {
             Primary risks: secret leakage, accidental publication of raw zone data, and exposing mutable ingestion runtime to the public app.
           </p>
           <p>
-            Mitigations: strict gitignore + staged-path checks, aggregate-only artifacts, read-only web serving path, and protected MCP endpoint.
+            Mitigations: strict gitignore + staged-path checks, aggregate-only artifacts, read-only web serving path, and
+            rate-limited MCP endpoint with artifact allowlists.
           </p>
         </div>
       </Section>

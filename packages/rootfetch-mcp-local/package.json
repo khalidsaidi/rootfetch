@@ -1,0 +1,61 @@
+{
+  "name": "@khalidsaidi/rootfetch-mcp",
+  "version": "0.1.0",
+  "description": "Local stdio MCP bridge for RootFetch immutable artifact tools.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "agents",
+    "json-rpc",
+    "stdio",
+    "rootfetch"
+  ],
+  "license": "MIT",
+  "homepage": "https://rootfetch.com/docs/mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khalidsaidi/rootfetch.git",
+    "directory": "packages/rootfetch-mcp-local"
+  },
+  "bugs": {
+    "url": "https://github.com/khalidsaidi/rootfetch/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "private": false,
+  "mcpName": "io.github.khalidsaidi/rootfetch",
+  "bin": {
+    "rootfetch-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "server.json"
+  ],
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "quick-test": "tsx scripts/quick-test.ts",
+    "build": "tsc -p tsconfig.json",
+    "postbuild": "node -e \"const fs=require('fs');const p='dist/cli.js';const c=fs.readFileSync(p,'utf8');if(!c.startsWith('#!')){fs.writeFileSync(p,'#!/usr/bin/env node\\n'+c);}\"",
+    "prepublishOnly": "npm run build",
+    "lint": "echo 'lint not configured'",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "echo 'no tests'"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "dotenv": "^17.2.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

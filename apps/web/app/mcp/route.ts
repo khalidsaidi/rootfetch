@@ -34,6 +34,13 @@ function cloneProxyHeaders(request: Request): Headers {
   const headers = new Headers(request.headers);
   headers.delete("host");
   headers.delete("content-length");
+  const accept = headers.get("accept") || "";
+  if (!accept.toLowerCase().includes("text/event-stream")) {
+    const merged = accept
+      ? `${accept}, text/event-stream`
+      : "application/json, text/event-stream";
+    headers.set("accept", merged);
+  }
   return headers;
 }
 
@@ -96,7 +103,16 @@ export async function GET(request: Request): Promise<Response> {
     docs_url: "https://rootfetch.com/docs/mcp",
     openapi_url: `${origin}/openapi.json`,
     ai_plugin_url: `${origin}/ai-plugin.json`,
+    health_url: `${origin}/mcp/health`,
+    ready_url: `${origin}/mcp/readyz`,
     capabilities: ["tools/list", "tools/call"],
+    tools: [
+      "rootfetch.latest",
+      "rootfetch.replay_index",
+      "rootfetch.run_manifest",
+      "rootfetch.run_bundle",
+      "rootfetch.compare_link",
+    ],
     artifact_backed: true,
     read_only: true,
     no_recompute: true,

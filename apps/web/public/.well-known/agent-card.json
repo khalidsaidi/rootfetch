@@ -1,0 +1,35 @@
+{
+  "name": "RootFetch",
+  "description": "Read-only structural intelligence over immutable namespace run artifacts.",
+  "url": "https://rootfetch.com",
+  "version": "0.1.0",
+  "documentationUrl": "https://rootfetch.com/docs/mcp",
+  "apiEndpoints": [
+    {
+      "name": "openapi",
+      "url": "https://rootfetch.com/openapi.json"
+    }
+  ],
+  "mcpServers": [
+    {
+      "name": "rootfetch",
+      "transport": "streamable-http",
+      "url": "https://rootfetch.com/mcp"
+    }
+  ],
+  "mcpInstall": {
+    "stdio": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@khalidsaidi/rootfetch-mcp@latest",
+        "rootfetch-mcp"
+      ]
+    }
+  },
+  "capabilities": {
+    "readOnly": true,
+    "artifactBacked": true,
+    "noRecompute": true
+  }
+}

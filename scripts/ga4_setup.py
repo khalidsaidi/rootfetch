@@ -13,7 +13,7 @@ def _manual_steps() -> str:
     return (
         "Manual fallback:\n"
         "1) In Google Analytics Admin, create a GA4 property named 'RootFetch' (timezone UTC).\n"
-        "2) Create a Web stream for https://rootfetch.vercel.app.\n"
+        "2) Create a Web stream for https://rootfetch.com.\n"
         "3) Copy the Measurement ID (G-XXXXXXX).\n"
         "4) Save it to env NEXT_PUBLIC_GA_MEASUREMENT_ID and data/config/ga4.json.\n"
     )
@@ -59,7 +59,7 @@ def main() -> int:
         default=os.getenv("GOOGLE_OAUTH_CLIENT_SECRETS", ".ai/tmp/google_oauth_client.json"),
         help="OAuth client secrets JSON path.",
     )
-    parser.add_argument("--site-url", default="https://rootfetch.vercel.app")
+    parser.add_argument("--site-url", default="https://rootfetch.com")
     parser.add_argument("--property-name", default="RootFetch")
     parser.add_argument("--timezone", default="UTC")
     parser.add_argument("--currency", default="USD")

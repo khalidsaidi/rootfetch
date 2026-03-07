@@ -5,7 +5,7 @@ RootFetch exposes read-only MCP surfaces from committed artifacts.
 ## Deployment Modes
 
 1. Python MCP server (`rootfetch mcp serve`) for local workflows.
-2. Vercel MCP route at `/api/mcp` for hosted read-only access.
+2. Hosted MCP route at `/mcp` for read-only public access.
 
 No mode performs CZDS auth or zone downloads.
 
@@ -24,13 +24,23 @@ MCP reads from immutable artifact paths:
 
 ## Security
 
-Vercel `/api/mcp` is public and rate-limited:
+Hosted `/mcp` is public and rate-limited:
 
 - no auth token required
 - token bucket per IP (default: 60 requests/minute, burst 20)
 - returns `429` + `Retry-After` when limited
 - artifact allowlist only (no arbitrary path reads, no recompute)
 - optional shared limiter backend via `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+
+Operational endpoints:
+
+- `GET /mcp/health`
+- `GET /mcp/readyz`
+
+Protocol notes:
+
+- `POST /mcp` supports JSON-RPC `initialize`, `tools/list`, and `tools/call`
+- clients should send `Accept: application/json, text/event-stream`
 
 ## MCP Behavioral Contract
 
@@ -49,6 +59,14 @@ Vercel `/api/mcp` is public and rate-limited:
 - `rootfetch.compare_link`
 
 Tool payloads are returned as JSON text content.
+
+## Local MCP Package
+
+Published local stdio bridge package:
+
+- npm: `@khalidsaidi/rootfetch-mcp`
+- command: `npx -y @khalidsaidi/rootfetch-mcp@latest rootfetch-mcp`
+- registry metadata: `docs/registry/server.json`
 
 ## Python MCP Resources/Tools
 

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.khalidsaidi/rootfetch",
+  "title": "RootFetch MCP",
+  "description": "Read-only structural intelligence over immutable RootFetch run artifacts.",
+  "version": "0.1.0",
+  "repository": {
+    "source": "github",
+    "url": "https://github.com/khalidsaidi/rootfetch"
+  },
+  "websiteUrl": "https://rootfetch.com",
+  "discoveryService": "https://rootfetch.com",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@khalidsaidi/rootfetch-mcp",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "rootfetch-mcp"
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://rootfetch.com/mcp"
+    }
+  ]
+}

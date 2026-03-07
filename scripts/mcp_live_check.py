@@ -179,7 +179,7 @@ def main() -> int:
     parser.add_argument(
         "--endpoint",
         default=None,
-        help="MCP endpoint URL (default from ROOTFETCH_MCP_URL or https://rootfetch.vercel.app/api/mcp)",
+        help="MCP endpoint URL (default from ROOTFETCH_MCP_URL or https://rootfetch.com/mcp)",
     )
     parser.add_argument(
         "--origin",
@@ -194,7 +194,7 @@ def main() -> int:
     parser.add_argument(
         "--artifact-base-url",
         default=None,
-        help="Public artifact base URL (default from ROOTFETCH_PUBLIC_BASE_URL or https://rootfetch.vercel.app)",
+        help="Public artifact base URL (default from ROOTFETCH_PUBLIC_BASE_URL or https://rootfetch.com)",
     )
     parser.add_argument(
         "--env-file",
@@ -216,11 +216,11 @@ def main() -> int:
     env_files.extend(args.env_file)
     _load_env_files(env_files)
 
-    endpoint = (args.endpoint or os.getenv("ROOTFETCH_MCP_URL") or "https://rootfetch.vercel.app/api/mcp").strip()
+    endpoint = (args.endpoint or os.getenv("ROOTFETCH_MCP_URL") or "https://rootfetch.com/mcp").strip()
     origin = (args.origin or os.getenv("ROOTFETCH_MCP_ORIGIN") or "").strip()
     token = (args.token or os.getenv("ROOTFETCH_MCP_TOKEN") or "").strip()
     artifact_base_url = (
-        args.artifact_base_url or os.getenv("ROOTFETCH_PUBLIC_BASE_URL") or "https://rootfetch.vercel.app"
+        args.artifact_base_url or os.getenv("ROOTFETCH_PUBLIC_BASE_URL") or "https://rootfetch.com"
     ).rstrip("/")
 
     try:

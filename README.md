@@ -64,7 +64,7 @@ Optional local MCP endpoint override for step-9 live checks (keep this local-onl
 
 ```bash
 cat > .env.mcp <<'EOF'
-ROOTFETCH_MCP_URL=https://rootfetch.vercel.app/api/mcp
+ROOTFETCH_MCP_URL=https://rootfetch.com/mcp
 EOF
 chmod 600 .env.mcp
 ```
@@ -138,6 +138,8 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)
 - Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
+- Public endpoints: [docs/public_endpoints.md](docs/public_endpoints.md)
+- Publishing checklist: [docs/PUBLISHING.md](docs/PUBLISHING.md)
 - RAG: [docs/rag.md](docs/rag.md)
 - CZDS credentials: [docs/czds_credentials.md](docs/czds_credentials.md)
 - Local runner: [docs/local_runner.md](docs/local_runner.md)

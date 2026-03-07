@@ -123,6 +123,61 @@
         }
       }
     },
+    "/mcp/health": {
+      "get": {
+        "summary": "MCP health",
+        "operationId": "getMcpHealth",
+        "responses": {
+          "200": {
+            "description": "Service health",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "default": {
+                    "value": {
+                      "status": "ok",
+                      "service": "rootfetch-mcp",
+                      "read_only": true,
+                      "artifact_backed": true,
+                      "run_id": "20260307T231738Z_8a3bde89bd87_rootfetch_model_v1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp/readyz": {
+      "get": {
+        "summary": "MCP readiness",
+        "operationId": "getMcpReady",
+        "responses": {
+          "200": {
+            "description": "Ready",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ready": {
+                    "value": {
+                      "status": "ready",
+                      "run_id": "20260307T231738Z_8a3bde89bd87_rootfetch_model_v1",
+                      "expected_count": 8,
+                      "checked_count": 8,
+                      "missing_files": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready"
+          }
+        }
+      }
+    },
     "/rootfetch/artifacts/latest.json": {
       "get": {
         "summary": "Latest immutable run pointer",
