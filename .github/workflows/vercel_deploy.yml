@@ -43,8 +43,8 @@ jobs:
         if: steps.vercel_config.outputs.ready == 'true'
         run: |
           set -euo pipefail
-          if [[ -z "${{ secrets.ADMIN_DASH_PASS }}" ]]; then
-            echo "::error::Missing required secret ADMIN_DASH_PASS"
+          if [[ -z "${{ secrets.ADMIN_DASH_PASS }}" && -z "${{ secrets.ROOTFETCH_MCP_TOKEN }}" ]]; then
+            echo "::error::Missing admin password secret (set ADMIN_DASH_PASS or ROOTFETCH_MCP_TOKEN)"
             exit 1
           fi
           if [[ -z "${{ secrets.UPSTASH_REDIS_REST_URL }}" || -z "${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" ]]; then
@@ -86,13 +86,17 @@ jobs:
           if [[ -z "${ADMIN_USER}" ]]; then
             ADMIN_USER="admin"
           fi
+          ADMIN_PASS_VALUE="${{ secrets.ADMIN_DASH_PASS }}"
+          if [[ -z "${ADMIN_PASS_VALUE}" ]]; then
+            ADMIN_PASS_VALUE="${{ secrets.ROOTFETCH_MCP_TOKEN }}"
+          fi
           for TARGET in production preview; do
             npx vercel@latest env rm ADMIN_DASH_USER "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
             printf '%s' "${ADMIN_USER}" \
               | npx vercel@latest env add ADMIN_DASH_USER "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
 
             npx vercel@latest env rm ADMIN_DASH_PASS "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
-            printf '%s' "${{ secrets.ADMIN_DASH_PASS }}" \
+            printf '%s' "${ADMIN_PASS_VALUE}" \
               | npx vercel@latest env add ADMIN_DASH_PASS "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
 
             npx vercel@latest env rm UPSTASH_REDIS_REST_URL "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
@@ -160,6 +164,10 @@ jobs:
       - name: Deploy project
         if: steps.vercel_config.outputs.ready == 'true'
         run: |
+          ADMIN_PASS_VALUE="${{ secrets.ADMIN_DASH_PASS }}"
+          if [[ -z "${ADMIN_PASS_VALUE}" ]]; then
+            ADMIN_PASS_VALUE="${{ secrets.ROOTFETCH_MCP_TOKEN }}"
+          fi
           npx vercel@latest deploy \
             --yes \
             --prod \
@@ -170,8 +178,8 @@ jobs:
             --env ROOTFETCH_MCP_ALLOWED_ORIGINS="${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS }}" \
             --build-env ADMIN_DASH_USER="${{ vars.ADMIN_DASH_USER }}" \
             --env ADMIN_DASH_USER="${{ vars.ADMIN_DASH_USER }}" \
-            --build-env ADMIN_DASH_PASS="${{ secrets.ADMIN_DASH_PASS }}" \
-            --env ADMIN_DASH_PASS="${{ secrets.ADMIN_DASH_PASS }}" \
+            --build-env ADMIN_DASH_PASS="${ADMIN_PASS_VALUE}" \
+            --env ADMIN_DASH_PASS="${ADMIN_PASS_VALUE}" \
             --build-env UPSTASH_REDIS_REST_URL="${{ secrets.UPSTASH_REDIS_REST_URL }}" \
             --env UPSTASH_REDIS_REST_URL="${{ secrets.UPSTASH_REDIS_REST_URL }}" \
             --build-env UPSTASH_REDIS_REST_TOKEN="${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" \
