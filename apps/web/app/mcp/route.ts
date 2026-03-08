@@ -43,6 +43,23 @@ function json(payload: unknown, status = 200): Response {
   });
 }
 
+function resolvePublicOrigin(request: Request): string {
+  const forwardedHost =
+    request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+    request.headers.get("host")?.split(",")[0]?.trim();
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (forwardedHost) {
+    return `${forwardedProto || "https"}://${forwardedHost}`;
+  }
+
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  return new URL(request.url).origin;
+}
+
 function cloneProxyHeaders(request: Request): Headers {
   const headers = new Headers(request.headers);
   headers.delete("host");
@@ -106,7 +123,7 @@ function initializeResponse(id: JsonRpcId): Response {
 
 export async function GET(request: Request): Promise<Response> {
   const startedAt = Date.now();
-  const origin = new URL(request.url).origin;
+  const origin = resolvePublicOrigin(request);
   const response = json({
     name: "RootFetch MCP",
     status: "ok",

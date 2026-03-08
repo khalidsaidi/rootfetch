@@ -8,6 +8,23 @@ function isEmptyLatest(payload: { date_utc?: string; approved_tlds_count?: numbe
   return (payload.date_utc || "n/a") === "n/a" || Number(payload.approved_tlds_count || 0) <= 0;
 }
 
+function resolvePublicOrigin(request: Request): string {
+  const forwardedHost =
+    request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+    request.headers.get("host")?.split(",")[0]?.trim();
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (forwardedHost) {
+    return `${forwardedProto || "https"}://${forwardedHost}`;
+  }
+
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  return new URL(request.url).origin;
+}
+
 export async function GET(request: Request) {
   try {
     const published = await loadPublishedRunBundle();
@@ -23,7 +40,7 @@ export async function GET(request: Request) {
       return NextResponse.json(latest);
     }
 
-    const origin = new URL(request.url).origin;
+    const origin = resolvePublicOrigin(request);
     const staticArtifact = await fetch(`${origin}/rootfetch/latest.json`, {
       cache: "no-store",
     });
