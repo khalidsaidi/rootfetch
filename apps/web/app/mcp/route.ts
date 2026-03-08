@@ -1,3 +1,5 @@
+import { recordMcpUsageEvent } from "@/lib/mcp-telemetry";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,17 @@ type JsonRpcInitializeRequest = {
     clientInfo?: Record<string, unknown>;
   };
 };
+
+function extractClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+  return "unknown";
+}
 
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -92,9 +105,9 @@ function initializeResponse(id: JsonRpcId): Response {
 }
 
 export async function GET(request: Request): Promise<Response> {
+  const startedAt = Date.now();
   const origin = new URL(request.url).origin;
-
-  return json({
+  const response = json({
     name: "RootFetch MCP",
     status: "ok",
     protocol: "json-rpc-2.0",
@@ -120,9 +133,20 @@ export async function GET(request: Request): Promise<Response> {
     read_only: true,
     no_recompute: true,
   });
+  await recordMcpUsageEvent({
+    httpMethod: "GET",
+    status: response.status,
+    durationMs: Date.now() - startedAt,
+    rateLimited: false,
+    limiterMode: "local",
+    clientIp: extractClientIp(request),
+  });
+  return response;
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const startedAt = Date.now();
+  const clientIp = extractClientIp(request);
   const rawBody = await request.text();
 
   let payload: JsonRpcInitializeRequest | null = null;
@@ -160,7 +184,17 @@ export async function POST(request: Request): Promise<Response> {
 
   if (requestPayload.method === "initialize") {
     const id: JsonRpcId = requestPayload.id ?? null;
-    return initializeResponse(id);
+    const response = initializeResponse(id);
+    await recordMcpUsageEvent({
+      httpMethod: "POST",
+      rpcMethod: "initialize",
+      status: response.status,
+      durationMs: Date.now() - startedAt,
+      rateLimited: false,
+      limiterMode: "local",
+      clientIp,
+    });
+    return response;
   }
 
   return proxyToApiMcp(request, rawBody);
