@@ -63,5 +63,14 @@ export function middleware(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: ["/mcp/usage", "/mcp/usage/:path*", "/api/mcp/stats", "/api/mcp/events"],
+  matcher: [
+    "/mcp/usage",
+    "/mcp/usage/:path*",
+    "/admin/usage",
+    "/admin/usage/:path*",
+    "/admin/agent-events",
+    "/admin/agent-events/:path*",
+    "/api/mcp/stats",
+    "/api/mcp/events",
+  ],
 };

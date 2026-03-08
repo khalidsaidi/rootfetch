@@ -19,7 +19,8 @@ export default function PublicEndpointsPage() {
           <li>MCP: <code>https://rootfetch.com/mcp</code></li>
           <li>MCP health: <code>https://rootfetch.com/mcp/health</code></li>
           <li>MCP readiness: <code>https://rootfetch.com/mcp/readyz</code></li>
-          <li>MCP usage dashboard: <code>https://rootfetch.com/mcp/usage</code></li>
+          <li>MCP usage dashboard (admin): <code>https://rootfetch.com/admin/usage</code></li>
+          <li>MCP agent events (admin): <code>https://rootfetch.com/admin/agent-events</code></li>
           <li>MCP usage stats API: <code>https://rootfetch.com/api/mcp/stats?days=7</code></li>
           <li>MCP usage events API: <code>https://rootfetch.com/api/mcp/events?limit=50</code></li>
           <li>OpenAPI: <code>https://rootfetch.com/openapi.json</code></li>

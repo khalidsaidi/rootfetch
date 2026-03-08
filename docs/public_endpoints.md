@@ -4,7 +4,8 @@
 - MCP endpoint: `https://rootfetch.com/mcp`
 - MCP health: `https://rootfetch.com/mcp/health`
 - MCP readiness: `https://rootfetch.com/mcp/readyz`
-- MCP usage dashboard: `https://rootfetch.com/mcp/usage` (HTTP Basic Auth)
+- MCP usage dashboard: `https://rootfetch.com/admin/usage` (HTTP Basic Auth)
+- MCP agent events: `https://rootfetch.com/admin/agent-events` (HTTP Basic Auth)
 - MCP usage stats API: `https://rootfetch.com/api/mcp/stats?days=7` (HTTP Basic Auth)
 - MCP usage events API: `https://rootfetch.com/api/mcp/events?limit=50` (HTTP Basic Auth)
 - MCP docs: `https://rootfetch.com/docs/mcp`

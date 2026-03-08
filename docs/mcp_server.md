@@ -38,7 +38,8 @@ Operational endpoints:
 - `GET /mcp/readyz`
 - `GET /api/mcp/stats?days=7` (admin-protected)
 - `GET /api/mcp/events?limit=50` (admin-protected)
-- `GET /mcp/usage` (human usage dashboard, admin-protected)
+- `GET /admin/usage` (human usage dashboard, admin-protected)
+- `GET /admin/agent-events` (human event dashboard, admin-protected)
 
 Protocol notes:
 

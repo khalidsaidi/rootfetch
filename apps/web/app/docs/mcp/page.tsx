@@ -108,12 +108,20 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           still tracked separately.
         </p>
         <TrackedLink
-          href="/mcp/usage"
+          href="/admin/usage"
           label="mcp_docs_usage_dashboard"
           pageType="mcp_docs"
           className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
         >
           Open MCP usage dashboard
+        </TrackedLink>
+        <TrackedLink
+          href="/admin/agent-events"
+          label="mcp_docs_agent_events_dashboard"
+          pageType="mcp_docs"
+          className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
+        >
+          Open MCP agent events
         </TrackedLink>
         <TrackedLink
           href="/docs/public-endpoints"
