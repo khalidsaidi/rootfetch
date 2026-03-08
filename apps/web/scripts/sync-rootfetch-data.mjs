@@ -173,6 +173,7 @@ async function generateSeoTextArtifacts() {
     "/recipes",
     "/docs/mcp",
     "/docs/public-endpoints",
+    "/mcp/usage",
     "/tlds",
   ];
   const urls = [...baseRoutes, ...topTlds.map((tld) => `/tld/${encodeURIComponent(tld)}`)];
@@ -222,7 +223,9 @@ async function generateSeoTextArtifacts() {
     `- AI Plugin: ${siteUrl}/ai-plugin.json\n` +
     `- AI Plugin (well-known): ${siteUrl}/.well-known/ai-plugin.json\n` +
     `- MCP endpoint: ${siteUrl}/mcp\n` +
-    `- MCP docs: ${siteUrl}/docs/mcp\n`;
+    `- MCP docs: ${siteUrl}/docs/mcp\n` +
+    `- MCP usage stats: ${siteUrl}/api/mcp/stats?days=7\n` +
+    `- MCP usage events: ${siteUrl}/api/mcp/events?limit=50\n`;
 
   const agentDiscovery = JSON.stringify(
     {

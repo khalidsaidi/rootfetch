@@ -105,6 +105,9 @@ export async function GET(request: Request): Promise<Response> {
     ai_plugin_url: `${origin}/ai-plugin.json`,
     health_url: `${origin}/mcp/health`,
     ready_url: `${origin}/mcp/readyz`,
+    usage_dashboard_url: `${origin}/mcp/usage`,
+    usage_stats_url: `${origin}/api/mcp/stats?days=7`,
+    usage_events_url: `${origin}/api/mcp/events?limit=50`,
     capabilities: ["tools/list", "tools/call"],
     tools: [
       "rootfetch.latest",

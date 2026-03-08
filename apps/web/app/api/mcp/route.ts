@@ -10,6 +10,7 @@ import {
   type ReplayIndexArtifact,
   type RunScopedBundle,
 } from "@/lib/rootfetch-data";
+import { recordMcpUsageEvent } from "@/lib/mcp-telemetry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -119,6 +120,34 @@ function extractClientIp(request: Request): string {
   const realIp = request.headers.get("x-real-ip")?.trim();
   if (realIp) return realIp;
   return "unknown";
+}
+
+async function extractRpcMetadata(request: Request): Promise<{ rpcMethod: string | null; toolName: string | null }> {
+  if (request.method !== "POST") {
+    return { rpcMethod: null, toolName: null };
+  }
+
+  let raw = "";
+  try {
+    raw = await request.clone().text();
+  } catch {
+    return { rpcMethod: null, toolName: null };
+  }
+  if (!raw) {
+    return { rpcMethod: null, toolName: null };
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as {
+      method?: unknown;
+      params?: { name?: unknown };
+    };
+    const rpcMethod = typeof parsed?.method === "string" ? parsed.method : null;
+    const toolName = rpcMethod === "tools/call" && typeof parsed?.params?.name === "string" ? parsed.params.name : null;
+    return { rpcMethod, toolName };
+  } catch {
+    return { rpcMethod: null, toolName: null };
+  }
 }
 
 async function upstashCommand(command: Array<string | number>): Promise<unknown> {
@@ -491,12 +520,15 @@ const mcpHandler = createMcpHandler(
 );
 
 async function guardedHandler(request: Request): Promise<Response> {
+  const startedAt = Date.now();
+  const clientIp = extractClientIp(request);
+  const rpc = await extractRpcMetadata(request);
   const decision = await enforceRateLimit(request);
   const rateHeaders = buildRateHeaders(decision);
 
   if (!decision.allowed) {
     const status = decision.statusCode || 429;
-    return jsonWithHeaders(
+    const response = jsonWithHeaders(
       {
         error: decision.reason || "rate_limit_exceeded",
         retry_after_seconds: decision.retryAfterSeconds,
@@ -504,18 +536,64 @@ async function guardedHandler(request: Request): Promise<Response> {
       status,
       rateHeaders,
     );
+    await recordMcpUsageEvent({
+      httpMethod: request.method,
+      rpcMethod: rpc.rpcMethod,
+      toolName: rpc.toolName,
+      status,
+      durationMs: Date.now() - startedAt,
+      rateLimited: true,
+      limiterMode: decision.mode,
+      clientIp,
+    });
+    return response;
   }
 
-  const response = await mcpHandler(request);
-  return responseWithHeaders(response, rateHeaders);
+  try {
+    const response = await mcpHandler(request);
+    const wrapped = responseWithHeaders(response, rateHeaders);
+    await recordMcpUsageEvent({
+      httpMethod: request.method,
+      rpcMethod: rpc.rpcMethod,
+      toolName: rpc.toolName,
+      status: wrapped.status,
+      durationMs: Date.now() - startedAt,
+      rateLimited: false,
+      limiterMode: decision.mode,
+      clientIp,
+    });
+    return wrapped;
+  } catch {
+    const status = 500;
+    const response = jsonWithHeaders(
+      {
+        error: "mcp_internal_error",
+      },
+      status,
+      rateHeaders,
+    );
+    await recordMcpUsageEvent({
+      httpMethod: request.method,
+      rpcMethod: rpc.rpcMethod,
+      toolName: rpc.toolName,
+      status,
+      durationMs: Date.now() - startedAt,
+      rateLimited: false,
+      limiterMode: decision.mode,
+      clientIp,
+    });
+    return response;
+  }
 }
 
 export async function OPTIONS(request: Request): Promise<Response> {
+  const startedAt = Date.now();
+  const clientIp = extractClientIp(request);
   const decision = await enforceRateLimit(request);
   const headers = buildRateHeaders(decision);
   if (!decision.allowed) {
     const status = decision.statusCode || 429;
-    return jsonWithHeaders(
+    const response = jsonWithHeaders(
       {
         error: decision.reason || "rate_limit_exceeded",
         retry_after_seconds: decision.retryAfterSeconds,
@@ -523,8 +601,26 @@ export async function OPTIONS(request: Request): Promise<Response> {
       status,
       headers,
     );
+    await recordMcpUsageEvent({
+      httpMethod: "OPTIONS",
+      status,
+      durationMs: Date.now() - startedAt,
+      rateLimited: true,
+      limiterMode: decision.mode,
+      clientIp,
+    });
+    return response;
   }
-  return responseWithHeaders(new Response(null, { status: 204 }), headers);
+  const response = responseWithHeaders(new Response(null, { status: 204 }), headers);
+  await recordMcpUsageEvent({
+    httpMethod: "OPTIONS",
+    status: 204,
+    durationMs: Date.now() - startedAt,
+    rateLimited: false,
+    limiterMode: decision.mode,
+    clientIp,
+  });
+  return response;
 }
 
 export const GET = guardedHandler;

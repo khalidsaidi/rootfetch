@@ -98,10 +98,19 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
 
       <Section title="Usage Events">
         <p className="text-sm text-muted-foreground">
-          RootFetch tracks page-level product analytics events (for example <code>rf_mcp_doc_open</code> and
-          <code>rf_copy_mcp_snippet</code>) but does not expose a public MCP usage-event ingestion API. The MCP contract remains
-          read-only over immutable artifacts.
+          RootFetch now exposes MCP usage visibility endpoints for operational monitoring:
+          <code> /api/mcp/stats</code> and <code>/api/mcp/events</code>. MCP remains read-only over immutable artifacts.
+          Page-level analytics events (for example <code>rf_mcp_doc_open</code> and <code>rf_copy_mcp_snippet</code>) are
+          still tracked separately.
         </p>
+        <TrackedLink
+          href="/mcp/usage"
+          label="mcp_docs_usage_dashboard"
+          pageType="mcp_docs"
+          className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
+        >
+          Open MCP usage dashboard
+        </TrackedLink>
         <TrackedLink
           href="/docs/public-endpoints"
           label="mcp_docs_public_endpoints"

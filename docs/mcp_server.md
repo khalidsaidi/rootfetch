@@ -36,6 +36,9 @@ Operational endpoints:
 
 - `GET /mcp/health`
 - `GET /mcp/readyz`
+- `GET /api/mcp/stats?days=7`
+- `GET /api/mcp/events?limit=50`
+- `GET /mcp/usage` (human usage dashboard)
 
 Protocol notes:
 

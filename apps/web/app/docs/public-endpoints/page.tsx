@@ -19,6 +19,9 @@ export default function PublicEndpointsPage() {
           <li>MCP: <code>https://rootfetch.com/mcp</code></li>
           <li>MCP health: <code>https://rootfetch.com/mcp/health</code></li>
           <li>MCP readiness: <code>https://rootfetch.com/mcp/readyz</code></li>
+          <li>MCP usage dashboard: <code>https://rootfetch.com/mcp/usage</code></li>
+          <li>MCP usage stats API: <code>https://rootfetch.com/api/mcp/stats?days=7</code></li>
+          <li>MCP usage events API: <code>https://rootfetch.com/api/mcp/events?limit=50</code></li>
           <li>OpenAPI: <code>https://rootfetch.com/openapi.json</code></li>
           <li>AIR: <code>https://rootfetch.com/air.json</code></li>
           <li>AI Plugin: <code>https://rootfetch.com/ai-plugin.json</code></li>
@@ -36,8 +39,8 @@ export default function PublicEndpointsPage() {
 
       <Section title="Usage Event Notes">
         <p className="text-sm text-muted-foreground">
-          RootFetch tracks product analytics events such as <code>rf_mcp_doc_open</code> and <code>rf_copy_mcp_snippet</code>
-          for UI measurement. No public write endpoint is exposed for MCP usage events.
+          RootFetch exposes read-only MCP usage and event endpoints. These are telemetry views only; no public write ingestion
+          endpoint is exposed.
         </p>
       </Section>
 
