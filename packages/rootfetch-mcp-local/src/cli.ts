@@ -177,7 +177,7 @@ server.registerTool(
       run_id: z.string().optional(),
     },
   },
-  async ({ run_id }) =>
+  async ({ run_id }: { run_id?: string }) =>
     callRemoteTool("rootfetch.run_manifest", {
       ...(run_id ? { run_id } : {}),
     }),
@@ -192,7 +192,7 @@ server.registerTool(
       run_id: z.string().optional(),
     },
   },
-  async ({ run_id }) =>
+  async ({ run_id }: { run_id?: string }) =>
     callRemoteTool("rootfetch.run_bundle", {
       ...(run_id ? { run_id } : {}),
     }),
@@ -208,7 +208,7 @@ server.registerTool(
       right: z.string(),
     },
   },
-  async ({ left, right }) => callRemoteTool("rootfetch.compare_link", { left, right }),
+  async ({ left, right }: { left: string; right: string }) => callRemoteTool("rootfetch.compare_link", { left, right }),
 );
 
 async function main() {
