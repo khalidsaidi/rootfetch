@@ -36,7 +36,7 @@ function decodeBasicAuth(headerValue: string): { user: string; pass: string } | 
 
 function credentialsFromEnv(): { user: string; pass: string } | null {
   const user = (process.env.ADMIN_DASH_USER || process.env.ROOTFETCH_ADMIN_USER || "admin").trim();
-  const pass = (process.env.ADMIN_DASH_PASS || process.env.ROOTFETCH_ADMIN_PASS || process.env.ROOTFETCH_MCP_TOKEN || "").trim();
+  const pass = (process.env.ADMIN_DASH_PASS || process.env.ROOTFETCH_ADMIN_PASS || "").trim();
   if (!user || !pass) {
     return null;
   }

@@ -77,7 +77,7 @@ const TELEMETRY_TTL_SECONDS = Math.max(86_400, Number(process.env.ROOTFETCH_MCP_
 const TELEMETRY_MAX_EVENTS = Math.max(50, Number(process.env.ROOTFETCH_MCP_TELEMETRY_MAX_EVENTS || 2000));
 const LOCAL_MAX_EVENTS = Math.max(50, Number(process.env.ROOTFETCH_MCP_LOCAL_MAX_EVENTS || 1000));
 const LOCAL_MAX_DAYS = Math.max(7, Number(process.env.ROOTFETCH_MCP_LOCAL_MAX_DAYS || 35));
-const TELEMETRY_MODE_RAW = String(process.env.ROOTFETCH_MCP_TELEMETRY_MODE || "shared_preferred").toLowerCase();
+const TELEMETRY_MODE_RAW = String(process.env.ROOTFETCH_MCP_TELEMETRY_MODE || "shared_required").toLowerCase();
 
 const localEvents: McpUsageEvent[] = [];
 const localDailyStats = new Map<string, LocalDayStats>();

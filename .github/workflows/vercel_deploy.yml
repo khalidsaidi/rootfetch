@@ -39,6 +39,19 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Validate required runtime secrets
+        if: steps.vercel_config.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          if [[ -z "${{ secrets.ADMIN_DASH_PASS }}" ]]; then
+            echo "::error::Missing required secret ADMIN_DASH_PASS"
+            exit 1
+          fi
+          if [[ -z "${{ secrets.UPSTASH_REDIS_REST_URL }}" || -z "${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" ]]; then
+            echo "::error::Missing required Upstash Redis secrets (UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN)"
+            exit 1
+          fi
+
       - name: Install web dependencies
         if: steps.vercel_config.outputs.ready == 'true'
         run: npm ci
@@ -61,6 +74,39 @@ jobs:
           npx vercel@latest env rm ROOTFETCH_MCP_TOKEN production --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
           printf '%s' "${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
             | npx vercel@latest env add ROOTFETCH_MCP_TOKEN production --token "${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Sync admin + telemetry env into Vercel production + preview
+        if: steps.vercel_config.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          ADMIN_USER="${{ vars.ADMIN_DASH_USER }}"
+          if [[ -z "${ADMIN_USER}" ]]; then
+            ADMIN_USER="admin"
+          fi
+          for TARGET in production preview; do
+            npx vercel@latest env rm ADMIN_DASH_USER "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            printf '%s' "${ADMIN_USER}" \
+              | npx vercel@latest env add ADMIN_DASH_USER "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
+
+            npx vercel@latest env rm ADMIN_DASH_PASS "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            printf '%s' "${{ secrets.ADMIN_DASH_PASS }}" \
+              | npx vercel@latest env add ADMIN_DASH_PASS "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
+
+            npx vercel@latest env rm UPSTASH_REDIS_REST_URL "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            printf '%s' "${{ secrets.UPSTASH_REDIS_REST_URL }}" \
+              | npx vercel@latest env add UPSTASH_REDIS_REST_URL "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
+
+            npx vercel@latest env rm UPSTASH_REDIS_REST_TOKEN "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            printf '%s' "${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" \
+              | npx vercel@latest env add UPSTASH_REDIS_REST_TOKEN "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
+
+            npx vercel@latest env rm ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            printf '%s' "shared_required" \
+              | npx vercel@latest env add ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
+          done
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -122,6 +168,16 @@ jobs:
             --env ROOTFETCH_MCP_TOKEN="${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
             --build-env ROOTFETCH_MCP_ALLOWED_ORIGINS="${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS }}" \
             --env ROOTFETCH_MCP_ALLOWED_ORIGINS="${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS }}" \
+            --build-env ADMIN_DASH_USER="${{ vars.ADMIN_DASH_USER }}" \
+            --env ADMIN_DASH_USER="${{ vars.ADMIN_DASH_USER }}" \
+            --build-env ADMIN_DASH_PASS="${{ secrets.ADMIN_DASH_PASS }}" \
+            --env ADMIN_DASH_PASS="${{ secrets.ADMIN_DASH_PASS }}" \
+            --build-env UPSTASH_REDIS_REST_URL="${{ secrets.UPSTASH_REDIS_REST_URL }}" \
+            --env UPSTASH_REDIS_REST_URL="${{ secrets.UPSTASH_REDIS_REST_URL }}" \
+            --build-env UPSTASH_REDIS_REST_TOKEN="${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" \
+            --env UPSTASH_REDIS_REST_TOKEN="${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" \
+            --build-env ROOTFETCH_MCP_TELEMETRY_MODE="shared_required" \
+            --env ROOTFETCH_MCP_TELEMETRY_MODE="shared_required" \
             --build-env NEXT_PUBLIC_SITE_URL="${{ steps.public_env.outputs.site_url }}" \
             --env NEXT_PUBLIC_SITE_URL="${{ steps.public_env.outputs.site_url }}" \
             --build-env NEXT_PUBLIC_GA_MEASUREMENT_ID="${{ steps.public_env.outputs.ga_id }}" \

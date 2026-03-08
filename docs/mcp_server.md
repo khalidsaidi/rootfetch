@@ -51,10 +51,14 @@ Protocol notes:
   - username: `ADMIN_DASH_USER` (fallback `ROOTFETCH_ADMIN_USER`, default `admin`)
   - password: `ADMIN_DASH_PASS` (fallback `ROOTFETCH_ADMIN_PASS`, then `ROOTFETCH_MCP_TOKEN`)
 - Telemetry backend mode:
-  - `ROOTFETCH_MCP_TELEMETRY_MODE=shared_preferred` (default)
+  - `ROOTFETCH_MCP_TELEMETRY_MODE=shared_required` (default)
   - `shared_required` enforces Redis and returns `503` if backend is missing/unavailable
-  - `shared_preferred` falls back to local per-instance telemetry when Redis is missing
-  - recommended for durable cross-instance telemetry: configure `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+  - `shared_preferred` allows local fallback (not recommended for production)
+  - configure `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+
+- Admin auth env:
+  - `ADMIN_DASH_USER` (default `admin`)
+  - `ADMIN_DASH_PASS` (required)
 
 ## MCP Behavioral Contract
 
