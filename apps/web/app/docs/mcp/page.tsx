@@ -81,10 +81,6 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           <code>Retry-After</code>. Responses include <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and
           <code>X-RateLimit-Mode</code>. No key is required.
         </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Optional: configure <code>UPSTASH_REDIS_REST_URL</code> + <code>UPSTASH_REDIS_REST_TOKEN</code> for shared,
-          cross-instance limiting. Without Upstash, a built-in per-instance limiter is used.
-        </p>
         <ul className="mt-3 ml-5 list-disc space-y-1 text-sm text-muted-foreground">
           <li>Health: <code>GET https://rootfetch.com/mcp/health</code></li>
           <li>Readiness: <code>GET https://rootfetch.com/mcp/readyz</code></li>
@@ -103,8 +99,8 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           admin-protected via HTTP Basic Auth.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Telemetry storage mode defaults to <code>shared_required</code>: Upstash Redis must be configured for durable
-          cross-instance stats/events. When unavailable, telemetry endpoints return service unavailable.
+          Usage telemetry is persisted through a dedicated backend service (Cloud Run + Firestore), so stats/events remain
+          durable across instances and deploys.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           MCP remains read-only over immutable artifacts. 

@@ -50,11 +50,10 @@ Protocol notes:
 - Admin protection uses HTTP Basic Auth via middleware:
   - username: `ADMIN_DASH_USER` (fallback `ROOTFETCH_ADMIN_USER`, default `admin`)
   - password: `ADMIN_DASH_PASS` (fallback `ROOTFETCH_ADMIN_PASS`, then `ROOTFETCH_MCP_TOKEN`)
-- Telemetry backend mode:
-  - `ROOTFETCH_MCP_TELEMETRY_MODE=shared_required` (default)
-  - `shared_required` enforces Redis and returns `503` if backend is missing/unavailable
-  - `shared_preferred` allows local fallback (not recommended for production)
-  - configure `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+- MCP usage telemetry is persisted in a dedicated GCP backend service (Cloud Run + Firestore).
+- RootFetch web runtime forwards telemetry through:
+  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_URL`
+  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN`
 
 - Admin auth env:
   - `ADMIN_DASH_USER` (default `admin`)

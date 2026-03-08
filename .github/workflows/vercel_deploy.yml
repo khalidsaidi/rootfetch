@@ -47,6 +47,10 @@ jobs:
             echo "::error::Missing admin password secret (set ADMIN_DASH_PASS or ROOTFETCH_MCP_TOKEN)"
             exit 1
           fi
+          if [[ -z "${{ vars.ROOTFETCH_MCP_TELEMETRY_BACKEND_URL }}" ]]; then
+            echo "::error::Missing ROOTFETCH_MCP_TELEMETRY_BACKEND_URL repository variable"
+            exit 1
+          fi
 
       - name: Install web dependencies
         if: steps.vercel_config.outputs.ready == 'true'
@@ -98,8 +102,12 @@ jobs:
             npx vercel@latest env rm UPSTASH_REDIS_REST_URL "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
             npx vercel@latest env rm UPSTASH_REDIS_REST_TOKEN "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
             npx vercel@latest env rm ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
-            printf '%s' "shared_preferred" \
-              | npx vercel@latest env add ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
+            npx vercel@latest env rm ROOTFETCH_MCP_TELEMETRY_BACKEND_URL "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            printf '%s' "${{ vars.ROOTFETCH_MCP_TELEMETRY_BACKEND_URL }}" \
+              | npx vercel@latest env add ROOTFETCH_MCP_TELEMETRY_BACKEND_URL "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
+            npx vercel@latest env rm ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            printf '%s' "${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
+              | npx vercel@latest env add ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
           done
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -175,8 +183,10 @@ jobs:
             --env NEXT_PUBLIC_SITE_URL="${{ steps.public_env.outputs.site_url }}"
             --build-env NEXT_PUBLIC_GA_MEASUREMENT_ID="${{ steps.public_env.outputs.ga_id }}"
             --env NEXT_PUBLIC_GA_MEASUREMENT_ID="${{ steps.public_env.outputs.ga_id }}"
-            --build-env ROOTFETCH_MCP_TELEMETRY_MODE="shared_preferred"
-            --env ROOTFETCH_MCP_TELEMETRY_MODE="shared_preferred"
+            --build-env ROOTFETCH_MCP_TELEMETRY_BACKEND_URL="${{ vars.ROOTFETCH_MCP_TELEMETRY_BACKEND_URL }}"
+            --env ROOTFETCH_MCP_TELEMETRY_BACKEND_URL="${{ vars.ROOTFETCH_MCP_TELEMETRY_BACKEND_URL }}"
+            --build-env ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN="${{ secrets.ROOTFETCH_MCP_TOKEN }}"
+            --env ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN="${{ secrets.ROOTFETCH_MCP_TOKEN }}"
           )
           npx vercel@latest deploy "${DEPLOY_ARGS[@]}"
         env:
