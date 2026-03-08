@@ -153,6 +153,13 @@ export default function McpUsagePage() {
           <span>Generated: <code>{stats.generated_at_utc || eventsPayload.generated_at_utc || "-"}</code></span>
         </div>
 
+        {stats.mode === "local" ? (
+          <p className="mt-3 text-xs text-amber-300">
+            Local mode stores telemetry per runtime instance. For durable cross-instance MCP usage/events, configure
+            <code> UPSTASH_REDIS_REST_URL</code> and <code>UPSTASH_REDIS_REST_TOKEN</code>.
+          </p>
+        ) : null}
+
         {loading ? <p className="mt-3 text-sm text-muted-foreground">Loading usage data...</p> : null}
         {error ? <p className="mt-3 text-sm text-red-300">{error}</p> : null}
       </Section>
