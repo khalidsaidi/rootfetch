@@ -99,7 +99,15 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
       <Section title="Usage Events">
         <p className="text-sm text-muted-foreground">
           RootFetch now exposes MCP usage visibility endpoints for operational monitoring:
-          <code> /api/mcp/stats</code> and <code>/api/mcp/events</code>. MCP remains read-only over immutable artifacts.
+          <code> /api/mcp/stats</code> and <code>/api/mcp/events</code>. These telemetry endpoints and the usage dashboard are
+          admin-protected via HTTP Basic Auth.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Telemetry storage mode defaults to <code>shared_required</code>: Upstash Redis must be configured for durable
+          cross-instance stats/events.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          MCP remains read-only over immutable artifacts. 
           Page-level analytics events (for example <code>rf_mcp_doc_open</code> and <code>rf_copy_mcp_snippet</code>) are
           still tracked separately.
         </p>

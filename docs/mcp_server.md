@@ -36,14 +36,24 @@ Operational endpoints:
 
 - `GET /mcp/health`
 - `GET /mcp/readyz`
-- `GET /api/mcp/stats?days=7`
-- `GET /api/mcp/events?limit=50`
-- `GET /mcp/usage` (human usage dashboard)
+- `GET /api/mcp/stats?days=7` (admin-protected)
+- `GET /api/mcp/events?limit=50` (admin-protected)
+- `GET /mcp/usage` (human usage dashboard, admin-protected)
 
 Protocol notes:
 
 - `POST /mcp` supports JSON-RPC `initialize`, `tools/list`, and `tools/call`
 - clients should send `Accept: application/json, text/event-stream`
+
+## MCP Usage Auth + Telemetry
+
+- Admin protection uses HTTP Basic Auth via middleware:
+  - username: `ADMIN_DASH_USER` (fallback `ROOTFETCH_ADMIN_USER`, default `admin`)
+  - password: `ADMIN_DASH_PASS` (fallback `ROOTFETCH_ADMIN_PASS`, then `ROOTFETCH_MCP_TOKEN`)
+- Telemetry backend mode:
+  - `ROOTFETCH_MCP_TELEMETRY_MODE=shared_required` (default)
+  - requires `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`
+  - if missing, usage endpoints return `503 telemetry_backend_not_configured`
 
 ## MCP Behavioral Contract
 

@@ -8,6 +8,8 @@ type McpEventKind =
   | "mcp_rate_limited"
   | "mcp_error";
 
+type TelemetryMode = "shared_required" | "shared_preferred" | "local";
+
 export type McpUsageEvent = {
   ts_utc: string;
   epoch_ms: number;
@@ -75,6 +77,7 @@ const TELEMETRY_TTL_SECONDS = Math.max(86_400, Number(process.env.ROOTFETCH_MCP_
 const TELEMETRY_MAX_EVENTS = Math.max(50, Number(process.env.ROOTFETCH_MCP_TELEMETRY_MAX_EVENTS || 2000));
 const LOCAL_MAX_EVENTS = Math.max(50, Number(process.env.ROOTFETCH_MCP_LOCAL_MAX_EVENTS || 1000));
 const LOCAL_MAX_DAYS = Math.max(7, Number(process.env.ROOTFETCH_MCP_LOCAL_MAX_DAYS || 35));
+const TELEMETRY_MODE_RAW = String(process.env.ROOTFETCH_MCP_TELEMETRY_MODE || "shared_required").toLowerCase();
 
 const localEvents: McpUsageEvent[] = [];
 const localDailyStats = new Map<string, LocalDayStats>();
@@ -112,6 +115,12 @@ return 1
 
 function hasSharedBackend(): boolean {
   return Boolean(UPSTASH_URL && UPSTASH_TOKEN);
+}
+
+function getTelemetryMode(): TelemetryMode {
+  if (TELEMETRY_MODE_RAW === "local") return "local";
+  if (TELEMETRY_MODE_RAW === "shared_preferred") return "shared_preferred";
+  return "shared_required";
 }
 
 function toDateUtc(now: Date): string {
@@ -284,15 +293,28 @@ async function recordShared(event: McpUsageEvent): Promise<void> {
 
 export async function recordMcpUsageEvent(input: RecordEventInput): Promise<void> {
   const event = buildEvent(input);
+  const mode = getTelemetryMode();
+
+  if (mode === "local") {
+    recordLocal(event);
+    return;
+  }
+
   if (hasSharedBackend()) {
     try {
       await recordShared(event);
       return;
     } catch {
-      // fall through to local fallback
+      if (mode === "shared_preferred") {
+        recordLocal(event);
+      }
+      return;
     }
   }
-  recordLocal(event);
+
+  if (mode === "shared_preferred") {
+    recordLocal(event);
+  }
 }
 
 function blankAggregates(mode: "shared" | "local", windowDays: number): McpUsageStats {
@@ -405,28 +427,48 @@ function windowDaysList(days: number): string[] {
 export async function getMcpUsageStats(daysRaw = 7): Promise<McpUsageStats> {
   const days = Math.min(30, Math.max(1, Math.floor(daysRaw || 7)));
   const dayList = windowDaysList(days);
+  const mode = getTelemetryMode();
 
-  if (hasSharedBackend()) {
-    const stats = blankAggregates("shared", days);
+  if (mode === "local") {
+    const stats = blankAggregates("local", days);
     for (const dateUtc of dayList) {
-      let parsed: Record<string, number> = {};
-      try {
-        const raw = await upstashCommand(["HGETALL", makeStatsKey(dateUtc)]);
-        parsed = parseHGetAll(raw);
-      } catch {
-        parsed = {};
-      }
-      mergeDayRecord(stats, dateUtc, parsed);
+      const local = localDailyStats.get(dateUtc) || emptyDayStats();
+      mergeLocalDayStats(stats, dateUtc, local);
     }
     return stats;
   }
 
-  const stats = blankAggregates("local", days);
-  for (const dateUtc of dayList) {
-    const local = localDailyStats.get(dateUtc) || emptyDayStats();
-    mergeLocalDayStats(stats, dateUtc, local);
+  if (!hasSharedBackend()) {
+    if (mode === "shared_required") {
+      throw new Error("telemetry_backend_not_configured");
+    }
+    const stats = blankAggregates("local", days);
+    for (const dateUtc of dayList) {
+      const local = localDailyStats.get(dateUtc) || emptyDayStats();
+      mergeLocalDayStats(stats, dateUtc, local);
+    }
+    return stats;
   }
-  return stats;
+
+  try {
+    const stats = blankAggregates("shared", days);
+    for (const dateUtc of dayList) {
+      const raw = await upstashCommand(["HGETALL", makeStatsKey(dateUtc)]);
+      const parsed = parseHGetAll(raw);
+      mergeDayRecord(stats, dateUtc, parsed);
+    }
+    return stats;
+  } catch {
+    if (mode === "shared_required") {
+      throw new Error("telemetry_backend_unavailable");
+    }
+    const stats = blankAggregates("local", days);
+    for (const dateUtc of dayList) {
+      const local = localDailyStats.get(dateUtc) || emptyDayStats();
+      mergeLocalDayStats(stats, dateUtc, local);
+    }
+    return stats;
+  }
 }
 
 export async function listMcpUsageEvents(opts?: {
@@ -443,10 +485,11 @@ export async function listMcpUsageEvents(opts?: {
   const status = Number.isFinite(opts?.status) ? Number(opts?.status) : null;
 
   let events: McpUsageEvent[] = [];
+  const telemetryMode = getTelemetryMode();
 
-  let mode: "shared" | "local" = "local";
-
-  if (hasSharedBackend()) {
+  if (telemetryMode === "local") {
+    events = [...localEvents];
+  } else if (hasSharedBackend()) {
     try {
       const raw = await upstashCommand(["LRANGE", TELEMETRY_EVENTS_KEY, "0", String(Math.max(limit * 4, limit))]);
       const rows = Array.isArray(raw) ? raw : [];
@@ -459,18 +502,19 @@ export async function listMcpUsageEvents(opts?: {
           }
         })
         .filter((item): item is McpUsageEvent => Boolean(item));
-      mode = "shared";
     } catch {
-      events = [];
+      if (telemetryMode === "shared_required") {
+        throw new Error("telemetry_backend_unavailable");
+      }
+      events = [...localEvents];
     }
+  } else if (telemetryMode === "shared_required") {
+    throw new Error("telemetry_backend_not_configured");
+  } else {
+    events = [...localEvents];
   }
 
-  if (!events.length) {
-    events = [...localEvents];
-    if (!localEvents.length && hasSharedBackend()) {
-      mode = "shared";
-    }
-  }
+  const mode: "shared" | "local" = telemetryMode === "local" ? "local" : hasSharedBackend() ? "shared" : "local";
 
   const filtered = events.filter((event) => {
     if (rpcMethod && event.rpc_method !== rpcMethod) return false;

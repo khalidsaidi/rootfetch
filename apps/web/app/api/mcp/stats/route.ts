@@ -24,13 +24,27 @@ function withCors(response: Response): Response {
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const days = Math.min(30, Math.max(1, Number(searchParams.get("days") || 7)));
-  const stats = await getMcpUsageStats(days);
-  return withCors(
-    new Response(JSON.stringify(stats), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
+  try {
+    const stats = await getMcpUsageStats(days);
+    return withCors(
+      new Response(JSON.stringify(stats), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  } catch (error) {
+    return withCors(
+      new Response(
+        JSON.stringify({
+          error: error instanceof Error ? error.message : "telemetry_unavailable",
+        }),
+        {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+  }
 }
 
 export async function OPTIONS(): Promise<Response> {

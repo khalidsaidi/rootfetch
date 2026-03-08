@@ -40,7 +40,7 @@ export default function PublicEndpointsPage() {
       <Section title="Usage Event Notes">
         <p className="text-sm text-muted-foreground">
           RootFetch exposes read-only MCP usage and event endpoints. These are telemetry views only; no public write ingestion
-          endpoint is exposed.
+          endpoint is exposed. Access is protected with HTTP Basic Auth.
         </p>
       </Section>
 

@@ -30,26 +30,40 @@ export async function GET(request: Request): Promise<Response> {
   const statusRaw = searchParams.get("status");
   const status = statusRaw ? Number(statusRaw) : undefined;
 
-  const payload = await listMcpUsageEvents({
-    limit,
-    rpcMethod,
-    toolName,
-    kind,
-    status: Number.isFinite(status) ? status : undefined,
-  });
+  try {
+    const payload = await listMcpUsageEvents({
+      limit,
+      rpcMethod,
+      toolName,
+      kind,
+      status: Number.isFinite(status) ? status : undefined,
+    });
 
-  return withCors(
-    new Response(
-      JSON.stringify({
-        generated_at_utc: new Date().toISOString(),
-        ...payload,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    ),
-  );
+    return withCors(
+      new Response(
+        JSON.stringify({
+          generated_at_utc: new Date().toISOString(),
+          ...payload,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+  } catch (error) {
+    return withCors(
+      new Response(
+        JSON.stringify({
+          error: error instanceof Error ? error.message : "telemetry_unavailable",
+        }),
+        {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+  }
 }
 
 export async function OPTIONS(): Promise<Response> {
