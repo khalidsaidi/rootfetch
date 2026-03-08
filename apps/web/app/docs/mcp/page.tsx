@@ -103,8 +103,8 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           admin-protected via HTTP Basic Auth.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Telemetry storage mode defaults to <code>shared_required</code>: Upstash Redis must be configured for durable
-          cross-instance stats/events.
+          Telemetry storage mode defaults to <code>shared_preferred</code>: when Upstash Redis is unavailable, telemetry
+          falls back to local per-instance storage. Configure Upstash for durable cross-instance stats/events.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           MCP remains read-only over immutable artifacts. 
