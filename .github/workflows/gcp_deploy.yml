@@ -9,7 +9,10 @@ on:
       - "apps/web/**"
       - "apps/mcp-telemetry-remote/**"
       - "data/**"
+      - "docs/hosting/**"
       - "cloudbuild.dockerfile.yaml"
+      - "firebase.json"
+      - ".firebaserc"
       - ".github/workflows/gcp_deploy.yml"
 
 concurrency:
@@ -30,7 +33,7 @@ jobs:
       TELEMETRY_SERVICE: ${{ vars.TELEMETRY_SERVICE || 'rootfetch-mcp-telemetry' }}
       ADMIN_DASH_USER: ${{ vars.ADMIN_DASH_USER || 'admin' }}
       NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://rootfetch.com' }}
-      ROOTFETCH_MCP_ALLOWED_ORIGINS: ${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS || 'https://rootfetch.com' }}
+      ROOTFETCH_MCP_ALLOWED_ORIGINS: ${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS || 'https://rootfetch.com,https://rootfetch-api.web.app,https://rootfetch-mcp.web.app' }}
       ROOTFETCH_MCP_TOKEN_SECRET: ${{ vars.ROOTFETCH_MCP_TOKEN_SECRET || 'rootfetch-mcp-token' }}
       ADMIN_DASH_PASS_SECRET: ${{ vars.ADMIN_DASH_PASS_SECRET || 'rootfetch-admin-dash-pass' }}
       RUNTIME_SA_EMAIL: rootfetch-runtime@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
@@ -111,6 +114,14 @@ jobs:
             --timeout 900 \
             --allow-unauthenticated
 
+      - name: Deploy Firebase Hosting edges
+        run: |
+          set -euo pipefail
+          npx -y firebase-tools@latest deploy \
+            --project "${{ env.GCP_PROJECT_ID }}" \
+            --only hosting:api,hosting:mcp \
+            --non-interactive
+
       - name: Print deployed endpoints
         run: |
           set -euo pipefail
@@ -118,3 +129,5 @@ jobs:
           TELEMETRY_URL="$(gcloud run services describe "${{ env.TELEMETRY_SERVICE }}" --project "${{ env.GCP_PROJECT_ID }}" --region "${{ env.GCP_REGION }}" --format='value(status.url)')"
           echo "web_url=${WEB_URL}"
           echo "telemetry_url=${TELEMETRY_URL}"
+          echo "api_hosting_url=https://rootfetch-api.web.app"
+          echo "mcp_hosting_url=https://rootfetch-mcp.web.app"

@@ -7,12 +7,18 @@ Status: Canonical runtime deployment reference.
 - GCP project ID: `rootfetch-prod-20260308`
 - Region: `us-central1`
 - Runtime platform: Cloud Run
+- Edge/public routing: Firebase Hosting rewrites
 - Artifact registry repo: `rootfetch`
 
 ## Cloud Run Services
 
 - Web app: `rootfetch-web`
 - MCP telemetry backend: `rootfetch-mcp-telemetry`
+
+## Firebase Hosting Sites
+
+- API edge: `rootfetch-api` (`https://rootfetch-api.web.app`)
+- MCP edge: `rootfetch-mcp` (`https://rootfetch-mcp.web.app`)
 
 ## Service Accounts
 
@@ -61,6 +67,7 @@ Workflow: `.github/workflows/gcp_deploy.yml`
 3. Deploy telemetry service first.
 4. Read telemetry URL from Cloud Run.
 5. Deploy web service with telemetry backend URL + runtime secrets.
+6. Deploy Firebase Hosting targets (`hosting:api`, `hosting:mcp`) to route public traffic to Cloud Run.
 
 ## Operational Notes
 
@@ -72,11 +79,11 @@ Workflow: `.github/workflows/gcp_deploy.yml`
 
 Canonical public base URL remains `https://rootfetch.com`.
 
-If DNS changes are required for Cloud Run custom domain mapping:
+If DNS changes are required, map the domain to Firebase Hosting (same pattern as other MCP projects), then verify:
 
-1. Create/verify domain mapping in GCP.
-2. Apply required DNS records at registrar.
-3. Verify `https://rootfetch.com/mcp`, `/api/mcp/stats`, `/rootfetch/artifacts/latest.json`.
+1. `https://rootfetch.com/mcp`
+2. `https://rootfetch.com/api/mcp/stats?days=7`
+3. `https://rootfetch.com/rootfetch/artifacts/latest.json`
 
 ## Vercel Decommission Checklist
 
