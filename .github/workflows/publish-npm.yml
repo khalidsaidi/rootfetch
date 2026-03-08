@@ -1,0 +1,36 @@
+name: publish-npm
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: https://registry.npmjs.org
+
+      - name: Install package deps
+        run: npm --prefix packages/rootfetch-mcp-local install
+
+      - name: Build package
+        run: npm --prefix packages/rootfetch-mcp-local run build
+
+      - name: Publish MCP local package
+        if: ${{ env.NODE_AUTH_TOKEN != '' }}
+        run: |
+          cd packages/rootfetch-mcp-local
+          npm publish --access public
+
+      - name: NPM token missing
+        if: ${{ env.NODE_AUTH_TOKEN == '' }}
+        run: echo "NPM_TOKEN is not set; skipping npm publish."
