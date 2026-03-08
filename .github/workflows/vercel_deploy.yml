@@ -86,10 +86,6 @@ jobs:
           if [[ -z "${ADMIN_PASS_VALUE}" ]]; then
             ADMIN_PASS_VALUE="${{ secrets.ROOTFETCH_MCP_TOKEN }}"
           fi
-          HAS_UPSTASH="false"
-          if [[ -n "${{ secrets.UPSTASH_REDIS_REST_URL }}" && -n "${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" ]]; then
-            HAS_UPSTASH="true"
-          fi
           for TARGET in production preview; do
             npx vercel@latest env rm ADMIN_DASH_USER "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
             printf '%s' "${ADMIN_USER}" \
@@ -99,24 +95,11 @@ jobs:
             printf '%s' "${ADMIN_PASS_VALUE}" \
               | npx vercel@latest env add ADMIN_DASH_PASS "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
 
+            npx vercel@latest env rm UPSTASH_REDIS_REST_URL "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
+            npx vercel@latest env rm UPSTASH_REDIS_REST_TOKEN "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
             npx vercel@latest env rm ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
-            if [[ "${HAS_UPSTASH}" == "true" ]]; then
-              npx vercel@latest env rm UPSTASH_REDIS_REST_URL "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
-              printf '%s' "${{ secrets.UPSTASH_REDIS_REST_URL }}" \
-                | npx vercel@latest env add UPSTASH_REDIS_REST_URL "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
-
-              npx vercel@latest env rm UPSTASH_REDIS_REST_TOKEN "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
-              printf '%s' "${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" \
-                | npx vercel@latest env add UPSTASH_REDIS_REST_TOKEN "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
-
-              printf '%s' "shared_required" \
-                | npx vercel@latest env add ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
-            else
-              npx vercel@latest env rm UPSTASH_REDIS_REST_URL "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
-              npx vercel@latest env rm UPSTASH_REDIS_REST_TOKEN "${TARGET}" --yes --token "${{ secrets.VERCEL_TOKEN }}" || true
-              printf '%s' "shared_preferred" \
-                | npx vercel@latest env add ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
-            fi
+            printf '%s' "shared_preferred" \
+              | npx vercel@latest env add ROOTFETCH_MCP_TELEMETRY_MODE "${TARGET}" --token "${{ secrets.VERCEL_TOKEN }}"
           done
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -176,7 +159,6 @@ jobs:
           if [[ -z "${ADMIN_PASS_VALUE}" ]]; then
             ADMIN_PASS_VALUE="${{ secrets.ROOTFETCH_MCP_TOKEN }}"
           fi
-          TELEMETRY_MODE="shared_preferred"
           DEPLOY_ARGS=(
             --yes
             --prod
@@ -193,19 +175,8 @@ jobs:
             --env NEXT_PUBLIC_SITE_URL="${{ steps.public_env.outputs.site_url }}"
             --build-env NEXT_PUBLIC_GA_MEASUREMENT_ID="${{ steps.public_env.outputs.ga_id }}"
             --env NEXT_PUBLIC_GA_MEASUREMENT_ID="${{ steps.public_env.outputs.ga_id }}"
-          )
-          if [[ -n "${{ secrets.UPSTASH_REDIS_REST_URL }}" && -n "${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" ]]; then
-            TELEMETRY_MODE="shared_required"
-            DEPLOY_ARGS+=(
-              --build-env UPSTASH_REDIS_REST_URL="${{ secrets.UPSTASH_REDIS_REST_URL }}"
-              --env UPSTASH_REDIS_REST_URL="${{ secrets.UPSTASH_REDIS_REST_URL }}"
-              --build-env UPSTASH_REDIS_REST_TOKEN="${{ secrets.UPSTASH_REDIS_REST_TOKEN }}"
-              --env UPSTASH_REDIS_REST_TOKEN="${{ secrets.UPSTASH_REDIS_REST_TOKEN }}"
-            )
-          fi
-          DEPLOY_ARGS+=(
-            --build-env ROOTFETCH_MCP_TELEMETRY_MODE="${TELEMETRY_MODE}"
-            --env ROOTFETCH_MCP_TELEMETRY_MODE="${TELEMETRY_MODE}"
+            --build-env ROOTFETCH_MCP_TELEMETRY_MODE="shared_preferred"
+            --env ROOTFETCH_MCP_TELEMETRY_MODE="shared_preferred"
           )
           npx vercel@latest deploy "${DEPLOY_ARGS[@]}"
         env:
