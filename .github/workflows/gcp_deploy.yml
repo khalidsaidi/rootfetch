@@ -106,9 +106,8 @@ jobs:
             --region "${{ env.GCP_REGION }}" \
             --image "$WEB_IMAGE" \
             --service-account "${{ env.RUNTIME_SA_EMAIL }}" \
-            --set-env-vars "NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }},ROOTFETCH_MCP_ALLOWED_ORIGINS=${{ env.ROOTFETCH_MCP_ALLOWED_ORIGINS }},ROOTFETCH_MCP_TELEMETRY_BACKEND_URL=${TELEMETRY_URL}" \
+            --set-env-vars "NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }},ROOTFETCH_MCP_ALLOWED_ORIGINS=${{ env.ROOTFETCH_MCP_ALLOWED_ORIGINS }},ROOTFETCH_MCP_TELEMETRY_BACKEND_URL=${TELEMETRY_URL},ADMIN_DASH_USER=${{ env.ADMIN_DASH_USER }}" \
             --set-secrets "ROOTFETCH_MCP_TOKEN=${{ env.ROOTFETCH_MCP_TOKEN_SECRET }}:latest,ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN=${{ env.ROOTFETCH_MCP_TOKEN_SECRET }}:latest,ADMIN_DASH_PASS=${{ env.ADMIN_DASH_PASS_SECRET }}:latest" \
-            --update-env-vars "ADMIN_DASH_USER=${{ env.ADMIN_DASH_USER }}" \
             --timeout 900 \
             --allow-unauthenticated
 
