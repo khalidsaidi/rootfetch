@@ -1,0 +1,55 @@
+name: upstash-bootstrap
+
+on:
+  workflow_dispatch:
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pull Vercel production env
+        run: npx vercel@latest pull --yes --environment=production --token "${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Extract Upstash values
+        run: |
+          set -euo pipefail
+          ENV_FILE=".vercel/.env.production.local"
+          if [[ ! -f "$ENV_FILE" ]]; then
+            echo "Missing $ENV_FILE after vercel pull"
+            exit 1
+          fi
+
+          URL_VALUE="$(grep -E '^UPSTASH_REDIS_REST_URL=' "$ENV_FILE" | head -n1 | cut -d= -f2- || true)"
+          TOKEN_VALUE="$(grep -E '^UPSTASH_REDIS_REST_TOKEN=' "$ENV_FILE" | head -n1 | cut -d= -f2- || true)"
+
+          if [[ -z "$URL_VALUE" || -z "$TOKEN_VALUE" ]]; then
+            echo "Upstash vars are not present in Vercel production env"
+            exit 1
+          fi
+
+          echo "::add-mask::$URL_VALUE"
+          echo "::add-mask::$TOKEN_VALUE"
+
+          mkdir -p /tmp/upstash-bootstrap
+          {
+            printf 'UPSTASH_REDIS_REST_URL=%s\n' "$URL_VALUE"
+            printf 'UPSTASH_REDIS_REST_TOKEN=%s\n' "$TOKEN_VALUE"
+          } > /tmp/upstash-bootstrap/upstash.env
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstash-env
+          path: /tmp/upstash-bootstrap/upstash.env
+          if-no-files-found: error
