@@ -16,7 +16,7 @@ Canonical Python example for consuming RootFetch immutable artifacts.
 ## Run
 
 ```bash
-ROOTFETCH_BASE_URL=https://rootfetch.vercel.app \
+ROOTFETCH_BASE_URL=https://rootfetch.com \
 WEBHOOK_URL=https://example.com/webhook \
 python -m rootfetch_agent.monitor
 ```
@@ -24,13 +24,13 @@ python -m rootfetch_agent.monitor
 Dry-run:
 
 ```bash
-ROOTFETCH_BASE_URL=https://rootfetch.vercel.app \
+ROOTFETCH_BASE_URL=https://rootfetch.com \
 python -m rootfetch_agent.monitor --dry-run
 ```
 
 ## Environment
 
-- `ROOTFETCH_BASE_URL` (default: `https://rootfetch.vercel.app`)
+- `ROOTFETCH_BASE_URL` (default: `https://rootfetch.com`)
 - `WEBHOOK_URL` (optional; if missing, logs to stdout)
 - `ROOTFETCH_STATE_PATH` (default: `.rootfetch-agent-state.json`)
 - `ROOTFETCH_DVI_THRESHOLD` (default: `50`)

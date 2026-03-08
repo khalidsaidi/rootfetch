@@ -9,7 +9,7 @@ DVI: 33.4 (Elevated)
 Regime: STABLE
 No regime transition in this snapshot.
 
-Run: https://rootfetch.vercel.app/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
+Run: https://rootfetch.com/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
 
 Manifest verified.
 ```

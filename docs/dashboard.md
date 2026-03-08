@@ -1,4 +1,4 @@
-# RootFetch Dashboard (Vercel)
+# RootFetch Dashboard (GCP Cloud Run)
 
 RootFetch includes a Next.js dashboard at `apps/web` that visualizes committed
 aggregate artifacts.
@@ -21,23 +21,17 @@ npm run sync-data
 npm run dev
 ```
 
-## Vercel deployment options
+## Deployment
 
-## Option A: Git integration
+Use `.github/workflows/gcp_deploy.yml` (WIF + Cloud Run). Required repository
+settings:
 
-- Connect `khalidsaidi/rootfetch` in Vercel.
-- Set Root Directory to `apps/web`.
-- Set production branch to `main`.
+- secrets: `WIF_PROVIDER`, `WIF_SERVICE_ACCOUNT`
+- vars: `GCP_PROJECT_ID`, `GCP_REGION`, `ARTIFACT_REPO`, `WEB_SERVICE`,
+  `TELEMETRY_SERVICE`, `NEXT_PUBLIC_SITE_URL`
 
-## Option B: GitHub Actions + Vercel CLI
-
-Use `.github/workflows/vercel_deploy.yml` and add repository secrets:
-
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-
-The workflow triggers on pushes that affect `apps/web/**` or `data/**`.
+The workflow triggers on pushes that affect `apps/web/**`, `data/**`, or
+`apps/mcp-telemetry-remote/**`.
 
 ## Notes
 

@@ -15,12 +15,12 @@ RootFetch computes structural movement in the global namespace from CZDS zone sn
 - Immutable run artifacts (cacheable for 1 year)
 - Atomic `latest.json` pointer (no mixed reads)
 - Auditable alert delivery (at-least-once + durable dedup + dead-letter)
-- Read-only serving on Vercel
+- Read-only serving on GCP Cloud Run
 
 ## Operating Model
 
-- Ingestion runs on your machine (local runner), not on Vercel.
-- Vercel serves read-only precomputed artifacts from the repo.
+- Ingestion runs on your machine (local runner), not on the hosted runtime.
+- Cloud Run serves read-only precomputed artifacts from the repo.
 - Two ingestion modes:
   - Day-1 baseline: ingest all approved CZDS TLDs in one resumable run.
   - Daily hybrid (after baseline completion): core set daily + deterministic rolling long tail.
@@ -140,6 +140,7 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
 - Public endpoints: [docs/public_endpoints.md](docs/public_endpoints.md)
 - Publishing checklist: [docs/PUBLISHING.md](docs/PUBLISHING.md)
+- GCP deployment: [docs/gcp_deployment.md](docs/gcp_deployment.md)
 - RAG: [docs/rag.md](docs/rag.md)
 - CZDS credentials: [docs/czds_credentials.md](docs/czds_credentials.md)
 - Local runner: [docs/local_runner.md](docs/local_runner.md)
@@ -148,6 +149,6 @@ RootFetch is a read-only intelligence layer. If it is not in the artifacts, it d
 
 ## GitHub Actions
 
-- `.github/workflows/rootfetch_daily.yml` runs on `self-hosted` only.
+- `.github/workflows/rootfetch_daily.yml` runs scheduled ingestion and publish.
 - `.github/workflows/release.yml` runs CI tests/build checks.
-- `.github/workflows/vercel_deploy.yml` deploys dashboard on safe artifact/code changes.
+- `.github/workflows/gcp_deploy.yml` deploys web + telemetry services to GCP on safe artifact/code changes.

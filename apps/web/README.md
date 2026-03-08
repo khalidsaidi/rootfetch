@@ -26,7 +26,7 @@ If required artifacts are missing, `sync-data` fails with a clear message.
 
 ## Deployment
 
-Recommended: Vercel project with root directory `apps/web` and branch `main`.
+Recommended: deploy via `.github/workflows/gcp_deploy.yml` to Cloud Run.
 
 Every RootFetch daily commit updates `data/`, which can trigger a dashboard
 rebuild/deploy.

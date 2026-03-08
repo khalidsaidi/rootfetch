@@ -9,7 +9,7 @@ RootFetch exposes read-only MCP surfaces from committed artifacts.
 
 No mode performs CZDS auth or zone downloads.
 
-## Vercel MCP (Pattern 1)
+## Hosted MCP (Pattern 1)
 
 Pattern in use: static artifact sync into web `public/rootfetch/*` at build time.
 
@@ -67,7 +67,7 @@ Protocol notes:
 - bounded response payload size (`ROOTFETCH_MCP_MAX_PAYLOAD_BYTES`, default 5 MB)
 - rate limits enforced on all MCP methods
 
-## Vercel MCP Tools
+## Hosted MCP Tools
 
 - `rootfetch.latest`
 - `rootfetch.replay_index`

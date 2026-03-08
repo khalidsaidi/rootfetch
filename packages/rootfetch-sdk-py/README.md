@@ -11,7 +11,7 @@ This SDK is a verifiable artifact wrapper.
 ```python
 from rootfetch_sdk import RootFetch
 
-rf = RootFetch(base_url="https://rootfetch.vercel.app")
+rf = RootFetch(base_url="https://rootfetch.com")
 
 latest = rf.latest()
 run = rf.run(latest["run_id"])

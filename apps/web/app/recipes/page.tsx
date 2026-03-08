@@ -5,7 +5,7 @@ import CopyValueButton from "@/components/CopyValueButton";
 import Section from "@/components/Section";
 import TrackedLink from "@/components/TrackedLink";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.com";
 
 const jsQuickstart = `npm i rootfetch-sdk-js
 node -e "import('rootfetch-sdk-js').then(async ({ RootFetch }) => {

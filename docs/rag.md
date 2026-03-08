@@ -3,7 +3,7 @@
 RootFetch supports two RAG forms:
 
 1. Local SQLite FTS index under `.ai/rag/` (developer tooling)
-2. Committed static chunks under `data/rag/` (Vercel MCP runtime)
+2. Committed static chunks under `data/rag/` (hosted MCP runtime)
 
 ## Indexed Sources
 
@@ -33,7 +33,7 @@ Outputs:
 - `data/rag/rag_chunks.json`
 - `data/rag/rag_meta.json`
 
-These files are committed and served to Vercel MCP.
+These files are committed and served to the hosted MCP runtime.
 
 ## Local SQLite Build (optional)
 
@@ -48,5 +48,5 @@ SQLite index path:
 
 ## MCP Integration
 
-Vercel `rag_search` and `rag_get_chunk` read static `rag_chunks.json`.
+Hosted `rag_search` and `rag_get_chunk` read static `rag_chunks.json`.
 Search uses lexical scoring (token overlap + phrase boost) for fast, cheap retrieval.

@@ -6,7 +6,7 @@ Model Version: `rootfetch_model_v1`
 Methodology Version: `2026-03-01`
 
 Run page:  
-https://rootfetch.vercel.app/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
+https://rootfetch.com/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
 
 Prior run in replay index: Not available (replay index currently contains 1 run).  
 Comparison view will become available once a second run is published.
@@ -109,10 +109,10 @@ Reproducibility notebook:
 ## 6) Evidence Links
 
 Run page:  
-https://rootfetch.vercel.app/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
+https://rootfetch.com/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
 
 Replay archive:  
-https://rootfetch.vercel.app/runs
+https://rootfetch.com/runs
 
 Operational guarantees + methodology:  
-https://rootfetch.vercel.app/methodology
+https://rootfetch.com/methodology

@@ -8,6 +8,8 @@ type SecurityStatus = {
   no_ai_dir_tracked?: boolean;
   no_env_tracked?: boolean;
   last_local_run_id?: string;
+  runtime_read_only?: boolean;
+  runtime_platform?: string;
   vercel_read_only?: boolean;
 };
 
@@ -24,7 +26,7 @@ export default function SecurityStatusCard({ status }: { status: SecurityStatus 
   const noRaw = Boolean(status.no_raw_zones_tracked);
   const noAi = Boolean(status.no_ai_dir_tracked);
   const noEnv = Boolean(status.no_env_tracked);
-  const readOnly = Boolean(status.vercel_read_only);
+  const readOnly = Boolean(status.runtime_read_only ?? status.vercel_read_only);
   const safe = noRaw && noAi && noEnv && readOnly;
 
   return (
@@ -41,6 +43,9 @@ export default function SecurityStatusCard({ status }: { status: SecurityStatus 
       </ul>
       <p className="mt-3 text-xs text-muted-foreground">
         last_local_run_id: <span className="font-mono">{status.last_local_run_id || "n/a"}</span>
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        runtime_platform: <span className="font-mono">{status.runtime_platform || "n/a"}</span>
       </p>
     </div>
   );

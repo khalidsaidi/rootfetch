@@ -295,7 +295,7 @@ export default async function TldPage({ params }: { params: Promise<{ tld: strin
   const modelVersion = asString(model.model_version || manifest.model_version, asString(published.pointer.model_version, "n/a"));
   const methodologyVersion = asString(model.methodology_version || published.pointer.methodology_version, "n/a");
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.com";
   const canonicalUrl = `${siteUrl}/tld/${encodeURIComponent(tld)}`;
   const runUrl = `${siteUrl}/runs/${encodeURIComponent(activeRunId)}`;
   const baseHref = run?.baseHref || `/rootfetch/artifacts/runs/${encodeURIComponent(activeRunId)}`;

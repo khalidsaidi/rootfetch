@@ -258,7 +258,7 @@ export default async function Home() {
     name: "RootFetch Delegation Intelligence Engine",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.vercel.app",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.com",
     description:
       "Infrastructure-grade delegation intelligence console powered by local CZDS ingestion and read-only committed artifacts.",
   };
@@ -467,7 +467,9 @@ export default async function Home() {
               </p>
               <p className="mt-1 flex items-center justify-between">
                 <span className="text-muted-foreground">Run ID</span>
-                <span className="rf-mono-digits text-xs">{latest.run_id || "n/a"}</span>
+                <span className="rf-mono-digits min-w-0 max-w-[65%] break-all text-right text-xs [overflow-wrap:anywhere]">
+                  {latest.run_id || "n/a"}
+                </span>
               </p>
               <p className="mt-1 flex items-center justify-between">
                 <span className="text-muted-foreground">Last artifact commit</span>
@@ -492,7 +494,8 @@ export default async function Home() {
                 <li>• no_raw_zones_tracked: {String(Boolean(securityStatus.no_raw_zones_tracked))}</li>
                 <li>• no_ai_dir_tracked: {String(Boolean(securityStatus.no_ai_dir_tracked))}</li>
                 <li>• no_env_tracked: {String(Boolean(securityStatus.no_env_tracked))}</li>
-                <li>• runtime_read_only: {String(Boolean(securityStatus.vercel_read_only))}</li>
+                <li>• runtime_read_only: {String(Boolean(securityStatus.runtime_read_only ?? securityStatus.vercel_read_only))}</li>
+                <li>• runtime_platform: {String(securityStatus.runtime_platform || "n/a")}</li>
               </ul>
             </div>
           </div>

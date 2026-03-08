@@ -26,7 +26,7 @@ def _ensure_run_id(run_id: str) -> str:
 
 
 class RootFetch:
-    def __init__(self, base_url: str = "https://rootfetch.vercel.app", transport: Transport | None = None) -> None:
+    def __init__(self, base_url: str = "https://rootfetch.com", transport: Transport | None = None) -> None:
         self._transport: Transport = transport or HttpTransport(base_url=base_url)
 
     def latest(self) -> Dict[str, Any]:

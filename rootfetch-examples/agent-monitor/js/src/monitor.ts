@@ -31,7 +31,7 @@ async function loadPreviousSnapshot(client: RootFetch, runId: string): Promise<R
 
 async function main(): Promise<void> {
   const dryRun = process.argv.includes("--dry-run");
-  const baseUrl = normalizeBaseUrl(process.env.ROOTFETCH_BASE_URL || "https://rootfetch.vercel.app");
+  const baseUrl = normalizeBaseUrl(process.env.ROOTFETCH_BASE_URL || "https://rootfetch.com");
   const webhookUrl = process.env.WEBHOOK_URL || null;
   const statePath = path.resolve(process.cwd(), process.env.ROOTFETCH_STATE_PATH || ".rootfetch-agent-state.json");
   const dviThreshold = asNumber(process.env.ROOTFETCH_DVI_THRESHOLD, 50);

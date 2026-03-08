@@ -1484,7 +1484,8 @@ def _security_status_payload(
         "no_ai_dir_tracked": bool(no_ai_dir_tracked),
         "no_env_tracked": bool(no_env_tracked),
         "last_local_run_id": str(last_local_run_id),
-        "vercel_read_only": True,
+        "runtime_read_only": True,
+        "runtime_platform": "gcp-cloud-run",
     }
 
 

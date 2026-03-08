@@ -53,7 +53,7 @@ def _load_previous_snapshot(client: Any, run_id: str) -> Optional[RunSnapshot]:
 
 
 def run_monitor(*, dry_run: bool) -> Dict[str, Any]:
-    base_url = _normalize_base_url(os.getenv("ROOTFETCH_BASE_URL", "https://rootfetch.vercel.app"))
+    base_url = _normalize_base_url(os.getenv("ROOTFETCH_BASE_URL", "https://rootfetch.com"))
     webhook_url = os.getenv("WEBHOOK_URL")
     state_path = Path(os.getenv("ROOTFETCH_STATE_PATH", ".rootfetch-agent-state.json")).resolve()
     dvi_threshold = _as_float(os.getenv("ROOTFETCH_DVI_THRESHOLD"), 50.0)

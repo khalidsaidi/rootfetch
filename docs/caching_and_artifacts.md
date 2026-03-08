@@ -1,6 +1,6 @@
 # RootFetch Artifact + Caching Contract (v1)
 
-This contract defines how RootFetch publishes immutable run artifacts while keeping Vercel read-only and replay-safe.
+This contract defines how RootFetch publishes immutable run artifacts while keeping the hosted web runtime read-only and replay-safe.
 
 ## Goals
 
@@ -63,7 +63,7 @@ Schema:
 4. Update replay index with the new run metadata.
 5. Atomically replace `latest.json`.
 6. Commit and push artifacts.
-7. Vercel serves committed files only.
+7. Hosted runtime serves committed files only.
 
 `latest.json` is written last, after run files + manifest + replay index, so clients never resolve `latest` to a missing run.
 
@@ -92,8 +92,8 @@ Latest pointer:
 ## Runtime Boundary
 
 - Local runner performs ingestion + heavy compute.
-- Vercel is strictly read-only for committed artifacts.
-- No CZDS downloads or secret-based ingestion tasks run on Vercel.
+- Hosted runtime (Cloud Run) is strictly read-only for committed artifacts.
+- No CZDS downloads or secret-based ingestion tasks run in the hosted runtime.
 - Web sync copies new artifacts without deleting previously published run folders.
 
 ## UI Consistency Rule

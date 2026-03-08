@@ -55,13 +55,13 @@ print("counted_ever_count=", cov.get("counted_ever_count"))
 print("missing_ever_count=", cov.get("missing_ever_count"))
 PY
 
-VERCEL_BASE="${ROOTFETCH_PUBLIC_BASE_URL:-https://rootfetch.com}"
-VERCEL_BASE="${VERCEL_BASE%/}"
-echo "[retest] verifying deployed read-only artifacts from ${VERCEL_BASE}"
-curl -s "${VERCEL_BASE}/rootfetch/approved_latest.json" \
-  | python3 -c 'import json,sys; d=json.load(sys.stdin); print("vercel_approved_count=", d.get("count"))'
-curl -s "${VERCEL_BASE}/rootfetch/coverage_latest.json" \
-  | python3 -c 'import json,sys; d=json.load(sys.stdin); print("vercel_missing_ever=", d.get("missing_ever_count"), "vercel_counted_ever=", d.get("counted_ever_count"))'
+PUBLIC_BASE="${ROOTFETCH_PUBLIC_BASE_URL:-https://rootfetch.com}"
+PUBLIC_BASE="${PUBLIC_BASE%/}"
+echo "[retest] verifying deployed read-only artifacts from ${PUBLIC_BASE}"
+curl -s "${PUBLIC_BASE}/rootfetch/approved_latest.json" \
+  | python3 -c 'import json,sys; d=json.load(sys.stdin); print("deployed_approved_count=", d.get("count"))'
+curl -s "${PUBLIC_BASE}/rootfetch/coverage_latest.json" \
+  | python3 -c 'import json,sys; d=json.load(sys.stdin); print("deployed_missing_ever=", d.get("missing_ever_count"), "deployed_counted_ever=", d.get("counted_ever_count"))'
 
 echo "[retest] running live MCP checks"
 python3 scripts/mcp_live_check.py "$@"

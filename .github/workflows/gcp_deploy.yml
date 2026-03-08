@@ -1,0 +1,121 @@
+name: gcp-deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/web/**"
+      - "apps/mcp-telemetry-remote/**"
+      - "data/**"
+      - "cloudbuild.dockerfile.yaml"
+      - ".github/workflows/gcp_deploy.yml"
+
+concurrency:
+  group: gcp-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
+      ARTIFACT_REPO: ${{ vars.ARTIFACT_REPO || 'rootfetch' }}
+      WEB_SERVICE: ${{ vars.WEB_SERVICE || 'rootfetch-web' }}
+      TELEMETRY_SERVICE: ${{ vars.TELEMETRY_SERVICE || 'rootfetch-mcp-telemetry' }}
+      ADMIN_DASH_USER: ${{ vars.ADMIN_DASH_USER || 'admin' }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://rootfetch.com' }}
+      ROOTFETCH_MCP_ALLOWED_ORIGINS: ${{ vars.ROOTFETCH_MCP_ALLOWED_ORIGINS || 'https://rootfetch.com' }}
+      ROOTFETCH_MCP_TOKEN_SECRET: ${{ vars.ROOTFETCH_MCP_TOKEN_SECRET || 'rootfetch-mcp-token' }}
+      ADMIN_DASH_PASS_SECRET: ${{ vars.ADMIN_DASH_PASS_SECRET || 'rootfetch-admin-dash-pass' }}
+      RUNTIME_SA_EMAIL: rootfetch-runtime@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+      BUILD_SA_EMAIL: rootfetch-build@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate required deploy config
+        run: |
+          set -euo pipefail
+          if [[ -z "${GCP_PROJECT_ID}" ]]; then
+            echo "::error::Missing repository variable GCP_PROJECT_ID"
+            exit 1
+          fi
+
+      - name: Auth to Google (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker "${{ env.GCP_REGION }}-docker.pkg.dev" --quiet
+
+      - name: Build & push web image
+        run: |
+          set -euo pipefail
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.WEB_SERVICE }}:${{ github.sha }}"
+          gcloud builds submit --project "${{ env.GCP_PROJECT_ID }}" \
+            --service-account "projects/${{ env.GCP_PROJECT_ID }}/serviceAccounts/${{ env.BUILD_SA_EMAIL }}" \
+            --gcs-log-dir "gs://${{ env.GCP_PROJECT_ID }}_cloudbuild/logs" \
+            --gcs-source-staging-dir "gs://${{ env.GCP_PROJECT_ID }}_cloudbuild/source" \
+            --config cloudbuild.dockerfile.yaml \
+            --substitutions=_IMAGE="$IMAGE",_DOCKERFILE="apps/web/Dockerfile",_CONTEXT="." \
+            .
+          echo "WEB_IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Build & push telemetry image
+        run: |
+          set -euo pipefail
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.TELEMETRY_SERVICE }}:${{ github.sha }}"
+          gcloud builds submit --project "${{ env.GCP_PROJECT_ID }}" \
+            --service-account "projects/${{ env.GCP_PROJECT_ID }}/serviceAccounts/${{ env.BUILD_SA_EMAIL }}" \
+            --gcs-log-dir "gs://${{ env.GCP_PROJECT_ID }}_cloudbuild/logs" \
+            --gcs-source-staging-dir "gs://${{ env.GCP_PROJECT_ID }}_cloudbuild/source" \
+            --config cloudbuild.dockerfile.yaml \
+            --substitutions=_IMAGE="$IMAGE",_DOCKERFILE="apps/mcp-telemetry-remote/Dockerfile",_CONTEXT="." \
+            .
+          echo "TELEMETRY_IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy Cloud Run telemetry backend
+        run: |
+          set -euo pipefail
+          gcloud run deploy "${{ env.TELEMETRY_SERVICE }}" \
+            --project "${{ env.GCP_PROJECT_ID }}" \
+            --region "${{ env.GCP_REGION }}" \
+            --image "$TELEMETRY_IMAGE" \
+            --service-account "${{ env.RUNTIME_SA_EMAIL }}" \
+            --set-env-vars "FIRESTORE_COLLECTION=rootfetch_mcp_events" \
+            --set-secrets "INGEST_TOKEN=${{ env.ROOTFETCH_MCP_TOKEN_SECRET }}:latest" \
+            --allow-unauthenticated
+          URL="$(gcloud run services describe "${{ env.TELEMETRY_SERVICE }}" --project "${{ env.GCP_PROJECT_ID }}" --region "${{ env.GCP_REGION }}" --format='value(status.url)')"
+          echo "TELEMETRY_URL=$URL" >> "$GITHUB_ENV"
+
+      - name: Deploy Cloud Run web app
+        run: |
+          set -euo pipefail
+          gcloud run deploy "${{ env.WEB_SERVICE }}" \
+            --project "${{ env.GCP_PROJECT_ID }}" \
+            --region "${{ env.GCP_REGION }}" \
+            --image "$WEB_IMAGE" \
+            --service-account "${{ env.RUNTIME_SA_EMAIL }}" \
+            --set-env-vars "NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }},ROOTFETCH_MCP_ALLOWED_ORIGINS=${{ env.ROOTFETCH_MCP_ALLOWED_ORIGINS }},ROOTFETCH_MCP_TELEMETRY_BACKEND_URL=${TELEMETRY_URL}" \
+            --set-secrets "ROOTFETCH_MCP_TOKEN=${{ env.ROOTFETCH_MCP_TOKEN_SECRET }}:latest,ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN=${{ env.ROOTFETCH_MCP_TOKEN_SECRET }}:latest,ADMIN_DASH_PASS=${{ env.ADMIN_DASH_PASS_SECRET }}:latest" \
+            --update-env-vars "ADMIN_DASH_USER=${{ env.ADMIN_DASH_USER }}" \
+            --timeout 900 \
+            --allow-unauthenticated
+
+      - name: Print deployed endpoints
+        run: |
+          set -euo pipefail
+          WEB_URL="$(gcloud run services describe "${{ env.WEB_SERVICE }}" --project "${{ env.GCP_PROJECT_ID }}" --region "${{ env.GCP_REGION }}" --format='value(status.url)')"
+          TELEMETRY_URL="$(gcloud run services describe "${{ env.TELEMETRY_SERVICE }}" --project "${{ env.GCP_PROJECT_ID }}" --region "${{ env.GCP_REGION }}" --format='value(status.url)')"
+          echo "web_url=${WEB_URL}"
+          echo "telemetry_url=${TELEMETRY_URL}"

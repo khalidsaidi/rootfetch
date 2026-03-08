@@ -4,7 +4,7 @@ Left run: `20260225T235959Z_59aff28ff918_rootfetch_model_v1`
 Right run: `20260226T053723Z_24a3d324e5d4_rootfetch_model_v1`
 
 Compare:  
-https://rootfetch.vercel.app/compare?left=20260225T235959Z_59aff28ff918_rootfetch_model_v1&right=20260226T053723Z_24a3d324e5d4_rootfetch_model_v1
+https://rootfetch.com/compare?left=20260225T235959Z_59aff28ff918_rootfetch_model_v1&right=20260226T053723Z_24a3d324e5d4_rootfetch_model_v1
 
 ## 1) Coverage Universe
 
@@ -50,10 +50,10 @@ Observed this snapshot (core + rolling): `68` -> `71` (`core=3`, `rolling=65 -> 
 ## 6) Evidence
 
 Left run page:  
-https://rootfetch.vercel.app/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
+https://rootfetch.com/runs/20260225T235959Z_59aff28ff918_rootfetch_model_v1
 
 Right run page:  
-https://rootfetch.vercel.app/runs/20260226T053723Z_24a3d324e5d4_rootfetch_model_v1
+https://rootfetch.com/runs/20260226T053723Z_24a3d324e5d4_rootfetch_model_v1
 
 Manifest hashes:
 

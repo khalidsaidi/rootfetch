@@ -18,7 +18,7 @@ npm --prefix packages/rootfetch-sdk-js test
 ```js
 import { RootFetch } from "./src/index.js";
 
-const rf = new RootFetch({ baseUrl: "https://rootfetch.vercel.app" });
+const rf = new RootFetch({ baseUrl: "https://rootfetch.com" });
 
 const latest = await rf.latest();
 const run = await rf.run(latest.run_id);

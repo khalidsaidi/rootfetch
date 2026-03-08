@@ -1,6 +1,6 @@
 # RootFetch Local Runner
 
-RootFetch ingestion runs on your machine, not on Vercel and not on GitHub-hosted runners.
+RootFetch ingestion runs on your machine, not on the hosted runtime and not on GitHub-hosted runners.
 
 ## Required Local Environment
 

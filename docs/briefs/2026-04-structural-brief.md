@@ -6,10 +6,10 @@ Model Version: `<MODEL_VERSION>`
 Methodology Version: `<METHODOLOGY_VERSION>`
 
 Run page:  
-`https://rootfetch.vercel.app/runs/<RUN_ID>`
+`https://rootfetch.com/runs/<RUN_ID>`
 
 Compare view (if prior run exists):  
-`https://rootfetch.vercel.app/compare?left=<LEFT_RUN_ID>&right=<RUN_ID>`
+`https://rootfetch.com/compare?left=<LEFT_RUN_ID>&right=<RUN_ID>`
 
 Manifest SHA256 (snapshot hash):  
 `<SNAPSHOT_HASH>`
@@ -90,10 +90,10 @@ Reproducibility notebook:
 ## 6) Evidence Links
 
 Run page:  
-`https://rootfetch.vercel.app/runs/<RUN_ID>`
+`https://rootfetch.com/runs/<RUN_ID>`
 
 Replay archive:  
-`https://rootfetch.vercel.app/runs`
+`https://rootfetch.com/runs`
 
 Operational guarantees + methodology:  
-`https://rootfetch.vercel.app/methodology`
+`https://rootfetch.com/methodology`

@@ -21,7 +21,7 @@ const mono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.com";
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
 
 export const metadata: Metadata = {

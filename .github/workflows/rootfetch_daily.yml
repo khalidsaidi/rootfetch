@@ -11,7 +11,7 @@ concurrency:
 jobs:
   run-daily:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
     permissions:
       contents: write
     env:
@@ -25,6 +25,8 @@ jobs:
       ROOTFETCH_RETRY_MAX: ${{ vars.ROOTFETCH_RETRY_MAX }}
       ROOTFETCH_COUNT_MODE: ${{ vars.ROOTFETCH_COUNT_MODE }}
       ROOTFETCH_MIN_BASE_FOR_PCT: ${{ vars.ROOTFETCH_MIN_BASE_FOR_PCT }}
+      ROOTFETCH_BASELINE_PASS_TIMEOUT_SECONDS: ${{ vars.ROOTFETCH_BASELINE_PASS_TIMEOUT_SECONDS || '420' }}
+      ROOTFETCH_BASELINE_MAX_SECONDS: ${{ vars.ROOTFETCH_BASELINE_MAX_SECONDS || '2400' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

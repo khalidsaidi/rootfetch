@@ -49,7 +49,7 @@ function ensureRunId(runId) {
 }
 
 export class RootFetch {
-  constructor({ baseUrl = "https://rootfetch.vercel.app", transport } = {}) {
+  constructor({ baseUrl = "https://rootfetch.com", transport } = {}) {
     this.transport = transport ?? createHttpTransport({ baseUrl });
   }
 

@@ -16,11 +16,11 @@ jobs:
           TOKEN_SHA="$(printf '%s' "${ROOTFETCH_MCP_TOKEN}" | sha256sum | awk '{print $1}')"
           echo "token_sha256=${TOKEN_SHA}"
           STATUS="$(curl -sS -o /tmp/mcp_body.json -w '%{http_code}' \
-            -X POST "https://rootfetch.vercel.app/api/mcp" \
+            -X POST "https://rootfetch.com/mcp" \
             -H "Content-Type: application/json" \
             -H "Accept: application/json, text/event-stream" \
             -H "Authorization: Bearer ${{ secrets.ROOTFETCH_MCP_TOKEN }}" \
-            -H "Origin: https://rootfetch.vercel.app" \
+            -H "Origin: https://rootfetch.com" \
             --data '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"gha-probe","version":"1.0.0"}}}')"
           echo "http_status=${STATUS}"
           if [[ "${STATUS}" != "200" ]]; then

@@ -134,7 +134,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
   const coreToday = run.coverage.counted_today_core_count || 0;
   const rollingToday = run.coverage.counted_today_rolling_count || 0;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.vercel.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rootfetch.com";
   const runPageUrl = `${siteUrl}/runs/${encodeURIComponent(run.runId)}`;
   const citeSnippet = [
     `Run ID: ${run.runId}`,

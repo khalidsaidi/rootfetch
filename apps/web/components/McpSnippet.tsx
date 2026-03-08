@@ -13,7 +13,7 @@ export default function McpSnippet({ siteUrl }: { siteUrl?: string }) {
   const origin = useMemo(() => {
     if (siteUrl && siteUrl.trim()) return normalizeBaseUrl(siteUrl);
     if (typeof window !== "undefined" && window.location?.origin) return normalizeBaseUrl(window.location.origin);
-    return "https://rootfetch.vercel.app";
+    return "https://rootfetch.com";
   }, [siteUrl]);
 
   const endpoint = useMemo(() => {

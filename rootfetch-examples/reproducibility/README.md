@@ -18,7 +18,7 @@ jupyter notebook rootfetch-examples/reproducibility/reproducibility_v1.ipynb
 
 Optional environment variables:
 
-- `ROOTFETCH_BASE_URL` (default: `https://rootfetch.vercel.app`)
+- `ROOTFETCH_BASE_URL` (default: `https://rootfetch.com`)
 - `ROOTFETCH_RUN_ID` (default: resolve from latest pointer)
 - `ROOTFETCH_TIMEOUT` (default: `30` seconds)
 
