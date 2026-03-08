@@ -134,7 +134,6 @@ export type LatestSignals = {
     last_local_run_id?: string;
     runtime_read_only?: boolean;
     runtime_platform?: string;
-    vercel_read_only?: boolean;
   };
   top_movers_abs?: Array<{ tld: string; count: number; delta_abs: number; delta_pct: number }>;
   top_movers_pct?: Array<{ tld: string; count: number; delta_abs: number; delta_pct: number }>;

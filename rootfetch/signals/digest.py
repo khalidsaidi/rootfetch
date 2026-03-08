@@ -163,7 +163,7 @@ def write_daily_digest(date_utc: str, *, run_id: str | None = None, settings: Se
         f"- no_raw_zones_tracked: {security_status.get('no_raw_zones_tracked', 'n/a')}",
         f"- no_ai_dir_tracked: {security_status.get('no_ai_dir_tracked', 'n/a')}",
         f"- no_env_tracked: {security_status.get('no_env_tracked', 'n/a')}",
-        f"- runtime_read_only: {security_status.get('runtime_read_only', security_status.get('vercel_read_only', 'n/a'))}",
+        f"- runtime_read_only: {security_status.get('runtime_read_only', 'n/a')}",
         f"- runtime_platform: {security_status.get('runtime_platform', 'n/a')}",
         "",
         "## Top TLDs by Count (Today)",

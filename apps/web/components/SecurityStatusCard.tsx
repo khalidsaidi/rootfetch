@@ -10,7 +10,6 @@ type SecurityStatus = {
   last_local_run_id?: string;
   runtime_read_only?: boolean;
   runtime_platform?: string;
-  vercel_read_only?: boolean;
 };
 
 function StatusRow({ label, ok }: { label: string; ok: boolean }) {
@@ -26,7 +25,7 @@ export default function SecurityStatusCard({ status }: { status: SecurityStatus 
   const noRaw = Boolean(status.no_raw_zones_tracked);
   const noAi = Boolean(status.no_ai_dir_tracked);
   const noEnv = Boolean(status.no_env_tracked);
-  const readOnly = Boolean(status.runtime_read_only ?? status.vercel_read_only);
+  const readOnly = Boolean(status.runtime_read_only);
   const safe = noRaw && noAi && noEnv && readOnly;
 
   return (

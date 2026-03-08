@@ -85,9 +85,8 @@ If DNS changes are required, map the domain to Firebase Hosting (same pattern as
 2. `https://rootfetch.com/api/mcp/stats?days=7`
 3. `https://rootfetch.com/rootfetch/artifacts/latest.json`
 
-## Vercel Decommission Checklist
+## Decommission Checklist
 
-1. Remove workflow: `vercel_deploy.yml`.
-2. Remove Vercel env sync jobs and references.
-3. Confirm all production traffic resolves to GCP runtime.
-4. Remove stale Vercel project and tokens after successful cutover.
+1. Confirm all production traffic resolves to Firebase Hosting + GCP runtime.
+2. Confirm legacy deployment projects are removed.
+3. Keep domain, hosting targets, and Cloud Run services in sync.
