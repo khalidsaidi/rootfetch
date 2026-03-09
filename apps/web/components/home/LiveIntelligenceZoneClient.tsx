@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Waves } from "lucide-react";
+import { Waves } from "lucide-react";
 
 import AnomalyTicker from "@/components/AnomalyTicker";
 import MarketRiskPanel from "@/components/MarketRiskPanel";
@@ -61,20 +61,6 @@ type MarketRiskPayload = {
 function num(value: unknown, fallback = 0): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function optionalNum(value: unknown): number | null {
-  if (value == null || value === "") return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function anomalyZ(row: AnomalyRow): number | null {
-  const robust = optionalNum(row.robust_z);
-  if (robust != null) return robust;
-  const z = optionalNum(row.z_score);
-  if (z != null) return z;
-  return null;
 }
 
 function safeDiv(numerator: number, denominator: number, fallback = 0): number {
@@ -159,24 +145,6 @@ function pulseStatus({
   return { label: "LIVE SNAPSHOT ACTIVE", tone: "text-emerald-200", detail: "Full snapshot observations complete" };
 }
 
-function timestampForIndex(idx: number): string {
-  const totalSeconds = (2 * 3600 + 14 * 60 + 22 - idx * 73 + 24 * 3600) % (24 * 3600);
-  const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-  const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
-  const ss = String(totalSeconds % 60).padStart(2, "0");
-  return `${hh}:${mm}:${ss}`;
-}
-
-function severityOf(row: AnomalyRow): "critical" | "high" | "moderate" | "info" {
-  const zRaw = anomalyZ(row);
-  const z = zRaw == null ? null : Math.abs(zRaw);
-  const delta = Math.abs(num(row.delta_pct));
-  if ((z != null && z >= 4) || delta >= 0.06) return "critical";
-  if ((z != null && z >= 3.2) || delta >= 0.03) return "high";
-  if ((z != null && z >= 2) || delta >= 0.01) return "moderate";
-  return "info";
-}
-
 function dateForReplay(baseDateUtc: string, replayDays: number): string {
   const base = new Date(`${baseDateUtc}T00:00:00Z`);
   const shifted = new Date(base.getTime() - clamp(replayDays, 0, 365) * 86_400_000);
@@ -219,10 +187,6 @@ export default function LiveIntelligenceZoneClient({
   marketMapRows: MarketMapRow[];
 }) {
   const { replayDays, setReplayDays } = useReplayTimeline();
-  const [consoleOpen, setConsoleOpen] = useState(true);
-  const [consoleSeverity, setConsoleSeverity] = useState<"all" | "critical" | "high" | "moderate" | "info">("all");
-  const [consoleTldFilter, setConsoleTldFilter] = useState("");
-  const [consoleCleared, setConsoleCleared] = useState(false);
   const [timelinePulseActive, setTimelinePulseActive] = useState(false);
   const timelinePulseTimerRef = useRef<number | null>(null);
 
@@ -354,26 +318,6 @@ export default function LiveIntelligenceZoneClient({
       topAnomalies ? `Primary signals: ${topAnomalies}.` : "Signals are within expected bounds."
     }`;
   }, [anomalyRows, shownDviScore, shownState, shownTop10Share]);
-
-  const eventConsoleRows = useMemo(
-    () =>
-      anomalyRows.slice(0, 28).map((row, idx) => ({
-        ...row,
-        severity: severityOf(row),
-        ts: timestampForIndex(idx),
-      })),
-    [anomalyRows],
-  );
-
-  const filteredConsoleRows = useMemo(() => {
-    if (consoleCleared) return [];
-    const query = consoleTldFilter.trim().toLowerCase();
-    return eventConsoleRows.filter((row) => {
-      if (consoleSeverity !== "all" && row.severity !== consoleSeverity) return false;
-      if (query && !row.tld.toLowerCase().includes(query)) return false;
-      return true;
-    });
-  }, [consoleCleared, consoleSeverity, consoleTldFilter, eventConsoleRows]);
 
   return (
     <>
@@ -577,93 +521,6 @@ export default function LiveIntelligenceZoneClient({
           <AnomalyTicker rows={anomalyRows} />
         </div>
       </section>
-
-      <aside
-        className={`fixed right-2 top-24 z-40 hidden h-[70vh] w-[330px] flex-col rounded-2xl border border-border/70 bg-[#0c1118]/95 p-3 shadow-2xl backdrop-blur lg:flex ${
-          consoleOpen ? "translate-x-0" : "translate-x-[296px]"
-        } transition-transform duration-300`}
-      >
-        <button
-          type="button"
-          className="absolute -left-10 top-6 rounded-l-lg border border-border/70 bg-[#0c1118]/95 px-2 py-1 text-[11px] uppercase tracking-[0.12em]"
-          onClick={() => setConsoleOpen((prev) => !prev)}
-        >
-          {consoleOpen ? "hide" : "events"}
-        </button>
-        <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-          <Activity className="h-3.5 w-3.5 text-primary" /> Event console
-        </div>
-        <div className="mb-2 space-y-2">
-          <div className="grid grid-cols-2 gap-1.5 text-[10px] uppercase tracking-[0.11em]">
-            {(["all", "critical", "high", "moderate", "info"] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={`rounded border px-1.5 py-0.5 ${
-                  consoleSeverity === item
-                    ? "border-primary/60 bg-primary/15 text-foreground"
-                    : "border-border/70 bg-background/35 text-muted-foreground"
-                }`}
-                onClick={() => setConsoleSeverity(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1.5">
-            <input
-              value={consoleTldFilter}
-              onChange={(event) => setConsoleTldFilter(event.target.value)}
-              placeholder="filter tld"
-              className="flex-1 rounded border border-border/70 bg-background/35 px-2 py-1 text-[11px] uppercase tracking-[0.1em] text-muted-foreground placeholder:text-muted-foreground/70"
-            />
-            <button
-              type="button"
-              className="rounded border border-border/70 bg-background/35 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground"
-              onClick={() => setConsoleCleared(true)}
-            >
-              Clear
-            </button>
-          </div>
-          {consoleCleared ? (
-            <button
-              type="button"
-              className="rounded border border-primary/40 bg-primary/10 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-foreground"
-              onClick={() => setConsoleCleared(false)}
-            >
-              Restore log
-            </button>
-          ) : null}
-        </div>
-        <div className="space-y-1 overflow-auto pr-1 text-[11px]">
-          {filteredConsoleRows.map((row, idx) => (
-            <div key={`${row.tld}-${idx}`} className="rounded-md border border-border/60 bg-background/30 px-2 py-1">
-              <span className="rf-mono-digits text-muted-foreground">[{row.ts}]</span>{" "}
-              <span
-                className={`font-semibold uppercase ${
-                  row.severity === "critical"
-                    ? "text-red-300"
-                    : row.severity === "high"
-                      ? "text-rose-300"
-                      : row.severity === "moderate"
-                        ? "text-amber-300"
-                        : "text-cyan-300"
-                }`}
-              >
-                {row.severity}
-              </span>{" "}
-              <span>.{row.tld}</span>{" "}
-              <span className="rf-mono-digits">{fmtSigned(row.delta_abs)}</span>{" "}
-              <span className="text-muted-foreground">{row.label || "signal"}</span>
-            </div>
-          ))}
-          {filteredConsoleRows.length === 0 ? (
-            <div className="rounded-md border border-border/60 bg-background/30 px-2 py-1 text-muted-foreground">
-              No events for current filters.
-            </div>
-          ) : null}
-        </div>
-      </aside>
     </>
   );
 }
