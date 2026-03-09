@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import CopyValueButton from "@/components/CopyValueButton";
 import Section from "@/components/Section";
 import TrackedLink from "@/components/TrackedLink";
 
@@ -85,10 +86,16 @@ evidence:
         <pre className="overflow-auto rounded-lg border border-border/70 bg-background/70 p-4 font-mono text-xs leading-relaxed">
           {citationTemplate}
         </pre>
+        <div className="mt-2">
+          <CopyValueButton value={citationTemplate} keyName="for_teams_citation_template" context="for_teams_page" />
+        </div>
       </Section>
 
       <Section title="Integration Paths">
         <div className="flex flex-wrap gap-2 text-xs">
+          <TrackedLink href="/for-teams/workflows" label="for_teams_workflows" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Workflow runbooks
+          </TrackedLink>
           <TrackedLink href="/docs/mcp" label="for_teams_mcp_docs" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             MCP docs
           </TrackedLink>

@@ -312,6 +312,14 @@ export default async function Home() {
             For teams
           </TrackedLink>
           <TrackedLink
+            href="/for-teams/workflows"
+            label="hero_workflow_runbooks"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Workflow runbooks
+          </TrackedLink>
+          <TrackedLink
             href="/rootfetch/artifacts/latest.json"
             label="hero_fetch_latest_artifact"
             pageType="home"
