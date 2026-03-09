@@ -340,6 +340,9 @@ export default function LiveIntelligenceZoneClient({
           <TrackedLink href="/coverage" label="nav_coverage" pageType="home" eventName="rf_open_approved" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
             Coverage universe
           </TrackedLink>
+          <TrackedLink href="/for-teams" label="nav_for_teams" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
+            For teams
+          </TrackedLink>
           <TrackedLink href="/sectors" label="nav_sectors" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
             Sector indices
           </TrackedLink>
@@ -436,7 +439,7 @@ export default function LiveIntelligenceZoneClient({
                 Median TLD size <span className="rf-mono-digits">{fmtInt(distributionP50)}</span>
               </p>
               <p className="rounded-lg border border-border/70 bg-background/35 px-2 py-1.5">
-                Newly added TLDs {fmtInt(approvalsAddedCount)}
+                Newly tracked TLDs {fmtInt(approvalsAddedCount)}
                 {approvalsAddedPreview.length > 0 ? ` (${approvalsAddedPreview.slice(0, 3).join(", ")})` : ""}
               </p>
               <p className="rounded-lg border border-border/70 bg-primary/10 px-2 py-1.5 text-foreground">

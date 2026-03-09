@@ -304,6 +304,14 @@ export default async function Home() {
             Read Methodology
           </TrackedLink>
           <TrackedLink
+            href="/for-teams"
+            label="hero_for_teams"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            For teams
+          </TrackedLink>
+          <TrackedLink
             href="/rootfetch/artifacts/latest.json"
             label="hero_fetch_latest_artifact"
             pageType="home"
@@ -624,6 +632,9 @@ state=${state}
           </Link>
           <Link href="/security" className="hover:text-foreground">
             security
+          </Link>
+          <Link href="/for-teams" className="hover:text-foreground">
+            for teams
           </Link>
           <Link href="/recipes" className="hover:text-foreground">
             recipes

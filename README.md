@@ -4,6 +4,14 @@ Delegation intelligence from DNS-visible evidence, not marketing claims.
 
 RootFetch computes structural movement in the global namespace from CZDS zone snapshots. It runs locally (no raw zone publishing), produces versioned model outputs (DVI + regime classification), and publishes immutable read-only artifacts for analysis, replay, alerting, and AI agents.
 
+## Positioning
+
+RootFetch is the verifiable structural layer, not a full threat-intelligence suite.
+
+- Use RootFetch for immutable run evidence, replay/compare workflows, and agent-ready deterministic outputs.
+- Use broad intel platforms for enrichment breadth and multi-signal threat context.
+- Use both together when you need narrative speed plus citation-grade structural proof.
+
 ## Core Outputs
 
 - `DVI_v1`: bounded 0-100 volatility index (dispersion + concentration delta + anomaly clustering)
@@ -138,6 +146,7 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)
 - Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
+- Public positioning page: `https://rootfetch.com/for-teams`
 - Public endpoints: [docs/public_endpoints.md](docs/public_endpoints.md)
 - Publishing checklist: [docs/PUBLISHING.md](docs/PUBLISHING.md)
 - GCP deployment: [docs/gcp_deployment.md](docs/gcp_deployment.md)
