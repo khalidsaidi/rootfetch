@@ -344,6 +344,7 @@ export default async function Home() {
         <div id="live-zone">
           <LiveIntelligenceZoneClient
             dateUtc={latest.date_utc}
+            runId={activeRunId}
             approved={approved}
             observedToday={observedToday}
             totalDelegated={totalDelegated}

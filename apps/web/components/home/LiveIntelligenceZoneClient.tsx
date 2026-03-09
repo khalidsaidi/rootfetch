@@ -153,6 +153,7 @@ function dateForReplay(baseDateUtc: string, replayDays: number): string {
 
 export default function LiveIntelligenceZoneClient({
   dateUtc,
+  runId,
   approved,
   observedToday,
   totalDelegated,
@@ -170,6 +171,7 @@ export default function LiveIntelligenceZoneClient({
   marketMapRows,
 }: {
   dateUtc: string;
+  runId: string;
   approved: number;
   observedToday: number;
   totalDelegated: number;
@@ -318,6 +320,8 @@ export default function LiveIntelligenceZoneClient({
       topAnomalies ? `Primary signals: ${topAnomalies}.` : "Signals are within expected bounds."
     }`;
   }, [anomalyRows, shownDviScore, shownState, shownTop10Share]);
+
+  const anomalyCount = anomalyRows.length;
 
   return (
     <>
@@ -514,6 +518,40 @@ export default function LiveIntelligenceZoneClient({
                 {day === 0 ? "Now" : `-${day}d`}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-border/70 bg-background/30 p-3 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="uppercase tracking-[0.14em] text-muted-foreground">Run-Scoped Event Status</p>
+            <span className="rf-mono-digits">{anomalyCount} anomaly event{anomalyCount === 1 ? "" : "s"}</span>
+          </div>
+          {anomalyCount === 0 ? (
+            <p className="mt-2 text-muted-foreground">
+              No anomaly events in the current immutable run. This reflects artifact output, not UI filtering.
+            </p>
+          ) : (
+            <p className="mt-2 text-muted-foreground">
+              Showing anomaly events for this immutable run only.
+            </p>
+          )}
+          <div className="mt-2 flex flex-wrap gap-2">
+            <TrackedLink
+              href={`/runs/${encodeURIComponent(runId)}`}
+              label="live_zone_run_evidence"
+              pageType="home"
+              className="rounded-full border border-border/70 px-2.5 py-1 hover:border-primary/50"
+            >
+              Run evidence
+            </TrackedLink>
+            <TrackedLink
+              href={`/compare?left=${encodeURIComponent(runId)}&right=latest`}
+              label="live_zone_compare_latest"
+              pageType="home"
+              className="rounded-full border border-border/70 px-2.5 py-1 hover:border-primary/50"
+            >
+              Compare to latest
+            </TrackedLink>
           </div>
         </div>
 
