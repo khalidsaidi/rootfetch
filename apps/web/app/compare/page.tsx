@@ -386,7 +386,7 @@ export default async function ComparePage({
         </div>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
-            <p className="text-xs text-muted-foreground">Missing ever</p>
+            <p className="text-xs text-muted-foreground">Not yet observed</p>
             <p className="mt-1 rf-mono-digits text-sm">
               left {fmtInt(leftMissing)} → right {fmtInt(rightMissing)} ({fmtDeltaInt(rightMissing - leftMissing)})
             </p>
@@ -512,4 +512,3 @@ export default async function ComparePage({
     </main>
   );
 }
-

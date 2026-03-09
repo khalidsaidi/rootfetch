@@ -112,7 +112,7 @@ export default function ApprovedClient() {
             lastSeen: coverage.last_seen_by_tld?.[tld] || "",
           };
         }
-        return { tld, status: "pending onboarding", lastSeen: "" };
+        return { tld, status: "not yet observed", lastSeen: "" };
       }),
     [filtered, countedTodaySet, countedEverSet, coverage.last_seen_by_tld, coverage.date_utc]
   );
@@ -127,7 +127,7 @@ export default function ApprovedClient() {
   const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "TLD Coverage Universe",
+    name: "TLD Coverage Index",
     numberOfItems: filtered.length,
     itemListElement: filtered.slice(0, 50).map((tld, idx) => ({
       "@type": "ListItem",
@@ -140,23 +140,23 @@ export default function ApprovedClient() {
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 pb-14 pt-8 md:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }} />
 
-      <Section title="TLD Coverage Universe" subtitle="Every tracked TLD with observation status from committed artifacts.">
+      <Section title="TLD Coverage Universe" subtitle="Every tracked TLD with observation status from immutable artifacts.">
         <div className="mb-4 flex flex-wrap gap-2">
-          <TrackedLink href="/" label="back_home" pageType="approved" className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50">
+          <TrackedLink href="/" label="back_home" pageType="coverage" className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50">
             Dashboard
           </TrackedLink>
-          <TrackedLink href="/rootfetch/coverage_latest.json" label="open_coverage_json" pageType="approved" eventName="rf_open_json_api" className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50">
+          <TrackedLink href="/rootfetch/coverage_latest.json" label="open_coverage_json" pageType="coverage" eventName="rf_open_json_api" className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50">
             coverage_latest.json
           </TrackedLink>
-          <TrackedLink href="/rootfetch/approved_latest.json" label="open_approved_json" pageType="approved" eventName="rf_open_json_api" className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50">
-            approved_latest.json
+          <TrackedLink href="/rootfetch/artifacts/latest.json" label="open_latest_pointer" pageType="coverage" eventName="rf_open_json_api" className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50">
+            latest.json
           </TrackedLink>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Universe tracked" value={coverage.approved_tlds_count} />
           <StatCard label="Observed at least once" value={coverage.counted_ever_count} />
-          <StatCard label="Pending onboarding" value={coverage.missing_ever_count} />
+          <StatCard label="Not yet observed" value={coverage.missing_ever_count} />
           <StatCard label="Observed in snapshot" value={coverage.counted_today_count} />
         </div>
       </Section>
@@ -181,9 +181,9 @@ export default function ApprovedClient() {
           <button
             type="button"
             className="h-10 rounded-lg border border-border/70 px-3 text-xs hover:border-primary/40"
-            onClick={() => copyText(coverage.missing_ever_tlds.join(","), "Pending onboarding list", "missing", coverage.missing_ever_tlds.length)}
+            onClick={() => copyText(coverage.missing_ever_tlds.join(","), "Not yet observed list", "missing", coverage.missing_ever_tlds.length)}
           >
-            Copy pending
+            Copy not-yet-observed
           </button>
           <button
             type="button"
@@ -218,9 +218,7 @@ export default function ApprovedClient() {
                         <Badge tone="success">observed in snapshot</Badge>
                       ) : row.status === "observed previously" ? (
                         <Badge tone="warning">observed previously</Badge>
-                      ) : (
-                        <Badge tone="danger">pending onboarding</Badge>
-                      )}
+                      ) : (<Badge tone="danger">not yet observed</Badge>)}
                     </td>
                     <td className="py-2 text-muted-foreground">{row.lastSeen || "n/a"}</td>
                   </tr>

@@ -318,7 +318,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
               <p className="mt-1 rf-mono-digits text-xl font-semibold">{fmtInt(approvedCount)}</p>
             </div>
             <div className="rounded-lg border border-border/70 bg-background/70 p-3">
-              <p className="text-xs text-muted-foreground">Counted ever</p>
+              <p className="text-xs text-muted-foreground">Observed at least once</p>
               <p className="mt-1 rf-mono-digits text-xl font-semibold">{fmtInt(countedEver)}</p>
             </div>
             <div className="rounded-lg border border-border/70 bg-background/70 p-3">
@@ -331,7 +331,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
             </div>
           </div>
           <div className="mt-3 rounded-lg border border-border/70 bg-background/70 p-3">
-            <p className="text-xs text-muted-foreground">Pending onboarding</p>
+            <p className="text-xs text-muted-foreground">Not yet observed</p>
             <p className={`mt-1 rf-mono-digits text-2xl font-semibold ${missingEver > 0 ? "text-amber-200" : "text-emerald-200"}`}>
               {fmtInt(missingEver)}
             </p>

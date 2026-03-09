@@ -173,6 +173,9 @@ export default function AdminAgentEventsPage() {
         <TrackedLink href="/admin/usage" label="admin_agent_events_usage" pageType="mcp_admin_events" className="text-sm text-primary hover:text-primary/80">
           Open usage dashboard
         </TrackedLink>
+        <TrackedLink href="/admin/alerts" label="admin_agent_events_alerts" pageType="mcp_admin_events" className="text-sm text-primary hover:text-primary/80">
+          Open alert simulator
+        </TrackedLink>
         <TrackedLink href="/docs/mcp" label="admin_agent_events_docs" pageType="mcp_admin_events" className="text-sm text-primary hover:text-primary/80">
           Back to MCP docs
         </TrackedLink>

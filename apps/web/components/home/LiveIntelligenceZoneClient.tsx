@@ -63,6 +63,20 @@ function num(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function optionalNum(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function anomalyZ(row: AnomalyRow): number | null {
+  const robust = optionalNum(row.robust_z);
+  if (robust != null) return robust;
+  const z = optionalNum(row.z_score);
+  if (z != null) return z;
+  return null;
+}
+
 function safeDiv(numerator: number, denominator: number, fallback = 0): number {
   if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator === 0) return fallback;
   const out = numerator / denominator;
@@ -154,11 +168,12 @@ function timestampForIndex(idx: number): string {
 }
 
 function severityOf(row: AnomalyRow): "critical" | "high" | "moderate" | "info" {
-  const z = Math.abs(num(row.robust_z ?? row.z_score));
+  const zRaw = anomalyZ(row);
+  const z = zRaw == null ? null : Math.abs(zRaw);
   const delta = Math.abs(num(row.delta_pct));
-  if (z >= 4 || delta >= 0.06) return "critical";
-  if (z >= 3.2 || delta >= 0.03) return "high";
-  if (z >= 2 || delta >= 0.01) return "moderate";
+  if ((z != null && z >= 4) || delta >= 0.06) return "critical";
+  if ((z != null && z >= 3.2) || delta >= 0.03) return "high";
+  if ((z != null && z >= 2) || delta >= 0.01) return "moderate";
   return "info";
 }
 
@@ -374,7 +389,7 @@ export default function LiveIntelligenceZoneClient({
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <TrackedLink href="/approved" label="nav_approved" pageType="home" eventName="rf_open_approved" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
+          <TrackedLink href="/coverage" label="nav_coverage" pageType="home" eventName="rf_open_approved" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
             Coverage universe
           </TrackedLink>
           <TrackedLink href="/sectors" label="nav_sectors" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">

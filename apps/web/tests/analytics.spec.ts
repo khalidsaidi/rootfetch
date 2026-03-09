@@ -25,7 +25,7 @@ test("analytics events fire on core product interactions", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
   await page.getByRole("link", { name: "Coverage universe" }).click();
-  await page.waitForURL("**/approved");
+  await page.waitForURL("**/coverage");
 
   await page.getByTestId("approved-search-input").fill("app");
   await page.waitForTimeout(700);

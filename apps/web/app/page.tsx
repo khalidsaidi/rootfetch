@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 
 import AdvancedAnalyticsLayer from "@/components/home/AdvancedAnalyticsLayer";
-import AlertControlPanel from "@/components/home/AlertControlPanel";
 import CopyValueButton from "@/components/CopyValueButton";
 import HomeViewTracker from "@/components/HomeViewTracker";
 import JsonArtifactPreview from "@/components/JsonArtifactPreview";
@@ -415,8 +414,6 @@ export default async function Home() {
 
         <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
 
-        <AlertControlPanel rows={anomalyRows} dviScore={dviScore} top10SharePct={top10SharePct} />
-
         <AdvancedAnalyticsLayer
           marketRows={marketMapRows}
           radarRows={radarRows}
@@ -491,11 +488,19 @@ export default async function Home() {
             <div className="rounded-xl border border-border/70 bg-background/45 p-3 text-sm">
               <p className="mb-1 text-muted-foreground">Security checks</p>
               <ul className="space-y-1">
-                <li>• no_raw_zones_tracked: {String(Boolean(securityStatus.no_raw_zones_tracked))}</li>
-                <li>• no_ai_dir_tracked: {String(Boolean(securityStatus.no_ai_dir_tracked))}</li>
-                <li>• no_env_tracked: {String(Boolean(securityStatus.no_env_tracked))}</li>
-                <li>• runtime_read_only: {String(Boolean(securityStatus.runtime_read_only))}</li>
-                <li>• runtime_platform: {String(securityStatus.runtime_platform || "n/a")}</li>
+                <li>
+                  • Raw zone payloads excluded from public artifacts:{" "}
+                  {Boolean(securityStatus.no_raw_zones_tracked) ? "yes" : "no"}
+                </li>
+                <li>
+                  • Environment secrets excluded from tracked artifacts:{" "}
+                  {Boolean(securityStatus.no_env_tracked) ? "yes" : "no"}
+                </li>
+                <li>
+                  • Artifact serving runtime set read-only:{" "}
+                  {Boolean(securityStatus.runtime_read_only) ? "yes" : "no"}
+                </li>
+                <li>• Manifest SHA256 coverage across files: {manifestVerified ? "yes" : "no"}</li>
               </ul>
             </div>
           </div>
@@ -509,7 +514,7 @@ export default async function Home() {
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted/50">
                 <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-300" style={{ width: `${Math.max(3, Math.min(100, coveragePct * 100))}%` }} />
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Pending onboarding: {fmtInt(missingEver)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Not yet observed: {fmtInt(missingEver)}</p>
             </div>
             <div className="rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Rolling cadence indicator</p>

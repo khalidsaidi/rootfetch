@@ -24,11 +24,12 @@ function toOptionalNum(value: unknown): number | null {
 }
 
 function severity(row: AlertRow, zThreshold: number, pctThreshold: number): "critical" | "high" | "moderate" | "info" {
-  const z = Math.abs(toOptionalNum(row.robust_z) ?? 0);
+  const zRaw = toOptionalNum(row.robust_z);
+  const z = zRaw == null ? null : Math.abs(zRaw);
   const pct = Math.abs(toNum(row.delta_pct));
-  if (z >= Math.max(4, zThreshold + 1) || pct >= Math.max(0.06, pctThreshold * 2)) return "critical";
-  if (z >= zThreshold || pct >= pctThreshold) return "high";
-  if (z >= Math.max(2, zThreshold * 0.7) || pct >= Math.max(0.01, pctThreshold * 0.5)) return "moderate";
+  if ((z != null && z >= Math.max(4, zThreshold + 1)) || pct >= Math.max(0.06, pctThreshold * 2)) return "critical";
+  if ((z != null && z >= zThreshold) || pct >= pctThreshold) return "high";
+  if ((z != null && z >= Math.max(2, zThreshold * 0.7)) || pct >= Math.max(0.01, pctThreshold * 0.5)) return "moderate";
   return "info";
 }
 

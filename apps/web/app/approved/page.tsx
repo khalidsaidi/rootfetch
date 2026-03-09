@@ -1,15 +1,5 @@
-import type { Metadata } from "next";
-
-import ApprovedClient from "./ApprovedClient";
-
-export const metadata: Metadata = {
-  title: "TLD Coverage Universe",
-  description: "Search every tracked TLD and see snapshot observation status from RootFetch coverage artifacts.",
-  alternates: {
-    canonical: "/approved",
-  },
-};
+import { redirect } from "next/navigation";
 
 export default function ApprovedPage() {
-  return <ApprovedClient />;
+  redirect("/coverage");
 }

@@ -68,6 +68,8 @@ export const config = {
     "/mcp/usage/:path*",
     "/admin/usage",
     "/admin/usage/:path*",
+    "/admin/alerts",
+    "/admin/alerts/:path*",
     "/admin/agent-events",
     "/admin/agent-events/:path*",
     "/api/mcp/stats",

@@ -73,11 +73,12 @@ function intensityClass(row: AnomalyRow): string {
 }
 
 function severityOf(row: AnomalyRow): Severity {
-  const z = Math.abs(zValue(row) ?? 0);
+  const zRaw = zValue(row);
+  const z = zRaw == null ? null : Math.abs(zRaw);
   const absDeltaPct = Math.abs(Number(row.delta_pct || 0));
-  if (z >= 4 || absDeltaPct >= 0.06) return "critical";
-  if (z >= 3.5 || absDeltaPct >= 0.03) return "high";
-  if (z >= 2 || absDeltaPct >= 0.01) return "moderate";
+  if ((z != null && z >= 4) || absDeltaPct >= 0.06) return "critical";
+  if ((z != null && z >= 3.5) || absDeltaPct >= 0.03) return "high";
+  if ((z != null && z >= 2) || absDeltaPct >= 0.01) return "moderate";
   return "info";
 }
 

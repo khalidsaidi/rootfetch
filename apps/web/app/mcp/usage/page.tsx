@@ -277,6 +277,9 @@ export default function McpUsagePage() {
       <TrackedLink href="/admin/agent-events" label="mcp_usage_agent_events" pageType="mcp_usage" className="text-sm text-primary hover:text-primary/80">
         Open agent events view
       </TrackedLink>
+      <TrackedLink href="/admin/alerts" label="mcp_usage_alerts" pageType="mcp_usage" className="text-sm text-primary hover:text-primary/80">
+        Open alert simulator
+      </TrackedLink>
     </main>
   );
 }
