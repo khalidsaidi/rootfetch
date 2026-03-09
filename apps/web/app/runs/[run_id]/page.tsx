@@ -314,7 +314,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
         <Section title="Coverage Summary" subtitle="Coverage metrics for this run from coverage_latest.json.">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg border border-border/70 bg-background/70 p-3">
-              <p className="text-xs text-muted-foreground">Approved</p>
+              <p className="text-xs text-muted-foreground">Universe tracked</p>
               <p className="mt-1 rf-mono-digits text-xl font-semibold">{fmtInt(approvedCount)}</p>
             </div>
             <div className="rounded-lg border border-border/70 bg-background/70 p-3">
@@ -331,7 +331,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
             </div>
           </div>
           <div className="mt-3 rounded-lg border border-border/70 bg-background/70 p-3">
-            <p className="text-xs text-muted-foreground">Missing ever</p>
+            <p className="text-xs text-muted-foreground">Pending onboarding</p>
             <p className={`mt-1 rf-mono-digits text-2xl font-semibold ${missingEver > 0 ? "text-amber-200" : "text-emerald-200"}`}>
               {fmtInt(missingEver)}
             </p>

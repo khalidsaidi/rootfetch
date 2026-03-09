@@ -20,7 +20,7 @@ export default function MethodologyPage() {
             Primary count metric: <code>count_ns_sld</code>, delegated SLD-owner count inferred from NS records.
           </li>
           <li>
-            Baseline mode: full approved-TLD sweep to establish complete coverage.
+            Baseline mode: full tracked-universe sweep to establish complete coverage.
           </li>
           <li>
             Hybrid mode: core daily recounted + rolling deterministic long-tail refresh.
@@ -45,7 +45,7 @@ export default function MethodologyPage() {
 
       <Section title="Conceptual Data Flow">
         <pre className="overflow-auto rounded-lg border border-border/70 bg-background/70 p-4 font-mono text-xs leading-relaxed">
-{`CZDS approved list
+{`Tracked TLD universe list
    -> local baseline/hybrid recount
    -> daily_counts + growth_trends
    -> signals (market + trend + coverage)

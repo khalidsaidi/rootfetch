@@ -502,14 +502,14 @@ export default async function Home() {
 
           <div className="space-y-3">
             <div className="rounded-xl border border-border/70 bg-background/45 p-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Coverage progress</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Coverage status</p>
               <p className="mt-1 rf-mono-digits text-lg font-semibold">
                 {fmtInt(countedEver)} / {fmtInt(approved)} ({fmtPct(coveragePct)})
               </p>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted/50">
                 <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-300" style={{ width: `${Math.max(3, Math.min(100, coveragePct * 100))}%` }} />
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Missing ever: {fmtInt(missingEver)}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Pending onboarding: {fmtInt(missingEver)}</p>
             </div>
             <div className="rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Rolling cadence indicator</p>
@@ -584,7 +584,7 @@ export default async function Home() {
               <pre className="mt-3 rounded-lg border border-border/70 bg-black/55 p-3 font-mono text-xs text-emerald-300">
 {`$ rootfetch status
 snapshot_date=${latest.date_utc}
-approved=${approved}
+universe_tracked=${approved}
 observed_today=${observedToday}
 state=${state}
 `}

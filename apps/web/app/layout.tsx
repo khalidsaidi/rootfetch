@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s | RootFetch",
   },
   description:
-    "RootFetch tracks CZDS-approved TLD delegation activity with baseline + hybrid coverage, market structure analytics, and AI-ready artifacts.",
+    "RootFetch tracks delegation activity across a deterministic TLD universe with baseline + hybrid coverage, market structure analytics, and AI-ready artifacts.",
   alternates: {
     canonical: "/",
   },
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "RootFetch",
     title: "RootFetch | Delegation Intelligence",
     description:
-      "Read-only dashboard for approved TLD coverage, market concentration, movers, and daily digests generated from local ingestion.",
+      "Read-only dashboard for tracked-universe coverage, market concentration, movers, and daily digests generated from local ingestion.",
     images: [
       {
         url: `${siteUrl}/opengraph-image`,
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RootFetch | Delegation Intelligence",
     description:
-      "Approved TLD coverage, top TLD concentration, movers, and AI-native daily summaries.",
+      "Tracked-universe coverage, top TLD concentration, movers, and AI-native daily summaries.",
     images: [`${siteUrl}/twitter-image`],
   },
   robots: {

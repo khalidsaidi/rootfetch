@@ -168,7 +168,7 @@ export default async function TldsPage() {
             <p className="mt-1 rf-mono-digits text-sm font-semibold">{snapshotTsUtc}</p>
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
-            <p className="text-xs text-muted-foreground">Approved TLDs</p>
+            <p className="text-xs text-muted-foreground">Universe tracked</p>
             <p className="mt-1 rf-mono-digits text-xl font-semibold">{fmtInt(asNumber(coverage.approved_tlds_count))}</p>
           </div>
           <div className="overflow-hidden rounded-lg border border-border/70 bg-background/70 p-3">

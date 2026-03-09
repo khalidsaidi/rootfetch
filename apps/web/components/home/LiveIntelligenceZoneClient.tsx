@@ -375,7 +375,7 @@ export default function LiveIntelligenceZoneClient({
 
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <TrackedLink href="/approved" label="nav_approved" pageType="home" eventName="rf_open_approved" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
-            Approved TLDs
+            Coverage universe
           </TrackedLink>
           <TrackedLink href="/sectors" label="nav_sectors" pageType="home" className="rounded-full border border-border/70 bg-background/70 px-3 py-1.5 hover:border-primary/50">
             Sector indices
@@ -473,7 +473,7 @@ export default function LiveIntelligenceZoneClient({
                 Median TLD size <span className="rf-mono-digits">{fmtInt(distributionP50)}</span>
               </p>
               <p className="rounded-lg border border-border/70 bg-background/35 px-2 py-1.5">
-                New approvals {fmtInt(approvalsAddedCount)}
+                Newly added TLDs {fmtInt(approvalsAddedCount)}
                 {approvalsAddedPreview.length > 0 ? ` (${approvalsAddedPreview.slice(0, 3).join(", ")})` : ""}
               </p>
               <p className="rounded-lg border border-border/70 bg-primary/10 px-2 py-1.5 text-foreground">

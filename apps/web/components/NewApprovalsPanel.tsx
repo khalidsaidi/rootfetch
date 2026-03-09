@@ -33,7 +33,7 @@ export default function NewApprovalsPanel({ approvals }: { approvals: ApprovalsP
   }, [approvals]);
 
   if (addedCount <= 0 && removedCount <= 0) {
-    return <Callout>No newly approved TLDs in today’s diff snapshot.</Callout>;
+    return <Callout>No newly added TLDs in today’s universe diff snapshot.</Callout>;
   }
 
   return (

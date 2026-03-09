@@ -101,18 +101,18 @@ export default function ApprovedClient() {
         if (countedTodaySet.has(tld)) {
           return {
             tld,
-            status: "counted today",
+            status: "observed in snapshot",
             lastSeen: coverage.last_seen_by_tld?.[tld] || coverage.date_utc,
           };
         }
         if (countedEverSet.has(tld)) {
           return {
             tld,
-            status: "counted before",
+            status: "observed previously",
             lastSeen: coverage.last_seen_by_tld?.[tld] || "",
           };
         }
-        return { tld, status: "not counted yet", lastSeen: "" };
+        return { tld, status: "pending onboarding", lastSeen: "" };
       }),
     [filtered, countedTodaySet, countedEverSet, coverage.last_seen_by_tld, coverage.date_utc]
   );
@@ -127,7 +127,7 @@ export default function ApprovedClient() {
   const itemListLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Approved TLDs",
+    name: "TLD Coverage Universe",
     numberOfItems: filtered.length,
     itemListElement: filtered.slice(0, 50).map((tld, idx) => ({
       "@type": "ListItem",
@@ -140,7 +140,7 @@ export default function ApprovedClient() {
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 pb-14 pt-8 md:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }} />
 
-      <Section title="Approved TLD Coverage" subtitle="Every approved TLD with counted status from committed artifacts.">
+      <Section title="TLD Coverage Universe" subtitle="Every tracked TLD with observation status from committed artifacts.">
         <div className="mb-4 flex flex-wrap gap-2">
           <TrackedLink href="/" label="back_home" pageType="approved" className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50">
             Dashboard
@@ -154,10 +154,10 @@ export default function ApprovedClient() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Approved" value={coverage.approved_tlds_count} />
-          <StatCard label="Counted ever" value={coverage.counted_ever_count} />
-          <StatCard label="Missing ever" value={coverage.missing_ever_count} />
-          <StatCard label="Counted today" value={coverage.counted_today_count} />
+          <StatCard label="Universe tracked" value={coverage.approved_tlds_count} />
+          <StatCard label="Observed at least once" value={coverage.counted_ever_count} />
+          <StatCard label="Pending onboarding" value={coverage.missing_ever_count} />
+          <StatCard label="Observed in snapshot" value={coverage.counted_today_count} />
         </div>
       </Section>
 
@@ -168,35 +168,35 @@ export default function ApprovedClient() {
             value={query}
             data-testid="approved-search-input"
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search approved TLDs"
+            placeholder="Search tracked TLDs"
             className="h-10 rounded-lg border border-border/70 bg-background px-3 text-sm"
           />
           <button
             type="button"
             className="h-10 rounded-lg border border-border/70 px-3 text-xs hover:border-primary/40"
-            onClick={() => copyText(coverage.approved_tlds.join(","), "Approved list", "approved", coverage.approved_tlds.length)}
+            onClick={() => copyText(coverage.approved_tlds.join(","), "Tracked universe list", "approved", coverage.approved_tlds.length)}
           >
-            Copy approved
+            Copy tracked
           </button>
           <button
             type="button"
             className="h-10 rounded-lg border border-border/70 px-3 text-xs hover:border-primary/40"
-            onClick={() => copyText(coverage.missing_ever_tlds.join(","), "Missing list", "missing", coverage.missing_ever_tlds.length)}
+            onClick={() => copyText(coverage.missing_ever_tlds.join(","), "Pending onboarding list", "missing", coverage.missing_ever_tlds.length)}
           >
-            Copy missing
+            Copy pending
           </button>
           <button
             type="button"
             className="h-10 rounded-lg border border-border/70 px-3 text-xs hover:border-primary/40"
-            onClick={() => copyText(coverage.counted_ever_tlds.join(","), "Counted-ever list", "counted", coverage.counted_ever_tlds.length)}
+            onClick={() => copyText(coverage.counted_ever_tlds.join(","), "Observed list", "counted", coverage.counted_ever_tlds.length)}
           >
-            Copy counted-ever
+            Copy observed
           </button>
         </div>
         {copyStatus ? <p className="mt-2 text-xs text-primary">{copyStatus}</p> : null}
       </Section>
 
-      <Section title="Approved List" subtitle={`Showing ${filtered.length.toLocaleString()} rows.`}>
+      <Section title="TLD List" subtitle={`Showing ${filtered.length.toLocaleString()} rows.`}>
         {rows.length === 0 ? (
           <Callout>No matching TLDs for the current query.</Callout>
         ) : (
@@ -214,12 +214,12 @@ export default function ApprovedClient() {
                   <tr key={row.tld} className="border-b border-border/50">
                     <td className="py-2 font-semibold">{row.tld}</td>
                     <td className="py-2">
-                      {row.status === "counted today" ? (
-                        <Badge tone="success">counted today</Badge>
-                      ) : row.status === "counted before" ? (
-                        <Badge tone="warning">counted before</Badge>
+                      {row.status === "observed in snapshot" ? (
+                        <Badge tone="success">observed in snapshot</Badge>
+                      ) : row.status === "observed previously" ? (
+                        <Badge tone="warning">observed previously</Badge>
                       ) : (
-                        <Badge tone="danger">not counted yet</Badge>
+                        <Badge tone="danger">pending onboarding</Badge>
                       )}
                     </td>
                     <td className="py-2 text-muted-foreground">{row.lastSeen || "n/a"}</td>

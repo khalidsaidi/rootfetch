@@ -16,8 +16,8 @@ export default function AboutPage() {
     <main className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
       <Section title="About RootFetch" subtitle="Delegation intelligence built from DNS-visible evidence.">
         <p className="text-sm leading-relaxed text-muted-foreground">
-          RootFetch tracks CZDS-approved TLD delegation activity from local ingestion runs. It does not ingest in the web runtime, does not publish
-          raw zones, and does not rely on marketing dashboards.
+          RootFetch tracks delegation activity across a deterministic TLD universe from local ingestion runs. It does not ingest in the web runtime,
+          does not publish raw zones, and does not rely on marketing dashboards.
         </p>
       </Section>
 

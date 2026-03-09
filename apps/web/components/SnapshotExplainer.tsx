@@ -36,7 +36,7 @@ export default function SnapshotExplainer() {
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="font-medium">Snapshot rows today</p>
             <p className="mt-1 text-muted-foreground">
-              We keep a current snapshot row for every approved TLD in committed artifacts.
+              We keep a current snapshot row for every tracked TLD in committed artifacts.
             </p>
           </div>
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">

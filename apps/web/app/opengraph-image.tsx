@@ -57,7 +57,7 @@ export default async function OpenGraphImage() {
           <div style={{ fontSize: 22, color: "#d7eaff" }}>{moverSummary ? `Core movers: ${moverSummary}` : "Core movers: n/a"}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14, minWidth: 360 }}>
-          <div style={{ fontSize: 24 }}>{`Approved TLDs: ${fmt(latest.approved_tlds_count)}`}</div>
+          <div style={{ fontSize: 24 }}>{`Universe tracked: ${fmt(latest.approved_tlds_count)}`}</div>
           <div style={{ fontSize: 24 }}>{`Snapshot total: ${fmt(latest.total_delegated_counted_today || latest.total_delegated_domains_today)}`}</div>
           <div style={{ fontSize: 24 }}>{`Observed today: ${fmt(latest.counted_today_count)}`}</div>
           <div style={{ fontSize: 24 }}>

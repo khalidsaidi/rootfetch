@@ -30,7 +30,7 @@ const SUGGESTIONS = [
   "What changed today?",
   "Top 10 TLDs by share",
   "Explain HHI in this dataset",
-  "Which approvals were newly added today?",
+  "Which TLDs were newly added to coverage today?",
 ];
 
 function citationHref(sourcePath: string): string {
@@ -123,7 +123,7 @@ export default function AskClient() {
                 void runAsk();
               }
             }}
-            placeholder="Ask about approvals, movers, concentration, or coverage"
+            placeholder="Ask about tracked TLDs, movers, concentration, or coverage"
             className="h-11 rounded-lg border border-border/70 bg-background px-3 text-sm"
           />
           <select

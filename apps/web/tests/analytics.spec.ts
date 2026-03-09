@@ -24,7 +24,7 @@ test("analytics events fire on core product interactions", async ({ page }) => {
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  await page.getByRole("link", { name: "Approved TLDs" }).click();
+  await page.getByRole("link", { name: "Coverage universe" }).click();
   await page.waitForURL("**/approved");
 
   await page.getByTestId("approved-search-input").fill("app");
