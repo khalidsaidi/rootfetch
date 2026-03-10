@@ -304,31 +304,31 @@ export default async function Home() {
       <HomeViewTracker />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }} />
 
-      <section className="rf-glass rounded-3xl p-5 md:p-7">
+      <section className="rf-glass rounded-3xl p-5 md:p-8">
         <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">RootFetch</p>
-        <h1 className="mt-1 font-display text-3xl font-semibold leading-tight md:text-4xl">
+        <h1 className="mt-2 max-w-5xl font-display text-[2rem] font-semibold leading-[1.14] md:text-[2.7rem]">
           Delegation intelligence from DNS-visible evidence.
         </h1>
-        <p className="mt-3 max-w-4xl text-sm text-muted-foreground md:text-base">
+        <p className="mt-4 max-w-5xl text-[0.98rem] leading-7 text-muted-foreground md:text-[1.08rem]">
           RootFetch ingests CZDS zone snapshots locally, computes a versioned volatility index and structural regime
           classification, then publishes immutable, auditable artifacts for humans and agents.
         </p>
-        <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-3">
+        <div className="mt-5 grid gap-2.5 text-[0.9rem] leading-6 text-muted-foreground md:grid-cols-3">
           <p>• DVI: instability from dispersion, concentration shifts, and anomaly clustering.</p>
           <p>• Regime: Stable, Elevated, Consolidating, Fragmenting, Turbulent with hysteresis + confidence.</p>
           <p>• Immutable runs: run-scoped artifacts with manifest SHA256 integrity proofs.</p>
         </div>
-        <div className="mt-4 grid gap-2 text-xs text-muted-foreground md:grid-cols-3">
+        <div className="mt-4 grid gap-2 text-[0.82rem] text-muted-foreground md:grid-cols-3">
           <p><span className="text-foreground">Analysts:</span> monitor structure, concentration, and volatility.</p>
           <p><span className="text-foreground">Operators:</span> alert on regime changes, anomalies, and concentration shifts.</p>
           <p><span className="text-foreground">Builders:</span> consume immutable artifacts via JSON/MCP.</p>
         </div>
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-6 flex flex-wrap gap-2.5">
           <TrackedLink
             href="#live-zone"
             label="hero_live_zone"
             pageType="home"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             View Live Zone
           </TrackedLink>
@@ -336,7 +336,7 @@ export default async function Home() {
             href="/methodology#operational-guarantees"
             label="hero_methodology"
             pageType="home"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             Read Methodology
           </TrackedLink>
@@ -344,7 +344,7 @@ export default async function Home() {
             href="/for-teams"
             label="hero_for_teams"
             pageType="home"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             For teams
           </TrackedLink>
@@ -352,7 +352,7 @@ export default async function Home() {
             href="/for-teams/workflows"
             label="hero_workflow_runbooks"
             pageType="home"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             Workflow runbooks
           </TrackedLink>
@@ -360,7 +360,7 @@ export default async function Home() {
             href="/ops"
             label="hero_ops_scoreboard"
             pageType="home"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             Ops scoreboard
           </TrackedLink>
@@ -369,7 +369,7 @@ export default async function Home() {
             label="hero_fetch_latest_artifact"
             pageType="home"
             eventName="rf_open_json_api"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             Fetch Latest Artifact
           </TrackedLink>
@@ -378,7 +378,7 @@ export default async function Home() {
             label="hero_connect_mcp"
             pageType="home"
             eventName="rf_mcp_doc_open"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             Connect via MCP
           </TrackedLink>
@@ -386,7 +386,7 @@ export default async function Home() {
             href="/runs"
             label="hero_browse_runs"
             pageType="home"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             Browse historical runs →
           </TrackedLink>
@@ -394,18 +394,18 @@ export default async function Home() {
             href="/tlds"
             label="hero_browse_tlds"
             pageType="home"
-            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
           >
             Browse TLD index →
           </TrackedLink>
         </div>
       </section>
 
-      <section className="rf-glass rounded-3xl p-5 md:p-6">
+      <section className="rf-glass rounded-3xl p-5 md:p-7">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Public structural brief</p>
-            <h2 className="font-display text-2xl font-semibold">Current state at a glance</h2>
+            <h2 className="font-display text-[1.7rem] font-semibold leading-[1.15] md:text-[2rem]">Current state at a glance</h2>
           </div>
           <TrackedLink
             href={compareLatestHref}
@@ -419,24 +419,24 @@ export default async function Home() {
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-border/70 bg-background/45 p-3">
             <p className="text-xs text-muted-foreground">Regime</p>
-            <p className="mt-1 font-display text-xl font-semibold uppercase">{state}</p>
+            <p className="mt-1 font-display text-2xl font-semibold uppercase leading-none">{state}</p>
           </div>
           <div className="rounded-xl border border-border/70 bg-background/45 p-3">
             <p className="text-xs text-muted-foreground">DVI</p>
-            <p className="mt-1 rf-mono-digits text-xl font-semibold">{dviScore.toFixed(1)}</p>
+            <p className="mt-1 rf-mono-digits text-2xl font-semibold leading-none">{dviScore.toFixed(1)}</p>
           </div>
           <div className="rounded-xl border border-border/70 bg-background/45 p-3">
             <p className="text-xs text-muted-foreground">Top 10 share</p>
-            <p className="mt-1 rf-mono-digits text-xl font-semibold">{top10SharePct.toFixed(2)}%</p>
+            <p className="mt-1 rf-mono-digits text-2xl font-semibold leading-none">{top10SharePct.toFixed(2)}%</p>
           </div>
           <div className="rounded-xl border border-border/70 bg-background/45 p-3">
             <p className="text-xs text-muted-foreground">Observed vs tracked</p>
-            <p className="mt-1 rf-mono-digits text-xl font-semibold">
+            <p className="mt-1 rf-mono-digits text-2xl font-semibold leading-none">
               {fmtInt(countedEver)} / {fmtInt(approved)}
             </p>
           </div>
         </div>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="mt-4 text-[0.98rem] leading-7 text-muted-foreground">
           In the latest immutable run, delegated counts moved{" "}
           <span className="rf-mono-digits text-foreground">{fmtSignedInt(delta7dAbs)}</span> over 7 days with{" "}
           <span className="rf-mono-digits text-foreground">{fmtPct(delta7dPct)}</span> change, while structure remains{" "}
