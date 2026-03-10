@@ -1,0 +1,8 @@
+let left_run_id = "<left_run_id>";
+let right_run_id = "<right_run_id>";
+print
+  rootfetch_left_run = left_run_id,
+  rootfetch_right_run = right_run_id,
+  rootfetch_compare = strcat("https://rootfetch.com/compare?left=", left_run_id, "&right=", right_run_id),
+  left_manifest = strcat("https://rootfetch.com/rootfetch/artifacts/runs/", left_run_id, "/manifest.json"),
+  right_manifest = strcat("https://rootfetch.com/rootfetch/artifacts/runs/", right_run_id, "/manifest.json")

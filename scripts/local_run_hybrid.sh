@@ -215,6 +215,9 @@ rootfetch publish run \
   --model-version "rootfetch_model_v1" \
   --snapshot-ts-utc "${PUBLISH_SNAPSHOT_TS_UTC}"
 
+echo "[rootfetch] build ops scoreboard"
+python3 scripts/build_ops_scoreboard.py
+
 git add data/approved_tlds/*.json || true
 git add "data/daily_counts/${RUN_DATE}.csv" || true
 git add "data/growth_trends.csv" || true
@@ -222,6 +225,7 @@ git add data/signals/*.csv data/signals/*.json || true
 git add data/digests/*.md || true
 git add data/rag/*.json || true
 git add data/artifacts || true
+git add data/ops/*.json data/ops/*.csv || true
 git add data/state/baseline_complete.json || true
 
 STAGED="$(git diff --cached --name-only || true)"

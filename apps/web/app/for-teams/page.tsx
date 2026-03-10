@@ -96,6 +96,9 @@ evidence:
           <TrackedLink href="/for-teams/workflows" label="for_teams_workflows" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             Workflow runbooks
           </TrackedLink>
+          <TrackedLink href="/docs/integrations" label="for_teams_integrations" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Integration runbooks
+          </TrackedLink>
           <TrackedLink href="/docs/mcp" label="for_teams_mcp_docs" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             MCP docs
           </TrackedLink>
@@ -104,6 +107,9 @@ evidence:
           </TrackedLink>
           <TrackedLink href="/docs/public-endpoints" label="for_teams_public_endpoints" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             Public endpoints
+          </TrackedLink>
+          <TrackedLink href="/ops" label="for_teams_ops_scoreboard" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Ops scoreboard
           </TrackedLink>
           <TrackedLink href="/runs" label="for_teams_runs" pageType="for_teams" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             Runs archive

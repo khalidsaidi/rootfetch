@@ -23,9 +23,13 @@
 ## Artifact surfaces
 - Latest pointer: `https://rootfetch.com/rootfetch/artifacts/latest.json`
 - Replay index: `https://rootfetch.com/rootfetch/artifacts/replay/index.json`
+- Ops scoreboard: `https://rootfetch.com/rootfetch/ops_scoreboard_latest.json`
+- Ops scoreboard API: `https://rootfetch.com/api/ops/scoreboard`
 - Runs archive UI: `https://rootfetch.com/runs`
 - Compare UI: `https://rootfetch.com/compare`
 
 ## Human docs
 - Methodology: `https://rootfetch.com/methodology`
 - Security: `https://rootfetch.com/security`
+- Integrations: `https://rootfetch.com/docs/integrations`
+- Ops scoreboard UI: `https://rootfetch.com/ops`

@@ -306,6 +306,28 @@ export default async function ComparePage({
   const swapHref = `/compare?left=${encodeURIComponent(rightId)}&right=${encodeURIComponent(leftId)}`;
   const leftRunHref = `/runs/${encodeURIComponent(leftId)}`;
   const rightRunHref = `/runs/${encodeURIComponent(rightId)}`;
+  const compareHref = `/compare?left=${encodeURIComponent(leftId)}&right=${encodeURIComponent(rightId)}`;
+  const leftSnapshotTs = runTimestamp(leftBundle);
+  const rightSnapshotTs = runTimestamp(rightBundle);
+  const leftModelVersion = asString(leftModel.model_version, "n/a");
+  const rightModelVersion = asString(rightModel.model_version, "n/a");
+  const citationSnippet = [
+    "RootFetch Structural Evidence",
+    `left_run_id: ${leftId}`,
+    `right_run_id: ${rightId}`,
+    `left_snapshot_ts_utc: ${leftSnapshotTs}`,
+    `right_snapshot_ts_utc: ${rightSnapshotTs}`,
+    `left_model_version: ${leftModelVersion}`,
+    `right_model_version: ${rightModelVersion}`,
+    `dvi: ${leftDvi.toFixed(1)} -> ${rightDvi.toFixed(1)}`,
+    `regime: ${leftRegime} -> ${rightRegime}`,
+    `regime_confidence: ${leftConfidence.toFixed(3)} -> ${rightConfidence.toFixed(3)}`,
+    `left_manifest_sha256: ${asString(leftBundle.manifestSha256, "n/a")}`,
+    `right_manifest_sha256: ${asString(rightBundle.manifestSha256, "n/a")}`,
+    `compare_url: ${compareHref}`,
+    `left_run_url: ${leftRunHref}`,
+    `right_run_url: ${rightRunHref}`,
+  ].join("\n");
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
@@ -335,9 +357,10 @@ export default async function ComparePage({
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Left run</p>
             <p className="mt-1 rf-mono-digits text-sm font-semibold">{leftId}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Snapshot: {runTimestamp(leftBundle)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Snapshot: {leftSnapshotTs}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <CopyValueButton value={leftId} keyName="compare_left_run_id" context="compare_runs" />
+              <CopyValueButton value={asString(leftBundle.manifestSha256, "n/a")} keyName="compare_left_manifest_sha" context="compare_runs" />
               <Link href={leftRunHref} className="inline-flex items-center gap-1 rounded-lg border border-border/70 px-2 py-1 text-xs hover:border-primary/50">
                 Open run page <ExternalLink className="h-3.5 w-3.5" />
               </Link>
@@ -346,14 +369,25 @@ export default async function ComparePage({
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Right run</p>
             <p className="mt-1 rf-mono-digits text-sm font-semibold">{rightId}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Snapshot: {runTimestamp(rightBundle)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Snapshot: {rightSnapshotTs}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <CopyValueButton value={rightId} keyName="compare_right_run_id" context="compare_runs" />
+              <CopyValueButton value={asString(rightBundle.manifestSha256, "n/a")} keyName="compare_right_manifest_sha" context="compare_runs" />
               <Link href={rightRunHref} className="inline-flex items-center gap-1 rounded-lg border border-border/70 px-2 py-1 text-xs hover:border-primary/50">
                 Open run page <ExternalLink className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
+        </div>
+      </Section>
+
+      <Section title="Copy Structural Citation" subtitle="One-click run-pair citation block for briefs and incident notes.">
+        <pre className="overflow-auto rounded-lg border border-border/70 bg-background/70 p-3 text-xs rf-mono-digits">
+          {citationSnippet}
+        </pre>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <CopyValueButton value={citationSnippet} keyName="compare_structural_citation" context="compare_runs" />
+          <CopyValueButton value={compareHref} keyName="compare_url" context="compare_runs" />
         </div>
       </Section>
 

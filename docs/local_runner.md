@@ -31,6 +31,9 @@ Optional hybrid overrides:
 - `ROOTFETCH_MAX_WORKERS`
 - `ROOTFETCH_HTTP_TIMEOUT`
 - `ROOTFETCH_RETRY_MAX`
+- `ROOTFETCH_FETCH_MAX_SECONDS`
+- `ROOTFETCH_BASELINE_TAIL_RETRY_MAX`
+- `ROOTFETCH_BASELINE_TAIL_FETCH_MAX_SECONDS`
 - `ROOTFETCH_LOG_EVERY`
 - `ROOTFETCH_REPLAY_INDEX_MAX_RUNS` (default `365`)
 
@@ -71,6 +74,7 @@ The script does:
 1. `rootfetch discover`
 2. checks `rootfetch baseline-status --date <today>`
 3. loops `rootfetch run-baseline --resume` until baseline completion (`missing_ever_count=0`)
+   - baseline tail mode automatically lowers retry/time budgets when only a small number of missing TLDs remain
 4. after baseline completion, runs `rootfetch run-hybrid --date <today>`
 5. `rootfetch compute-signals --date <run_date>`
 6. `rootfetch rag build-static`

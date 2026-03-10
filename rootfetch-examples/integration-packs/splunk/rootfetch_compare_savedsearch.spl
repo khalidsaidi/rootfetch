@@ -1,0 +1,7 @@
+| makeresults
+| eval left_run_id="<left_run_id>"
+| eval right_run_id="<right_run_id>"
+| eval rootfetch_compare_url="https://rootfetch.com/compare?left=".left_run_id."&right=".right_run_id
+| eval left_manifest="https://rootfetch.com/rootfetch/artifacts/runs/".left_run_id."/manifest.json"
+| eval right_manifest="https://rootfetch.com/rootfetch/artifacts/runs/".right_run_id."/manifest.json"
+| table left_run_id right_run_id rootfetch_compare_url left_manifest right_manifest

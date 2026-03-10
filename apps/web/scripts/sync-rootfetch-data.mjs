@@ -72,6 +72,10 @@ const optionalCopies = [
     source: path.join(repoRoot, "data", "artifacts", "replay", "index.json"),
     dest: path.join(appRoot, "public", "rootfetch", "artifacts", "replay", "index.json"),
   },
+  {
+    source: path.join(repoRoot, "data", "ops", "scoreboard_latest.json"),
+    dest: path.join(appRoot, "public", "rootfetch", "ops_scoreboard_latest.json"),
+  },
 ];
 
 async function exists(filePath) {
@@ -172,7 +176,11 @@ async function generateSeoTextArtifacts() {
     "/ask",
     "/recipes",
     "/docs/mcp",
+    "/docs/integrations",
     "/docs/public-endpoints",
+    "/for-teams",
+    "/for-teams/workflows",
+    "/ops",
     "/tlds",
   ];
   const urls = [...baseRoutes, ...topTlds.map((tld) => `/tld/${encodeURIComponent(tld)}`)];

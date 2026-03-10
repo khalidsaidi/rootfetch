@@ -67,6 +67,9 @@ class Settings:
     max_workers: int
     http_timeout: int
     retry_max: int
+    fetch_max_seconds: int
+    baseline_tail_retry_max: int
+    baseline_tail_fetch_max_seconds: int
     log_every: int
     count_mode: str
     min_base_for_pct: int
@@ -134,6 +137,12 @@ def get_settings() -> Settings:
         max_workers=_parse_int(os.getenv("ROOTFETCH_MAX_WORKERS"), 8),
         http_timeout=_parse_int(os.getenv("ROOTFETCH_HTTP_TIMEOUT"), 120),
         retry_max=_parse_int(os.getenv("ROOTFETCH_RETRY_MAX"), 8),
+        fetch_max_seconds=_parse_int(os.getenv("ROOTFETCH_FETCH_MAX_SECONDS"), 300),
+        baseline_tail_retry_max=_parse_int(os.getenv("ROOTFETCH_BASELINE_TAIL_RETRY_MAX"), 2),
+        baseline_tail_fetch_max_seconds=_parse_int(
+            os.getenv("ROOTFETCH_BASELINE_TAIL_FETCH_MAX_SECONDS"),
+            120,
+        ),
         log_every=_parse_int(os.getenv("ROOTFETCH_LOG_EVERY"), 25),
         count_mode=count_mode,
         min_base_for_pct=_parse_int(os.getenv("ROOTFETCH_MIN_BASE_FOR_PCT"), 1000),

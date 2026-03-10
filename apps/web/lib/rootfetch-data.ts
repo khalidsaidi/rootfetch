@@ -176,6 +176,33 @@ export type ApprovedLatest = {
   tlds: string[];
 };
 
+export type OpsScoreboard = {
+  generated_at_utc: string;
+  reference_now_utc: string;
+  run_reliability: {
+    latest_run_age_hours: number;
+    runs_7d: number;
+    runs_30d: number;
+    max_gap_hours_7d: number;
+    max_gap_hours_30d: number;
+  };
+  publication_cadence: {
+    briefs_published_ytd: number;
+    drills_logged_ytd: number;
+  };
+  adoption: {
+    external_citations_logged_ytd: number;
+    adoption_log_entries_ytd: number;
+    note?: string;
+  };
+  targets_90d: {
+    run_completion_rate_pct: number;
+    design_partner_teams: number;
+    external_citations: number;
+    weekly_active_mcp_clients: number;
+  };
+};
+
 export type ArtifactLatestPointer = {
   run_id: string;
   snapshot_ts_utc?: string;
@@ -216,6 +243,7 @@ export type PublishedRunBundle = {
   coverage: CoverageLatest;
   model: Record<string, unknown>;
   manifest: Record<string, unknown>;
+  manifestSha256: string;
 };
 
 export type RunManifestFile = {
@@ -251,6 +279,7 @@ export type RunCompareBundle = {
   runId: string;
   baseHref: string;
   manifest: RunManifest;
+  manifestSha256: string;
   model: Record<string, unknown>;
   coverage: CoverageLatest;
   signals: LatestSignals;
@@ -464,7 +493,15 @@ export async function loadPublishedRunBundle(): Promise<PublishedRunBundle | nul
     last_seen_by_tld: {},
   });
   const model = await readJsonAbsolute<Record<string, unknown>>(path.join(runBase, "model_latest.json"), {});
-  const manifest = await readJsonAbsolute<Record<string, unknown>>(path.join(runBase, "manifest.json"), {});
+  const manifestPath = path.join(runBase, "manifest.json");
+  const manifest = await readJsonAbsolute<Record<string, unknown>>(manifestPath, {});
+  let manifestSha256 = "";
+  try {
+    const rawManifest = await fs.readFile(manifestPath);
+    manifestSha256 = createHash("sha256").update(rawManifest).digest("hex");
+  } catch {
+    manifestSha256 = "";
+  }
 
   const isSignalsMissing = (signals.date_utc || "n/a") === "n/a";
   const isCoverageMissing = (coverage.date_utc || "n/a") === "n/a";
@@ -483,6 +520,7 @@ export async function loadPublishedRunBundle(): Promise<PublishedRunBundle | nul
     coverage,
     model,
     manifest,
+    manifestSha256,
   };
 }
 
@@ -574,7 +612,15 @@ export async function loadRunCompareBundleById(runId: string): Promise<RunCompar
     }
   };
 
-  const manifest = await readRequiredJson<RunManifest>(manifestPath, "manifest.json", {});
+  let manifestSha256 = "";
+  let manifest: RunManifest = {};
+  try {
+    const raw = await fs.readFile(manifestPath, "utf-8");
+    manifestSha256 = createHash("sha256").update(raw).digest("hex");
+    manifest = parseJsonArtifact<RunManifest>(raw);
+  } catch {
+    missingPaths.push("manifest.json");
+  }
   const model = await readRequiredJson<Record<string, unknown>>(modelPath, "model_latest.json", {});
   const coverage = await readRequiredJson<CoverageLatest>(coveragePath, "coverage_latest.json", fallbackCoverage);
   const signals = await readRequiredJson<LatestSignals>(signalsPath, "signals_latest.json", fallbackSignals);
@@ -583,6 +629,7 @@ export async function loadRunCompareBundleById(runId: string): Promise<RunCompar
     runId: safeRunId,
     baseHref: `/rootfetch/artifacts/runs/${encodeURIComponent(safeRunId)}`,
     manifest,
+    manifestSha256,
     model,
     coverage: {
       ...coverage,
@@ -724,6 +771,35 @@ export async function loadApproved(): Promise<ApprovedLatest> {
     date_utc: "n/a",
     count: 0,
     tlds: [],
+  });
+}
+
+export async function loadOpsScoreboard(): Promise<OpsScoreboard> {
+  return readJson<OpsScoreboard>("ops_scoreboard_latest.json", {
+    generated_at_utc: "n/a",
+    reference_now_utc: "n/a",
+    run_reliability: {
+      latest_run_age_hours: 0,
+      runs_7d: 0,
+      runs_30d: 0,
+      max_gap_hours_7d: 0,
+      max_gap_hours_30d: 0,
+    },
+    publication_cadence: {
+      briefs_published_ytd: 0,
+      drills_logged_ytd: 0,
+    },
+    adoption: {
+      external_citations_logged_ytd: 0,
+      adoption_log_entries_ytd: 0,
+      note: "",
+    },
+    targets_90d: {
+      run_completion_rate_pct: 99,
+      design_partner_teams: 10,
+      external_citations: 30,
+      weekly_active_mcp_clients: 10,
+    },
   });
 }
 

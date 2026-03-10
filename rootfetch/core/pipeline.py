@@ -262,17 +262,46 @@ def _sleep_backoff(attempt: int) -> None:
     time.sleep(base + jitter)
 
 
-def _download_and_count(url: str, tld: str, token: str, settings: Settings) -> dict[str, Any]:
+def _download_and_count(
+    url: str,
+    tld: str,
+    token: str,
+    settings: Settings,
+    *,
+    retry_max: int | None = None,
+    fetch_max_seconds: int | None = None,
+) -> dict[str, Any]:
     started = time.monotonic()
     fetched_at = utc_now_iso()
     last_error = ""
-    for attempt in range(settings.retry_max + 1):
+    max_retries = max(0, retry_max if retry_max is not None else settings.retry_max)
+    max_fetch_seconds = max(5, fetch_max_seconds if fetch_max_seconds is not None else settings.fetch_max_seconds)
+    deadline = started + max_fetch_seconds
+    for attempt in range(max_retries + 1):
+        remaining_seconds = deadline - time.monotonic()
+        if remaining_seconds <= 0:
+            return {
+                "tld": tld,
+                "count_ns_sld": None,
+                "count_ds_sld": None,
+                "count_glue_hosts": None,
+                "count_ns_rr": None,
+                "is_estimate": settings.count_mode == "ns_sld_hll",
+                "count_mode": settings.count_mode,
+                "bytes_downloaded": 0,
+                "fetch_seconds": round(time.monotonic() - started, 3),
+                "fetched_at_utc": fetched_at,
+                "status": "failed",
+                "error": "fetch_time_budget_exceeded",
+            }
         response = None
         try:
+            request_timeout = max(5, min(settings.http_timeout, int(remaining_seconds)))
+            connect_timeout = min(10, request_timeout)
             response = requests.get(
                 url,
                 stream=True,
-                timeout=settings.http_timeout,
+                timeout=(connect_timeout, request_timeout),
                 headers={"Authorization": f"Bearer {token}"},
             )
             if _is_transient_status(response.status_code):
@@ -323,7 +352,8 @@ def _download_and_count(url: str, tld: str, token: str, settings: Settings) -> d
             }
         except (requests.Timeout, requests.ConnectionError, TransientFetchError, OSError) as exc:
             last_error = str(exc)
-            if attempt < settings.retry_max:
+            remaining_seconds = deadline - time.monotonic()
+            if attempt < max_retries and remaining_seconds > 0:
                 _sleep_backoff(attempt)
                 continue
             return {
@@ -338,7 +368,7 @@ def _download_and_count(url: str, tld: str, token: str, settings: Settings) -> d
                 "fetch_seconds": round(time.monotonic() - started, 3),
                 "fetched_at_utc": fetched_at,
                 "status": "failed",
-                "error": last_error[:200],
+                "error": (last_error or "fetch_failed")[:200],
             }
         finally:
             if response is not None:
@@ -704,14 +734,35 @@ def _prepare_baseline_rows(
     log_every = max(1, settings.log_every)
 
     if pending_links:
+        total_pending = len(pending_links)
+        tail_mode = total_pending <= max(25, log_every)
+        effective_retry_max = settings.baseline_tail_retry_max if tail_mode else settings.retry_max
+        effective_fetch_max_seconds = (
+            settings.baseline_tail_fetch_max_seconds if tail_mode else settings.fetch_max_seconds
+        )
+        logger.info(
+            "baseline execution policy tail_mode=%s retry_max=%s fetch_max_seconds=%s pending=%s",
+            tail_mode,
+            effective_retry_max,
+            effective_fetch_max_seconds,
+            total_pending,
+        )
+
         with ThreadPoolExecutor(max_workers=max(1, settings.max_workers)) as executor:
             future_map = {
-                executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
+                executor.submit(
+                    _download_and_count,
+                    item["url"],
+                    item["tld"],
+                    token,
+                    settings,
+                    retry_max=effective_retry_max,
+                    fetch_max_seconds=effective_fetch_max_seconds,
+                ): item
                 for item in pending_links
             }
             future_started_at = {future: time.monotonic() for future in future_map}
             completed = 0
-            total_pending = len(pending_links)
             # For small delta runs, emit progress each completion to avoid long silent windows.
             dynamic_log_every = 1 if total_pending <= log_every else log_every
             pending_futures = set(future_map.keys())

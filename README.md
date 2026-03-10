@@ -146,8 +146,11 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)
 - Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
+- Ops scoreboard: [docs/ops_scoreboard.md](docs/ops_scoreboard.md)
 - Public positioning page: `https://rootfetch.com/for-teams`
 - Team workflow runbooks: `https://rootfetch.com/for-teams/workflows`
+- Integration runbooks: `https://rootfetch.com/docs/integrations`
+- Operations scoreboard: `https://rootfetch.com/ops`
 - Public endpoints: [docs/public_endpoints.md](docs/public_endpoints.md)
 - Publishing checklist: [docs/PUBLISHING.md](docs/PUBLISHING.md)
 - GCP deployment: [docs/gcp_deployment.md](docs/gcp_deployment.md)

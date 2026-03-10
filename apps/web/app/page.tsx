@@ -27,6 +27,8 @@ import {
   loadDigestSnippetForRun,
   loadLatest,
   loadPublishedRunBundle,
+  loadReplayIndex,
+  loadRunBundleById,
 } from "@/lib/rootfetch-data";
 
 function asNumber(value: unknown): number {
@@ -250,6 +252,34 @@ export default async function Home() {
   const manifestHref = activeRunId && activeRunId !== "n/a"
     ? `/rootfetch/artifacts/runs/${encodeURIComponent(activeRunId)}/manifest.json`
     : "/rootfetch/artifacts/latest.json";
+  const replayIndex = await loadReplayIndex();
+  const replayRuns = Array.isArray(replayIndex.runs) ? replayIndex.runs : [];
+  const orderedReplayRuns = [...replayRuns].sort((a, b) =>
+    String(b.snapshot_ts_utc || "").localeCompare(String(a.snapshot_ts_utc || "")),
+  );
+  const previousRunId =
+    orderedReplayRuns.find((row) => String(row.run_id || "") !== activeRunId)?.run_id || "";
+  const previousRunBundle = previousRunId ? await loadRunBundleById(previousRunId) : null;
+  const previousManifestSha = previousRunBundle?.manifestSha256 || "n/a";
+  const previousModelVersion = String((previousRunBundle?.model?.model_version as string | undefined) || "n/a");
+  const activeRunForHref = activeRunId && activeRunId !== "n/a" ? activeRunId : "";
+  const activeManifestSha =
+    (published?.manifestSha256 && String(published.manifestSha256).trim()) ||
+    createHash("sha256").update(JSON.stringify(published?.manifest || {})).digest("hex");
+  const compareLatestHref = previousRunId
+    ? `/compare?left=${encodeURIComponent(previousRunId)}&right=${encodeURIComponent(activeRunForHref || "latest")}`
+    : "/compare";
+  const latestCitationSnippet = [
+    "RootFetch Structural Evidence",
+    `left_run_id: ${previousRunId || "n/a"}`,
+    `right_run_id: ${activeRunForHref || "latest"}`,
+    `left_model_version: ${previousModelVersion}`,
+    `right_model_version: ${modelVersion}`,
+    `left_manifest_sha256: ${previousManifestSha}`,
+    `right_manifest_sha256: ${activeManifestSha}`,
+    `compare_url: ${compareLatestHref}`,
+    `run_url: ${activeRunForHref ? `/runs/${encodeURIComponent(activeRunForHref)}` : "/runs"}`,
+  ].join("\n");
 
   const jsonLdSoftware = {
     "@context": "https://schema.org",
@@ -318,6 +348,14 @@ export default async function Home() {
             className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
           >
             Workflow runbooks
+          </TrackedLink>
+          <TrackedLink
+            href="/ops"
+            label="hero_ops_scoreboard"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Ops scoreboard
           </TrackedLink>
           <TrackedLink
             href="/rootfetch/artifacts/latest.json"
@@ -426,6 +464,23 @@ export default async function Home() {
               <span className="text-muted-foreground">Delivery</span>
               <span>at-least-once + dedup</span>
             </p>
+          </div>
+          <div className="mt-3 rounded-lg border border-border/70 bg-background/45 p-3">
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Copy structural citation</p>
+            <pre className="mt-2 overflow-auto rounded border border-border/60 bg-background/60 p-2 text-[11px] rf-mono-digits">
+              {latestCitationSnippet}
+            </pre>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <CopyValueButton value={latestCitationSnippet} keyName="home_structural_citation" context="guarantees_panel" />
+              <TrackedLink
+                href={compareLatestHref}
+                label="home_open_compare_latest"
+                pageType="home"
+                className="inline-flex items-center rounded-lg border border-border/70 px-2 py-1 text-xs hover:border-primary/50"
+              >
+                open compare
+              </TrackedLink>
+            </div>
           </div>
         </section>
 
@@ -646,6 +701,12 @@ state=${state}
           </Link>
           <Link href="/recipes" className="hover:text-foreground">
             recipes
+          </Link>
+          <Link href="/docs/integrations" className="hover:text-foreground">
+            integrations
+          </Link>
+          <Link href="/ops" className="hover:text-foreground">
+            ops
           </Link>
           <Link href="/llms.txt" className="hover:text-foreground">
             llms.txt

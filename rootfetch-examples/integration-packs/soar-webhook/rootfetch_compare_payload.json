@@ -1,0 +1,11 @@
+{
+  "source": "rootfetch",
+  "kind": "structural_compare",
+  "left_run_id": "<left_run_id>",
+  "right_run_id": "<right_run_id>",
+  "compare_url": "https://rootfetch.com/compare?left=<left_run_id>&right=<right_run_id>",
+  "evidence": {
+    "left_manifest": "https://rootfetch.com/rootfetch/artifacts/runs/<left_run_id>/manifest.json",
+    "right_manifest": "https://rootfetch.com/rootfetch/artifacts/runs/<right_run_id>/manifest.json"
+  }
+}

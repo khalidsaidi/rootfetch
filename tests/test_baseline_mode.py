@@ -173,7 +173,7 @@ def test_run_hybrid_allows_incomplete_baseline_with_flag(temp_settings, monkeypa
     monkeypatch.setattr("rootfetch.core.pipeline.get_access_token", lambda **_: "token")
     monkeypatch.setattr("rootfetch.core.pipeline.fetch_approved_links", lambda *_args, **_kwargs: links)
 
-    def _fake_download(url: str, tld: str, token: str, settings) -> dict[str, object]:
+    def _fake_download(url: str, tld: str, token: str, settings, **_kwargs) -> dict[str, object]:
         assert url
         assert token == "token"
         return {
@@ -215,7 +215,7 @@ def test_run_baseline_writes_completion_marker(temp_settings, monkeypatch) -> No
     monkeypatch.setattr("rootfetch.core.pipeline.get_access_token", lambda **_: "token")
     monkeypatch.setattr("rootfetch.core.pipeline.fetch_approved_links", lambda *_args, **_kwargs: links)
 
-    def _fake_download(url: str, tld: str, token: str, settings) -> dict[str, object]:
+    def _fake_download(url: str, tld: str, token: str, settings, **_kwargs) -> dict[str, object]:
         assert url
         assert token == "token"
         return {

@@ -27,6 +27,9 @@ export default function PublicEndpointsPage() {
           <li>AIR: <code>https://rootfetch.com/air.json</code></li>
           <li>AI Plugin: <code>https://rootfetch.com/ai-plugin.json</code></li>
           <li>Agent discovery: <code>https://rootfetch.com/.well-known/agent.json</code></li>
+          <li>Integrations docs: <code>https://rootfetch.com/docs/integrations</code></li>
+          <li>Ops scoreboard: <code>https://rootfetch.com/ops</code></li>
+          <li>Ops scoreboard API: <code>https://rootfetch.com/api/ops/scoreboard</code></li>
         </ul>
       </Section>
 
@@ -35,6 +38,7 @@ export default function PublicEndpointsPage() {
           <li>Latest pointer: <code>/rootfetch/artifacts/latest.json</code></li>
           <li>Replay index: <code>/rootfetch/artifacts/replay/index.json</code></li>
           <li>Run manifest: <code>/rootfetch/artifacts/runs/&lt;run_id&gt;/manifest.json</code></li>
+          <li>Ops scoreboard: <code>/rootfetch/ops_scoreboard_latest.json</code></li>
         </ul>
       </Section>
 

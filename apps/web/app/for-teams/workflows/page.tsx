@@ -88,6 +88,9 @@ evidence_links:
           <TrackedLink href="/docs/mcp" label="workflows_mcp_docs" pageType="for_teams_workflows" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             MCP docs
           </TrackedLink>
+          <TrackedLink href="/docs/integrations" label="workflows_integrations" pageType="for_teams_workflows" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Integration runbooks
+          </TrackedLink>
           <TrackedLink href="/recipes" label="workflows_recipes" pageType="for_teams_workflows" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             Recipes
           </TrackedLink>
