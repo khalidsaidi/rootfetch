@@ -158,7 +158,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
   ];
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
+    <main className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
       <Section
         title="Run Explorer"
         subtitle="Immutable, run-scoped evidence page. This route loads only /rootfetch/artifacts/runs/<run_id>/... files."
@@ -237,18 +237,18 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
           </Callout>
         ) : null}
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+        <div className="mt-4 grid min-w-0 gap-3 md:grid-cols-2">
+          <div className="min-w-0 rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">How to verify locally (JS)</p>
-            <pre className="mt-2 overflow-x-auto rounded bg-muted/30 p-2 text-xs rf-mono-digits">{jsVerifyCmd}</pre>
+            <pre className="mt-2 max-w-full overflow-x-auto rounded bg-muted/30 p-2 text-xs rf-mono-digits whitespace-pre-wrap break-all">{jsVerifyCmd}</pre>
             <div className="mt-2 flex flex-wrap gap-2">
               <CopyValueButton value={jsVerifyCmd} keyName="verify_js_cmd" context="run_explorer_integrity" />
               <CopyValueButton value="npm i rootfetch-sdk-js" keyName="install_js_sdk" context="run_explorer_integrity" />
             </div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+          <div className="min-w-0 rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">How to verify locally (Python)</p>
-            <pre className="mt-2 overflow-x-auto rounded bg-muted/30 p-2 text-xs rf-mono-digits">{pyVerifyCmd}</pre>
+            <pre className="mt-2 max-w-full overflow-x-auto rounded bg-muted/30 p-2 text-xs rf-mono-digits whitespace-pre-wrap break-all">{pyVerifyCmd}</pre>
             <div className="mt-2 flex flex-wrap gap-2">
               <CopyValueButton value={pyVerifyCmd} keyName="verify_py_cmd" context="run_explorer_integrity" />
               <CopyValueButton value="pip install rootfetch-sdk-py" keyName="install_py_sdk" context="run_explorer_integrity" />
@@ -360,7 +360,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
                       <Badge tone={missing ? "warning" : "success"}>{missing ? "missing" : "present"}</Badge>
                     </td>
                     <td className="px-2 py-2">
-                      <a href={href} className="inline-flex items-center gap-1 text-cyan-200 hover:text-cyan-100">
+                      <a href={href} className="inline-flex items-center gap-1 break-all text-cyan-200 hover:text-cyan-100">
                         {href} <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     </td>
@@ -375,7 +375,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
       <div className="grid gap-5 lg:grid-cols-2">
         <Section title="Cite This Run" subtitle="Copy-ready citation fields for reports and briefings.">
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
-            <pre className="whitespace-pre-wrap text-xs rf-mono-digits">{citeSnippet}</pre>
+            <pre className="max-w-full overflow-auto whitespace-pre-wrap break-all text-xs rf-mono-digits">{citeSnippet}</pre>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             <CopyValueButton value={citeSnippet} keyName="cite_run_snippet" context="run_explorer_cite" />
@@ -390,7 +390,7 @@ export default async function RunExplorerPage({ params }: { params: Promise<{ ru
 
         <Section title="Digest Snapshot" subtitle="Optional digest text for this run.">
           {run.digest ? (
-            <pre className="max-h-80 overflow-auto rounded-lg border border-border/70 bg-background/70 p-3 text-xs rf-mono-digits">
+            <pre className="max-h-80 max-w-full overflow-auto rounded-lg border border-border/70 bg-background/70 p-3 text-xs rf-mono-digits whitespace-pre-wrap break-all">
               {run.digest}
             </pre>
           ) : (

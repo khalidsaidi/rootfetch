@@ -80,7 +80,7 @@ export const metadata: Metadata = {
 
 export default function RecipesPage() {
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
+    <main className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-5 px-4 pb-16 pt-8 md:px-8 [&_pre]:max-w-full [&_pre]:whitespace-pre-wrap [&_pre]:break-all">
       <Section
         title="Agent Recipes"
         subtitle="Copy-and-run integration paths for immutable RootFetch artifacts. No secrets required."

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function PublicEndpointsPage() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
+    <main className="mx-auto flex w-full max-w-5xl min-w-0 flex-col gap-5 px-4 pb-16 pt-8 md:px-8 [&_code]:break-all">
       <Section title="Public Endpoints" subtitle="Canonical URLs for operators and integrators.">
         <ul className="ml-5 list-disc space-y-2 text-sm text-muted-foreground">
           <li>MCP: <code>https://rootfetch.com/mcp</code></li>
