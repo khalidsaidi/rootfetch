@@ -48,6 +48,16 @@ function json(payload: unknown, status = 200): Response {
   });
 }
 
+function html(payload: string, status = 200): Response {
+  return new Response(payload, {
+    status,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      ...CORS_HEADERS,
+    },
+  });
+}
+
 function resolvePublicOrigin(request: Request): string {
   const forwardedHost =
     request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
@@ -171,7 +181,7 @@ function initializeResponse(id: JsonRpcId): Response {
 export async function GET(request: Request): Promise<Response> {
   const startedAt = Date.now();
   const origin = resolvePublicOrigin(request);
-  const response = json({
+  const payload = {
     name: "RootFetch MCP",
     status: "ok",
     protocol: "json-rpc-2.0",
@@ -182,8 +192,11 @@ export async function GET(request: Request): Promise<Response> {
     ai_plugin_url: `${origin}/ai-plugin.json`,
     health_url: `${origin}/mcp/health`,
     ready_url: `${origin}/mcp/readyz`,
+    usage_live_url: `${origin}/mcp/live`,
     usage_dashboard_url: `${origin}/admin/usage`,
     usage_events_dashboard_url: `${origin}/admin/agent-events`,
+    usage_public_stats_url: `${origin}/api/mcp/public-stats?days=7`,
+    usage_public_events_url: `${origin}/api/mcp/public-events?limit=30`,
     usage_stats_url: `${origin}/api/mcp/stats?days=7`,
     usage_events_url: `${origin}/api/mcp/events?limit=50`,
     capabilities: ["tools/list", "tools/call"],
@@ -197,7 +210,65 @@ export async function GET(request: Request): Promise<Response> {
     artifact_backed: true,
     read_only: true,
     no_recompute: true,
-  });
+  };
+
+  const accept = (request.headers.get("accept") || "").toLowerCase();
+  const reqUrl = new URL(request.url);
+  const forceJson = reqUrl.searchParams.get("format") === "json";
+  const wantsHtml = !forceJson && accept.includes("text/html");
+  const response = wantsHtml
+    ? html(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RootFetch MCP</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 2rem auto; max-width: 860px; padding: 0 1rem; color: #d6e2ee; background: #020617; }
+      main { border: 1px solid #1e293b; border-radius: 14px; padding: 1.25rem; background: #0b1220; }
+      h1 { margin: 0 0 0.5rem; font-size: 1.6rem; }
+      p, li { line-height: 1.55; color: #94a3b8; }
+      code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace; }
+      pre { overflow: auto; border: 1px solid #1e293b; border-radius: 10px; background: #020617; padding: 0.75rem; color: #c7f9cc; }
+      ul { margin: 0.5rem 0 1rem 1.25rem; }
+      a { color: #67e8f9; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .grid { display: grid; gap: 0.75rem; margin-top: 1rem; }
+      .card { border: 1px solid #1e293b; border-radius: 10px; padding: 0.75rem; background: #0a1426; }
+      .muted { font-size: 0.9rem; color: #64748b; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>RootFetch MCP</h1>
+      <p>Public, read-only MCP endpoint backed by immutable RootFetch artifacts.</p>
+      <div class="grid">
+        <div class="card">
+          <strong>Endpoint</strong>
+          <pre>${payload.endpoint}</pre>
+          <p class="muted">JSON metadata: <a href="${payload.endpoint}?format=json">${payload.endpoint}?format=json</a></p>
+        </div>
+        <div class="card">
+          <strong>Docs + Live Usage</strong>
+          <ul>
+            <li><a href="${payload.docs_url}">${payload.docs_url}</a></li>
+            <li><a href="${payload.usage_live_url}">${payload.usage_live_url}</a></li>
+            <li><a href="${payload.openapi_url}">${payload.openapi_url}</a></li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Health</strong>
+          <ul>
+            <li><a href="${payload.health_url}">${payload.health_url}</a></li>
+            <li><a href="${payload.ready_url}">${payload.ready_url}</a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="muted">No key required. Responses are artifact-backed only. No server-side recompute.</p>
+    </main>
+  </body>
+</html>`)
+    : json(payload);
   await recordMcpUsageEvent({
     httpMethod: "GET",
     status: response.status,

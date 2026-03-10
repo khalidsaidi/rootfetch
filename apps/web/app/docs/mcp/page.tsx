@@ -5,7 +5,7 @@ import Section from "@/components/Section";
 import TrackedLink from "@/components/TrackedLink";
 
 export const metadata: Metadata = {
-  title: "MCP Usage",
+  title: "MCP Docs",
   description: "How to connect MCP clients to RootFetch read-only artifact tools.",
   alternates: {
     canonical: "/docs/mcp",
@@ -39,6 +39,10 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
         <p className="text-sm text-muted-foreground">
           Endpoint: <code>https://rootfetch.com/mcp</code>. Public and rate-limited. Responses are artifact-backed only (no
           server-side recompute).
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Browser-friendly MCP landing page: <code>https://rootfetch.com/mcp</code>. Raw metadata:{" "}
+          <code>https://rootfetch.com/mcp?format=json</code>.
         </p>
       </Section>
 
@@ -99,6 +103,10 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           admin-protected via HTTP Basic Auth.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
+          Public anonymized visibility is available at <code>/mcp/live</code>, backed by{" "}
+          <code>/api/mcp/public-stats</code> and <code>/api/mcp/public-events</code>.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
           Usage telemetry is persisted through a dedicated backend service (Cloud Run + Firestore), so stats/events remain
           durable across instances and deploys.
         </p>
@@ -107,6 +115,14 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           Page-level analytics events (for example <code>rf_mcp_doc_open</code> and <code>rf_copy_mcp_snippet</code>) are
           still tracked separately.
         </p>
+        <TrackedLink
+          href="/mcp/live"
+          label="mcp_docs_public_live_usage"
+          pageType="mcp_docs"
+          className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
+        >
+          Open public live usage
+        </TrackedLink>
         <TrackedLink
           href="/admin/usage"
           label="mcp_docs_usage_dashboard"

@@ -17,8 +17,12 @@ export default function PublicEndpointsPage() {
       <Section title="Public Endpoints" subtitle="Canonical URLs for operators and integrators.">
         <ul className="ml-5 list-disc space-y-2 text-sm text-muted-foreground">
           <li>MCP: <code>https://rootfetch.com/mcp</code></li>
+          <li>MCP metadata JSON: <code>https://rootfetch.com/mcp?format=json</code></li>
           <li>MCP health: <code>https://rootfetch.com/mcp/health</code></li>
           <li>MCP readiness: <code>https://rootfetch.com/mcp/readyz</code></li>
+          <li>MCP live usage page (public): <code>https://rootfetch.com/mcp/live</code></li>
+          <li>MCP public stats API: <code>https://rootfetch.com/api/mcp/public-stats?days=7</code></li>
+          <li>MCP public events API: <code>https://rootfetch.com/api/mcp/public-events?limit=30</code></li>
           <li>MCP usage dashboard (admin): <code>https://rootfetch.com/admin/usage</code></li>
           <li>MCP agent events (admin): <code>https://rootfetch.com/admin/agent-events</code></li>
           <li>MCP usage stats API: <code>https://rootfetch.com/api/mcp/stats?days=7</code></li>
@@ -44,8 +48,9 @@ export default function PublicEndpointsPage() {
 
       <Section title="Usage Event Notes">
         <p className="text-sm text-muted-foreground">
-          RootFetch exposes read-only MCP usage and event endpoints. These are telemetry views only; no public write ingestion
-          endpoint is exposed. Access is protected with HTTP Basic Auth.
+          RootFetch exposes read-only MCP usage and event endpoints. Public telemetry is anonymized and available at
+          <code> /mcp/live</code>, <code> /api/mcp/public-stats</code>, and <code> /api/mcp/public-events</code>.
+          Admin telemetry endpoints add full operator detail and remain protected with HTTP Basic Auth.
         </p>
       </Section>
 

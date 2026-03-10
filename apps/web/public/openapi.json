@@ -433,6 +433,258 @@
           }
         }
       }
+    },
+    "/api/mcp/public-stats": {
+      "get": {
+        "summary": "Public MCP usage stats",
+        "operationId": "getMcpPublicUsageStats",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 7
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anonymized MCP usage stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "shared",
+                        "local"
+                      ]
+                    },
+                    "generated_at_utc": {
+                      "type": "string"
+                    },
+                    "window_days": {
+                      "type": "integer"
+                    },
+                    "totals": {
+                      "type": "object",
+                      "properties": {
+                        "requests": {
+                          "type": "integer"
+                        },
+                        "rate_limited": {
+                          "type": "integer"
+                        },
+                        "errors": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    },
+                    "by_http_method": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    },
+                    "by_rpc_method": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    },
+                    "by_kind": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    },
+                    "by_tool": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    },
+                    "daily": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date_utc": {
+                            "type": "string"
+                          },
+                          "requests": {
+                            "type": "integer"
+                          },
+                          "rate_limited": {
+                            "type": "integer"
+                          },
+                          "errors": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    },
+                    "backend": {
+                      "type": "string",
+                      "enum": [
+                        "configured",
+                        "missing",
+                        "error"
+                      ]
+                    },
+                    "note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mcp/public-events": {
+      "get": {
+        "summary": "Public MCP usage events",
+        "operationId": "getMcpPublicUsageEvents",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 30
+            }
+          },
+          {
+            "in": "query",
+            "name": "rpc_method",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tool_name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anonymized recent MCP events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "generated_at_utc": {
+                      "type": "string"
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "shared",
+                        "local"
+                      ]
+                    },
+                    "backend": {
+                      "type": "string",
+                      "enum": [
+                        "configured",
+                        "missing",
+                        "error"
+                      ]
+                    },
+                    "note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ts_utc": {
+                            "type": "string"
+                          },
+                          "http_method": {
+                            "type": "string"
+                          },
+                          "rpc_method": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "tool_name": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "status": {
+                            "type": "integer"
+                          },
+                          "duration_ms": {
+                            "type": "integer"
+                          },
+                          "rate_limited": {
+                            "type": "boolean"
+                          },
+                          "kind": {
+                            "type": "string"
+                          },
+                          "limiter_mode": {
+                            "type": "string",
+                            "enum": [
+                              "shared",
+                              "local"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

@@ -55,6 +55,10 @@ function hasBackendConfig(): boolean {
   return Boolean(BACKEND_URL && BACKEND_TOKEN);
 }
 
+export function hasMcpTelemetryBackend(): boolean {
+  return hasBackendConfig();
+}
+
 function requireBackendConfig(): void {
   if (!hasBackendConfig()) {
     throw new Error("telemetry_backend_not_configured");

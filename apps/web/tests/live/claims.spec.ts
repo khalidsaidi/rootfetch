@@ -23,6 +23,9 @@ test("public docs and ops pages render without uncaught browser errors", async (
   await page.goto("/docs/mcp", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "RootFetch MCP Docs" })).toBeVisible();
 
+  await page.goto("/mcp/live", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "MCP Live Activity" })).toBeVisible();
+
   await page.goto("/for-teams", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "RootFetch For Teams" })).toBeVisible();
 
@@ -121,6 +124,16 @@ test("well-known discovery artifacts resolve", async ({ request }) => {
     "/.well-known/ai-plugin.json",
     "/llms.txt",
     "/llms-full.txt",
+  ]) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(200);
+  }
+});
+
+test("public MCP telemetry endpoints resolve without auth", async ({ request }) => {
+  for (const path of [
+    "/api/mcp/public-stats?days=7",
+    "/api/mcp/public-events?limit=20",
   ]) {
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);

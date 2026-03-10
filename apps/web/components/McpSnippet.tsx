@@ -63,9 +63,16 @@ export default function McpSnippet({ siteUrl }: { siteUrl?: string }) {
         >
           <Link2 className="h-3.5 w-3.5" /> Test MCP
         </a>
+        <a
+          href="/mcp/live"
+          className="inline-flex items-center gap-1 rounded-lg border border-border/60 px-3 py-1.5 text-xs hover:border-primary/40"
+          onClick={() => track("rf_open_mcp_usage", { page_type: "dashboard" })}
+        >
+          <Link2 className="h-3.5 w-3.5" /> Live usage
+        </a>
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">
-        MCP requires server-side token + allowed-origin checks. Browser clients should not embed tokens.
+        MCP is public and rate-limited. No key required. All tool responses are read-only and artifact-backed.
       </p>
     </div>
   );

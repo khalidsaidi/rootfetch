@@ -231,6 +231,9 @@ async function generateSeoTextArtifacts() {
     `- AI Plugin (well-known): ${siteUrl}/.well-known/ai-plugin.json\n` +
     `- MCP endpoint: ${siteUrl}/mcp\n` +
     `- MCP docs: ${siteUrl}/docs/mcp\n` +
+    `- MCP live usage (public): ${siteUrl}/mcp/live\n` +
+    `- MCP public stats: ${siteUrl}/api/mcp/public-stats?days=7\n` +
+    `- MCP public events: ${siteUrl}/api/mcp/public-events?limit=30\n` +
     `- MCP usage dashboard (admin): ${siteUrl}/admin/usage\n` +
     `- MCP agent events (admin): ${siteUrl}/admin/agent-events\n` +
     `- MCP usage stats: ${siteUrl}/api/mcp/stats?days=7\n` +
