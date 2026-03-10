@@ -31,6 +31,11 @@ test("analytics events fire on core product interactions", async ({ page }) => {
   await page.waitForTimeout(700);
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  const operatorFeeds = page
+    .locator("details")
+    .filter({ hasText: "Operator feeds and command console" })
+    .first();
+  await operatorFeeds.locator("summary").click();
   await page.getByRole("link", { name: "Open full digest" }).click();
   await page.waitForURL("**/rootfetch/latest.md");
 

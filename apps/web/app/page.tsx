@@ -46,6 +46,13 @@ function fmtPct(value: number | undefined | null): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+function fmtSignedInt(value: number | undefined | null): string {
+  if (typeof value !== "number" || Number.isNaN(value)) return "n/a";
+  const rounded = Math.trunc(value);
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${new Intl.NumberFormat("en-US").format(rounded)}`;
+}
+
 function marketState(top10SharePct: number, dviScore: number): "stable" | "fragmenting" | "consolidating" | "speculative" {
   if (top10SharePct >= 70 || dviScore >= 72) return "consolidating";
   if (dviScore >= 50) return "speculative";
@@ -394,6 +401,49 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="rf-glass rounded-3xl p-5 md:p-6">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Public structural brief</p>
+            <h2 className="font-display text-2xl font-semibold">Current state at a glance</h2>
+          </div>
+          <TrackedLink
+            href={compareLatestHref}
+            label="public_brief_compare"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3 py-1.5 text-xs hover:border-primary/50"
+          >
+            Compare latest
+          </TrackedLink>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">Regime</p>
+            <p className="mt-1 font-display text-xl font-semibold uppercase">{state}</p>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">DVI</p>
+            <p className="mt-1 rf-mono-digits text-xl font-semibold">{dviScore.toFixed(1)}</p>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">Top 10 share</p>
+            <p className="mt-1 rf-mono-digits text-xl font-semibold">{top10SharePct.toFixed(2)}%</p>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">Observed vs tracked</p>
+            <p className="mt-1 rf-mono-digits text-xl font-semibold">
+              {fmtInt(countedEver)} / {fmtInt(approved)}
+            </p>
+          </div>
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          In the latest immutable run, delegated counts moved{" "}
+          <span className="rf-mono-digits text-foreground">{fmtSignedInt(delta7dAbs)}</span> over 7 days with{" "}
+          <span className="rf-mono-digits text-foreground">{fmtPct(delta7dPct)}</span> change, while structure remains{" "}
+          <span className="font-semibold uppercase text-foreground">{state}</span>.
+        </p>
+      </section>
+
       <ReplayTimelineProvider initialDays={0}>
         <div id="live-zone">
           <LiveIntelligenceZoneClient
@@ -484,25 +534,40 @@ export default async function Home() {
           </div>
         </section>
 
-        <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
+        <details className="rounded-3xl border border-border/70 bg-card/35 p-5 md:p-6">
+          <summary className="cursor-pointer list-none">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Operator view</p>
+                <h2 className="font-display text-2xl font-semibold">Structural lab and deep analytics</h2>
+              </div>
+              <span className="rounded-full border border-border/70 px-3 py-1 text-xs text-muted-foreground">
+                Expand
+              </span>
+            </div>
+          </summary>
+          <div className="mt-5 space-y-6">
+            <StructuralAnalysisLayer marketMapRows={marketMapRows} powerCurve={powerCurve} radarRows={radarRows} />
 
-        <AdvancedAnalyticsLayer
-          marketRows={marketMapRows}
-          radarRows={radarRows}
-          sectorRows={sectorIndices}
-          baseDviScore={dviScore}
-          baseTop10SharePct={top10SharePct}
-          totalDelegated={totalDelegated}
-          delta7dAbs={delta7dAbs}
-        />
+            <AdvancedAnalyticsLayer
+              marketRows={marketMapRows}
+              radarRows={radarRows}
+              sectorRows={sectorIndices}
+              baseDviScore={dviScore}
+              baseTop10SharePct={top10SharePct}
+              totalDelegated={totalDelegated}
+              delta7dAbs={delta7dAbs}
+            />
 
-        <section className="rf-glass rounded-3xl p-5 md:p-6">
-          <div className="mb-3">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Sector indices</p>
-            <h2 className="font-display text-2xl font-semibold">Namespace market baskets</h2>
+            <section className="rf-glass rounded-3xl p-5 md:p-6">
+              <div className="mb-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Sector indices</p>
+                <h2 className="font-display text-2xl font-semibold">Namespace market baskets</h2>
+              </div>
+              <SectorIndexGrid rows={sectorIndices} />
+            </section>
           </div>
-          <SectorIndexGrid rows={sectorIndices} />
-        </section>
+        </details>
       </ReplayTimelineProvider>
 
       <section className="rf-glass rounded-3xl p-5 md:p-6">
@@ -609,80 +674,85 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="rf-glass rounded-3xl p-5 md:p-6">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              <TerminalSquare className="h-3.5 w-3.5 text-primary" /> AI control surface
-            </p>
-            <h2 className="font-display text-2xl font-semibold">Agent connection and command console</h2>
+      <details className="rounded-3xl border border-border/70 bg-card/35 p-5 md:p-6">
+        <summary className="cursor-pointer list-none">
+          <div className="mb-1 flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                <TerminalSquare className="h-3.5 w-3.5 text-primary" /> Operator feeds and command console
+              </p>
+              <h2 className="font-display text-2xl font-semibold">Agent and MCP operations</h2>
+            </div>
+            <span className="rounded-full border border-border/70 px-3 py-1 text-xs text-muted-foreground">
+              Expand
+            </span>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-cyan-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.12em] text-cyan-100">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-300" />
-            Stream mode toggle
-          </span>
-        </div>
-        <div className="grid gap-4 xl:grid-cols-[1fr,1fr]">
-          <div className="min-w-0 space-y-3">
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Live artifact preview</p>
-            <JsonArtifactPreview
-              payload={{
-                date_utc: latest.date_utc,
-                approved_tlds_count: approved,
-                counted_today_count: observedToday,
-                snapshot_rows_today: snapshotRowsToday,
-                total_delegated_counted_today: totalDelegated,
-                top10_share_pct: top10SharePct,
-                dvi_score: dviScore,
-                market_state: state,
-              }}
-            />
-          </div>
-          <div className="min-w-0 space-y-3">
-            <div className="rounded-xl border border-border/70 bg-background/45 p-3">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Command console</p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <TrackedLink href="/docs/mcp" label="cmd_mcp" pageType="home" eventName="rf_mcp_doc_open" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
-                  <Bot className="h-4 w-4" /> Copy MCP
-                </TrackedLink>
-                <TrackedLink href="/api/latest" label="cmd_fetch_artifact" pageType="home" eventName="rf_open_json_api" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
-                  <Database className="h-4 w-4" /> Fetch artifact
-                </TrackedLink>
-                <TrackedLink href="/api/latest" label="cmd_stream_anomaly" pageType="home" eventName="rf_rag_search" eventParams={{ q_len: 13, hits_count: anomalyRows.length }} className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
-                  <Activity className="h-4 w-4" /> Stream anomalies
-                </TrackedLink>
-                <TrackedLink href="/ask" label="cmd_simulation" pageType="home" eventName="rf_ask_submit" eventParams={{ q_len: 24 }} className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
-                  <TerminalSquare className="h-4 w-4" /> Run simulation
-                </TrackedLink>
-                <TrackedLink href="/tlds" label="cmd_tld_index" pageType="home" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
-                  <FolderTree className="h-4 w-4" /> Open TLD index
-                </TrackedLink>
+        </summary>
+        <div className="mt-4 space-y-6">
+          <section className="rf-glass rounded-3xl p-5 md:p-6">
+            <div className="grid gap-4 xl:grid-cols-[1fr,1fr]">
+              <div className="min-w-0 space-y-3">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Live artifact preview</p>
+                <JsonArtifactPreview
+                  payload={{
+                    date_utc: latest.date_utc,
+                    approved_tlds_count: approved,
+                    counted_today_count: observedToday,
+                    snapshot_rows_today: snapshotRowsToday,
+                    total_delegated_counted_today: totalDelegated,
+                    top10_share_pct: top10SharePct,
+                    dvi_score: dviScore,
+                    market_state: state,
+                  }}
+                />
               </div>
-              <pre className="mt-3 max-w-full overflow-auto rounded-lg border border-border/70 bg-black/55 p-3 font-mono text-xs text-emerald-300">
+              <div className="min-w-0 space-y-3">
+                <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Command console</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <TrackedLink href="/docs/mcp" label="cmd_mcp" pageType="home" eventName="rf_mcp_doc_open" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                      <Bot className="h-4 w-4" /> Copy MCP
+                    </TrackedLink>
+                    <TrackedLink href="/api/latest" label="cmd_fetch_artifact" pageType="home" eventName="rf_open_json_api" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                      <Database className="h-4 w-4" /> Fetch artifact
+                    </TrackedLink>
+                    <TrackedLink href="/api/latest" label="cmd_stream_anomaly" pageType="home" eventName="rf_rag_search" eventParams={{ q_len: 13, hits_count: anomalyRows.length }} className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                      <Activity className="h-4 w-4" /> Stream anomalies
+                    </TrackedLink>
+                    <TrackedLink href="/ask" label="cmd_simulation" pageType="home" eventName="rf_ask_submit" eventParams={{ q_len: 24 }} className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                      <TerminalSquare className="h-4 w-4" /> Run simulation
+                    </TrackedLink>
+                    <TrackedLink href="/tlds" label="cmd_tld_index" pageType="home" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                      <FolderTree className="h-4 w-4" /> Open TLD index
+                    </TrackedLink>
+                  </div>
+                  <pre className="mt-3 max-w-full overflow-auto rounded-lg border border-border/70 bg-black/55 p-3 font-mono text-xs text-emerald-300">
 {`$ rootfetch status
 snapshot_date=${latest.date_utc}
 universe_tracked=${approved}
 observed_today=${observedToday}
 state=${state}
 `}
-              </pre>
+                  </pre>
+                </div>
+                <McpSnippet siteUrl={process.env.NEXT_PUBLIC_SITE_URL} />
+              </div>
             </div>
-            <McpSnippet siteUrl={process.env.NEXT_PUBLIC_SITE_URL} />
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <section className="rf-glass rounded-3xl p-5 md:p-6">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Daily intelligence digest</p>
-          <TrackedLink href="/rootfetch/latest.md" label="open_digest_bottom" pageType="home" eventName="rf_open_digest" extraEventNames={["rf_read_digest"]} className="text-sm text-primary hover:text-primary/80">
-            Open full digest
-          </TrackedLink>
+          <section className="rf-glass rounded-3xl p-5 md:p-6">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Daily intelligence digest</p>
+              <TrackedLink href="/rootfetch/latest.md" label="open_digest_bottom" pageType="home" eventName="rf_open_digest" extraEventNames={["rf_read_digest"]} className="text-sm text-primary hover:text-primary/80">
+                Open full digest
+              </TrackedLink>
+            </div>
+            <pre className="max-h-[300px] max-w-full overflow-auto rounded-xl border border-border/70 bg-background/55 p-4 font-mono text-xs leading-relaxed">
+              {digestSnippet}
+            </pre>
+          </section>
         </div>
-        <pre className="max-h-[300px] max-w-full overflow-auto rounded-xl border border-border/70 bg-background/55 p-4 font-mono text-xs leading-relaxed">
-          {digestSnippet}
-        </pre>
-      </section>
+      </details>
 
       <footer className="flex flex-wrap items-center justify-between gap-3 pb-4 text-xs text-muted-foreground">
         <p>RootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.</p>
