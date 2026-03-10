@@ -467,7 +467,7 @@ export default async function Home() {
           </div>
           <div className="mt-3 rounded-lg border border-border/70 bg-background/45 p-3">
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Copy structural citation</p>
-            <pre className="mt-2 overflow-auto rounded border border-border/60 bg-background/60 p-2 text-[11px] rf-mono-digits">
+            <pre className="mt-2 max-w-full overflow-auto rounded border border-border/60 bg-background/60 p-2 text-[11px] rf-mono-digits">
               {latestCitationSnippet}
             </pre>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -519,7 +519,7 @@ export default async function Home() {
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[1fr,1fr]">
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div className="overflow-hidden rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Snapshot hash</p>
               <div className="mt-2 flex items-start gap-2">
@@ -577,7 +577,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div className="rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Coverage status</p>
               <p className="mt-1 rf-mono-digits text-lg font-semibold">
@@ -623,7 +623,7 @@ export default async function Home() {
           </span>
         </div>
         <div className="grid gap-4 xl:grid-cols-[1fr,1fr]">
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Live artifact preview</p>
             <JsonArtifactPreview
               payload={{
@@ -638,27 +638,27 @@ export default async function Home() {
               }}
             />
           </div>
-          <div className="space-y-3">
+          <div className="min-w-0 space-y-3">
             <div className="rounded-xl border border-border/70 bg-background/45 p-3">
               <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Command console</p>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <TrackedLink href="/docs/mcp" label="cmd_mcp" pageType="home" eventName="rf_mcp_doc_open" className="inline-flex items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                <TrackedLink href="/docs/mcp" label="cmd_mcp" pageType="home" eventName="rf_mcp_doc_open" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
                   <Bot className="h-4 w-4" /> Copy MCP
                 </TrackedLink>
-                <TrackedLink href="/api/latest" label="cmd_fetch_artifact" pageType="home" eventName="rf_open_json_api" className="inline-flex items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                <TrackedLink href="/api/latest" label="cmd_fetch_artifact" pageType="home" eventName="rf_open_json_api" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
                   <Database className="h-4 w-4" /> Fetch artifact
                 </TrackedLink>
-                <TrackedLink href="/api/latest" label="cmd_stream_anomaly" pageType="home" eventName="rf_rag_search" eventParams={{ q_len: 13, hits_count: anomalyRows.length }} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                <TrackedLink href="/api/latest" label="cmd_stream_anomaly" pageType="home" eventName="rf_rag_search" eventParams={{ q_len: 13, hits_count: anomalyRows.length }} className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
                   <Activity className="h-4 w-4" /> Stream anomalies
                 </TrackedLink>
-                <TrackedLink href="/ask" label="cmd_simulation" pageType="home" eventName="rf_ask_submit" eventParams={{ q_len: 24 }} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                <TrackedLink href="/ask" label="cmd_simulation" pageType="home" eventName="rf_ask_submit" eventParams={{ q_len: 24 }} className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
                   <TerminalSquare className="h-4 w-4" /> Run simulation
                 </TrackedLink>
-                <TrackedLink href="/tlds" label="cmd_tld_index" pageType="home" className="inline-flex items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
+                <TrackedLink href="/tlds" label="cmd_tld_index" pageType="home" className="inline-flex w-full items-center justify-center gap-1 rounded-lg border border-border/70 px-3 py-2 text-sm hover:border-primary/50">
                   <FolderTree className="h-4 w-4" /> Open TLD index
                 </TrackedLink>
               </div>
-              <pre className="mt-3 rounded-lg border border-border/70 bg-black/55 p-3 font-mono text-xs text-emerald-300">
+              <pre className="mt-3 max-w-full overflow-auto rounded-lg border border-border/70 bg-black/55 p-3 font-mono text-xs text-emerald-300">
 {`$ rootfetch status
 snapshot_date=${latest.date_utc}
 universe_tracked=${approved}
@@ -679,14 +679,14 @@ state=${state}
             Open full digest
           </TrackedLink>
         </div>
-        <pre className="max-h-[300px] overflow-auto rounded-xl border border-border/70 bg-background/55 p-4 font-mono text-xs leading-relaxed">
+        <pre className="max-h-[300px] max-w-full overflow-auto rounded-xl border border-border/70 bg-background/55 p-4 font-mono text-xs leading-relaxed">
           {digestSnippet}
         </pre>
       </section>
 
       <footer className="flex flex-wrap items-center justify-between gap-3 pb-4 text-xs text-muted-foreground">
         <p>RootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.</p>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link href="/about" className="hover:text-foreground">
             about
           </Link>

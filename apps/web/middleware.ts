@@ -9,10 +9,6 @@ function unauthorized(): NextResponse {
   });
 }
 
-function unavailable(): NextResponse {
-  return new NextResponse("Admin auth not configured", { status: 503 });
-}
-
 function decodeBasicAuth(headerValue: string): { user: string; pass: string } | null {
   const parts = headerValue.split(" ");
   if (parts.length !== 2 || parts[0]?.toLowerCase() !== "basic") {
@@ -46,7 +42,7 @@ function credentialsFromEnv(): { user: string; pass: string } | null {
 export function middleware(request: NextRequest): NextResponse {
   const expected = credentialsFromEnv();
   if (!expected) {
-    return unavailable();
+    return unauthorized();
   }
 
   const authHeader = request.headers.get("authorization") || "";

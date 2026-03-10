@@ -73,12 +73,12 @@ export default function RunsArchiveClient({
     <section className="rf-glass rounded-2xl border border-border/60 p-5">
       {rows.length > 0 ? (
         <div className="mb-4 grid gap-3 rounded-xl border border-border/70 bg-background/45 p-3 md:grid-cols-[1fr,1fr,auto] md:items-end">
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
             Left run
             <select
               value={leftRunId}
               onChange={(event) => setLeftRunId(event.target.value)}
-              className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+              className="min-w-0 w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
             >
               {rows.map((row) => (
                 <option key={`left-${row.run_id}`} value={row.run_id}>
@@ -87,12 +87,12 @@ export default function RunsArchiveClient({
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
             Right run
             <select
               value={rightRunId}
               onChange={(event) => setRightRunId(event.target.value)}
-              className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+              className="min-w-0 w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
             >
               {rows.map((row) => (
                 <option key={`right-${row.run_id}`} value={row.run_id}>
@@ -111,12 +111,12 @@ export default function RunsArchiveClient({
       ) : null}
 
       <div className="mb-4 grid gap-3 md:grid-cols-4">
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
           Regime
           <select
             value={regimeFilter}
             onChange={(event) => setRegimeFilter(event.target.value)}
-            className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+            className="min-w-0 w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
           >
             <option value="all">All</option>
             {availableRegimes.map((regime) => (
@@ -126,12 +126,12 @@ export default function RunsArchiveClient({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
           DVI band
           <select
             value={bandFilter}
             onChange={(event) => setBandFilter(event.target.value)}
-            className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+            className="min-w-0 w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
           >
             <option value="all">All</option>
             <option value="stable">Stable</option>
@@ -140,22 +140,22 @@ export default function RunsArchiveClient({
             <option value="turbulent">Turbulent</option>
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
           Start date
           <input
             type="date"
             value={startDate}
             onChange={(event) => setStartDate(event.target.value)}
-            className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+            className="min-w-0 w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
           />
         </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
           End date
           <input
             type="date"
             value={endDate}
             onChange={(event) => setEndDate(event.target.value)}
-            className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+            className="min-w-0 w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
           />
         </label>
       </div>
@@ -193,7 +193,7 @@ export default function RunsArchiveClient({
           description="Adjust regime/DVI/date filters to browse immutable run history."
         />
       ) : (
-        <div className="mt-4 overflow-x-auto">
+        <div className="mt-4 max-w-full overflow-x-auto">
           <table className="min-w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-border/70 text-left text-xs uppercase tracking-[0.14em] text-muted-foreground">

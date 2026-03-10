@@ -12,7 +12,6 @@ function normalizeBaseUrl(raw: string): string {
 export default function McpSnippet({ siteUrl }: { siteUrl?: string }) {
   const origin = useMemo(() => {
     if (siteUrl && siteUrl.trim()) return normalizeBaseUrl(siteUrl);
-    if (typeof window !== "undefined" && window.location?.origin) return normalizeBaseUrl(window.location.origin);
     return "https://rootfetch.com";
   }, [siteUrl]);
 
@@ -31,7 +30,7 @@ export default function McpSnippet({ siteUrl }: { siteUrl?: string }) {
     <div className="rounded-2xl border border-border/70 bg-background/45 p-4">
       <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">MCP endpoint</p>
       <p className="mt-1 text-sm text-muted-foreground">Use this server URL in Claude/Cursor/Windsurf MCP config.</p>
-      <pre className="mt-3 overflow-x-auto rounded-xl border border-border/70 bg-black/60 p-3 text-xs leading-relaxed text-emerald-300">{snippet}</pre>
+      <pre className="mt-3 max-w-full overflow-x-auto rounded-xl border border-border/70 bg-black/60 p-3 text-xs leading-relaxed text-emerald-300">{snippet}</pre>
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"

@@ -380,7 +380,7 @@ export default function LiveIntelligenceZoneClient({
           </div>
 
           <div className="xl:px-5">
-            <div className="scale-[1.2] origin-top">
+            <div className="origin-top xl:scale-[1.2]">
               <VolatilityGauge
                 dvi={{
                   ...dvi,

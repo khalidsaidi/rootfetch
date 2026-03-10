@@ -1,4 +1,9 @@
 import { recordMcpUsageEvent } from "@/lib/mcp-telemetry";
+import {
+  DELETE as apiMcpDelete,
+  GET as apiMcpGet,
+  POST as apiMcpPost,
+} from "@/app/api/mcp/route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -74,16 +79,58 @@ function cloneProxyHeaders(request: Request): Headers {
   return headers;
 }
 
-async function proxyToApiMcp(request: Request, rawBody?: string): Promise<Response> {
+function makeApiMcpRequest(request: Request, rawBody?: string): Request {
   const target = new URL("/api/mcp", request.url);
-  const response = await fetch(target, {
-    method: request.method,
+  const method = request.method.toUpperCase();
+  const init: RequestInit = {
+    method,
     headers: cloneProxyHeaders(request),
-    body: rawBody,
     cache: "no-store",
     redirect: "manual",
-  });
+  };
+  if (rawBody !== undefined && method !== "GET" && method !== "HEAD") {
+    init.body = rawBody;
+  }
+  return new Request(target, init);
+}
 
+async function proxyToApiMcp(request: Request, rawBody?: string): Promise<Response> {
+  const method = request.method.toUpperCase();
+  let response: Response;
+  try {
+    const apiRequest = makeApiMcpRequest(request, rawBody);
+    if (method === "GET") {
+      response = await apiMcpGet(apiRequest);
+    } else if (method === "POST") {
+      response = await apiMcpPost(apiRequest);
+    } else if (method === "DELETE") {
+      response = await apiMcpDelete(apiRequest);
+    } else {
+      return json(
+        {
+          jsonrpc: "2.0",
+          id: null,
+          error: {
+            code: -32601,
+            message: "Method not allowed",
+          },
+        },
+        405,
+      );
+    }
+  } catch {
+    return json(
+      {
+        jsonrpc: "2.0",
+        id: null,
+        error: {
+          code: -32000,
+          message: "MCP proxy failed",
+        },
+      },
+      502,
+    );
+  }
   const headers = new Headers(response.headers);
   for (const [key, value] of Object.entries(CORS_HEADERS)) {
     headers.set(key, value);

@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:playwright": "playwright test"
+    "test:playwright": "playwright test",
+    "test:playwright:live": "playwright test -c playwright.live.config.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

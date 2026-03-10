@@ -121,13 +121,13 @@ function pickerSection(
           description="Replay index has no run entries yet. Publish pipeline must emit run metadata first."
         />
       ) : (
-        <form method="get" className="grid gap-3 md:grid-cols-[1fr,1fr,auto] md:items-end">
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <form method="get" className="grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr),minmax(0,1fr),auto] md:items-end">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
             Left run
             <select
               name="left"
               defaultValue={defaultLeft}
-              className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+              className="w-full min-w-0 max-w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
             >
               {sorted.map((row) => (
                 <option key={row.run_id} value={row.run_id}>
@@ -136,12 +136,12 @@ function pickerSection(
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-muted-foreground">
             Right run
             <select
               name="right"
               defaultValue={defaultRight}
-              className="rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
+              className="w-full min-w-0 max-w-full rounded-lg border border-border/70 bg-background/70 px-2 py-2 text-sm text-foreground"
             >
               {sorted.map((row) => (
                 <option key={row.run_id} value={row.run_id}>
@@ -152,7 +152,7 @@ function pickerSection(
           </label>
           <button
             type="submit"
-            className="h-10 rounded-lg border border-border/70 px-3 text-sm hover:border-primary/50"
+            className="h-10 w-full rounded-lg border border-border/70 px-3 text-sm hover:border-primary/50 md:w-auto"
           >
             Compare runs
           </button>
@@ -330,7 +330,7 @@ export default async function ComparePage({
   ].join("\n");
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
+    <main className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
       {pickerSection(replayRows, leftId, rightId)}
 
       <Section title="Run-to-Run Compare" subtitle="Artifact-only comparison (no recompute).">
@@ -349,14 +349,14 @@ export default async function ComparePage({
 
         {isDegraded ? (
           <Callout variant="warning">
-            Missing artifact paths: {degradedPaths.join(", ")}
+            <span className="break-all">Missing artifact paths: {degradedPaths.join(", ")}</span>
           </Callout>
         ) : null}
 
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+          <div className="min-w-0 rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Left run</p>
-            <p className="mt-1 rf-mono-digits text-sm font-semibold">{leftId}</p>
+            <p className="mt-1 break-all rf-mono-digits text-sm font-semibold">{leftId}</p>
             <p className="mt-1 text-xs text-muted-foreground">Snapshot: {leftSnapshotTs}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <CopyValueButton value={leftId} keyName="compare_left_run_id" context="compare_runs" />
@@ -366,9 +366,9 @@ export default async function ComparePage({
               </Link>
             </div>
           </div>
-          <div className="rounded-lg border border-border/70 bg-background/70 p-3">
+          <div className="min-w-0 rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Right run</p>
-            <p className="mt-1 rf-mono-digits text-sm font-semibold">{rightId}</p>
+            <p className="mt-1 break-all rf-mono-digits text-sm font-semibold">{rightId}</p>
             <p className="mt-1 text-xs text-muted-foreground">Snapshot: {rightSnapshotTs}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <CopyValueButton value={rightId} keyName="compare_right_run_id" context="compare_runs" />
@@ -382,7 +382,7 @@ export default async function ComparePage({
       </Section>
 
       <Section title="Copy Structural Citation" subtitle="One-click run-pair citation block for briefs and incident notes.">
-        <pre className="overflow-auto rounded-lg border border-border/70 bg-background/70 p-3 text-xs rf-mono-digits">
+        <pre className="max-w-full overflow-auto rounded-lg border border-border/70 bg-background/70 p-3 text-xs rf-mono-digits whitespace-pre-wrap break-all">
           {citationSnippet}
         </pre>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -435,8 +435,12 @@ export default async function ComparePage({
       </Section>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <Section title="Regime Inputs Delta" subtitle="Direct comparison of model inputs/components from model_latest.json.">
-          <div className="overflow-x-auto">
+        <Section
+          title="Regime Inputs Delta"
+          subtitle="Direct comparison of model inputs/components from model_latest.json."
+          className="min-w-0"
+        >
+          <div className="min-w-0 max-w-full overflow-x-auto">
             <table className="min-w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-border/70 text-left text-xs uppercase tracking-[0.14em] text-muted-foreground">
@@ -470,7 +474,7 @@ export default async function ComparePage({
           </div>
         </Section>
 
-        <Section title="Movers Delta" subtitle="Top movers list compare from signals_latest.json (no recompute).">
+        <Section title="Movers Delta" subtitle="Top movers list compare from signals_latest.json (no recompute)." className="min-w-0">
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-lg border border-border/70 bg-background/70 p-3">
               <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Left top movers</p>
@@ -524,7 +528,7 @@ export default async function ComparePage({
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Left run evidence</p>
             <div className="mt-2 flex flex-col gap-1 text-sm">
-              <Link href={leftRunHref} className="text-cyan-200 hover:text-cyan-100">/runs/{leftId}</Link>
+              <Link href={leftRunHref} className="break-all text-cyan-200 hover:text-cyan-100">/runs/{leftId}</Link>
               <a href={`${leftBundle.baseHref}/model_latest.json`} className="text-cyan-200 hover:text-cyan-100">model_latest.json</a>
               <a href={`${leftBundle.baseHref}/signals_latest.json`} className="text-cyan-200 hover:text-cyan-100">signals_latest.json</a>
               <a href={`${leftBundle.baseHref}/coverage_latest.json`} className="text-cyan-200 hover:text-cyan-100">coverage_latest.json</a>
@@ -534,7 +538,7 @@ export default async function ComparePage({
           <div className="rounded-lg border border-border/70 bg-background/70 p-3">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Right run evidence</p>
             <div className="mt-2 flex flex-col gap-1 text-sm">
-              <Link href={rightRunHref} className="text-cyan-200 hover:text-cyan-100">/runs/{rightId}</Link>
+              <Link href={rightRunHref} className="break-all text-cyan-200 hover:text-cyan-100">/runs/{rightId}</Link>
               <a href={`${rightBundle.baseHref}/model_latest.json`} className="text-cyan-200 hover:text-cyan-100">model_latest.json</a>
               <a href={`${rightBundle.baseHref}/signals_latest.json`} className="text-cyan-200 hover:text-cyan-100">signals_latest.json</a>
               <a href={`${rightBundle.baseHref}/coverage_latest.json`} className="text-cyan-200 hover:text-cyan-100">coverage_latest.json</a>
