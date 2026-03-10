@@ -314,8 +314,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized (admin auth required)"
           }
-        }
+        },
+        "security": [
+          {
+            "BasicAuth": []
+          }
+        ]
       }
     },
     "/api/mcp/events": {
@@ -430,8 +438,16 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized (admin auth required)"
           }
-        }
+        },
+        "security": [
+          {
+            "BasicAuth": []
+          }
+        ]
       }
     },
     "/api/mcp/public-stats": {
@@ -685,6 +701,35 @@
           }
         }
       }
+    },
+    "/mcp/healthz": {
+      "get": {
+        "summary": "MCP healthz",
+        "operationId": "getMcpHealthz",
+        "responses": {
+          "200": {
+            "description": "Ready",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "ready": {
+                    "value": {
+                      "status": "ready",
+                      "run_id": "20260307T231738Z_8a3bde89bd87_rootfetch_model_v1",
+                      "expected_count": 8,
+                      "checked_count": 8,
+                      "missing_files": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -808,6 +853,13 @@
         "required": [
           "jsonrpc"
         ]
+      }
+    },
+    "securitySchemes": {
+      "BasicAuth": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "Admin telemetry endpoints require HTTP Basic Auth."
       }
     }
   }

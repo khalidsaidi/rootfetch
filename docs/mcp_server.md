@@ -35,11 +35,17 @@ Hosted `/mcp` is public and rate-limited:
 Operational endpoints:
 
 - `GET /mcp/health`
+- `GET /mcp/healthz`
 - `GET /mcp/readyz`
+- `GET /mcp/live` (public anonymized usage/event view)
+- `GET /api/mcp/public-stats?days=7` (public anonymized stats)
+- `GET /api/mcp/public-events?limit=30` (public anonymized recent event classes)
 - `GET /api/mcp/stats?days=7` (admin-protected)
 - `GET /api/mcp/events?limit=50` (admin-protected)
 - `GET /admin/usage` (human usage dashboard, admin-protected)
 - `GET /admin/agent-events` (human event dashboard, admin-protected)
+- `GET /docs/hosting/mcp/` (hosting compatibility landing)
+- `GET /.well-known/glama.json` (connector metadata)
 
 Protocol notes:
 

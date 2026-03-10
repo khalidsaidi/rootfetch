@@ -44,6 +44,18 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           Browser-friendly MCP landing page: <code>https://rootfetch.com/mcp</code>. Raw metadata:{" "}
           <code>https://rootfetch.com/mcp?format=json</code>.
         </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Hosting compatibility page: <code>https://rootfetch.com/docs/hosting/mcp/</code>.
+          Glama connector: <code>https://rootfetch.com/.well-known/glama.json</code>.
+        </p>
+      </Section>
+
+      <Section title="Install Options">
+        <ul className="ml-5 list-disc space-y-2 text-sm text-muted-foreground">
+          <li>Direct remote endpoint (recommended): <code>https://rootfetch.com/mcp</code></li>
+          <li>NPM stdio bridge: <code>npx -y @khalidsaidi/rootfetch-mcp@latest rootfetch-mcp</code></li>
+          <li>Package: <code>https://www.npmjs.com/package/@khalidsaidi/rootfetch-mcp</code></li>
+        </ul>
       </Section>
 
       <Section title="Tool Surface">
@@ -87,6 +99,7 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
         </p>
         <ul className="mt-3 ml-5 list-disc space-y-1 text-sm text-muted-foreground">
           <li>Health: <code>GET https://rootfetch.com/mcp/health</code></li>
+          <li>Healthz: <code>GET https://rootfetch.com/mcp/healthz</code></li>
           <li>Readiness: <code>GET https://rootfetch.com/mcp/readyz</code></li>
         </ul>
         <ul className="mt-3 ml-5 list-disc space-y-1 text-sm text-muted-foreground">

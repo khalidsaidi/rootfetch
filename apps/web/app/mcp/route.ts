@@ -191,7 +191,11 @@ export async function GET(request: Request): Promise<Response> {
     openapi_url: `${origin}/openapi.json`,
     ai_plugin_url: `${origin}/ai-plugin.json`,
     health_url: `${origin}/mcp/health`,
+    healthz_url: `${origin}/mcp/healthz`,
     ready_url: `${origin}/mcp/readyz`,
+    hosting_page_url: `${origin}/docs/hosting/mcp/`,
+    glama_connector_url: `${origin}/.well-known/glama.json`,
+    npm_package: "https://www.npmjs.com/package/@khalidsaidi/rootfetch-mcp",
     usage_live_url: `${origin}/mcp/live`,
     usage_dashboard_url: `${origin}/admin/usage`,
     usage_events_dashboard_url: `${origin}/admin/agent-events`,
@@ -254,14 +258,22 @@ export async function GET(request: Request): Promise<Response> {
             <li><a href="${payload.docs_url}">${payload.docs_url}</a></li>
             <li><a href="${payload.usage_live_url}">${payload.usage_live_url}</a></li>
             <li><a href="${payload.openapi_url}">${payload.openapi_url}</a></li>
+            <li><a href="${payload.hosting_page_url}">${payload.hosting_page_url}</a></li>
           </ul>
         </div>
         <div class="card">
           <strong>Health</strong>
           <ul>
             <li><a href="${payload.health_url}">${payload.health_url}</a></li>
+            <li><a href="${payload.healthz_url}">${payload.healthz_url}</a></li>
             <li><a href="${payload.ready_url}">${payload.ready_url}</a></li>
           </ul>
+        </div>
+        <div class="card">
+          <strong>Install</strong>
+          <pre>{ "mcpServers": { "rootfetch": { "url": "${payload.endpoint}" } } }</pre>
+          <p class="muted">Local bridge: <code>npx -y @khalidsaidi/rootfetch-mcp@latest rootfetch-mcp</code></p>
+          <p class="muted">Package: <a href="${payload.npm_package}">${payload.npm_package}</a></p>
         </div>
       </div>
       <p class="muted">No key required. Responses are artifact-backed only. No server-side recompute.</p>

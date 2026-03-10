@@ -19,7 +19,10 @@ export default function PublicEndpointsPage() {
           <li>MCP: <code>https://rootfetch.com/mcp</code></li>
           <li>MCP metadata JSON: <code>https://rootfetch.com/mcp?format=json</code></li>
           <li>MCP health: <code>https://rootfetch.com/mcp/health</code></li>
+          <li>MCP healthz: <code>https://rootfetch.com/mcp/healthz</code></li>
           <li>MCP readiness: <code>https://rootfetch.com/mcp/readyz</code></li>
+          <li>MCP hosting page: <code>https://rootfetch.com/docs/hosting/mcp/</code></li>
+          <li>Glama connector metadata: <code>https://rootfetch.com/.well-known/glama.json</code></li>
           <li>MCP live usage page (public): <code>https://rootfetch.com/mcp/live</code></li>
           <li>MCP public stats API: <code>https://rootfetch.com/api/mcp/public-stats?days=7</code></li>
           <li>MCP public events API: <code>https://rootfetch.com/api/mcp/public-events?limit=30</code></li>

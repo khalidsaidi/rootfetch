@@ -118,12 +118,17 @@ test("well-known discovery artifacts resolve", async ({ request }) => {
   for (const path of [
     "/air.json",
     "/.well-known/air.json",
+    "/.well-known/glama.json",
     "/openapi.json",
     "/.well-known/openapi.json",
     "/ai-plugin.json",
     "/.well-known/ai-plugin.json",
     "/llms.txt",
     "/llms-full.txt",
+    "/docs/hosting/mcp/",
+    "/docs/hosting/mcp/health.json",
+    "/docs/hosting/mcp/healthz.json",
+    "/mcp/healthz",
   ]) {
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);

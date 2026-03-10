@@ -178,9 +178,11 @@ async function generateSeoTextArtifacts() {
     "/docs/mcp",
     "/docs/integrations",
     "/docs/public-endpoints",
+    "/docs/hosting/mcp/",
     "/for-teams",
     "/for-teams/workflows",
     "/ops",
+    "/mcp/live",
     "/tlds",
   ];
   const urls = [...baseRoutes, ...topTlds.map((tld) => `/tld/${encodeURIComponent(tld)}`)];
@@ -230,6 +232,7 @@ async function generateSeoTextArtifacts() {
     `- AI Plugin: ${siteUrl}/ai-plugin.json\n` +
     `- AI Plugin (well-known): ${siteUrl}/.well-known/ai-plugin.json\n` +
     `- MCP endpoint: ${siteUrl}/mcp\n` +
+    `- MCP hosting page: ${siteUrl}/docs/hosting/mcp/\n` +
     `- MCP docs: ${siteUrl}/docs/mcp\n` +
     `- MCP live usage (public): ${siteUrl}/mcp/live\n` +
     `- MCP public stats: ${siteUrl}/api/mcp/public-stats?days=7\n` +

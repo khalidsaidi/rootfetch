@@ -146,6 +146,11 @@ See scheduler setups in [docs/local_runner.md](docs/local_runner.md).
 - Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)
 - Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)
 - MCP server: [docs/mcp_server.md](docs/mcp_server.md)
+- MCP docs (public): `https://rootfetch.com/docs/mcp`
+- MCP endpoint: `https://rootfetch.com/mcp`
+- MCP live usage (public): `https://rootfetch.com/mcp/live`
+- MCP hosting compatibility page: `https://rootfetch.com/docs/hosting/mcp/`
+- MCP glama connector: `https://rootfetch.com/.well-known/glama.json`
 - Ops scoreboard: [docs/ops_scoreboard.md](docs/ops_scoreboard.md)
 - Public positioning page: `https://rootfetch.com/for-teams`
 - Team workflow runbooks: `https://rootfetch.com/for-teams/workflows`
