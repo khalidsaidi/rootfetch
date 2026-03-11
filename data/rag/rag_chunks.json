@@ -37,30 +37,30 @@
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "ac24230d4d80cdc0b2f26eb61fedcc9eaac0d081",
+      "id": "a7842b06209d39cb71749bae46fcfb0ac967d906",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
       "title": "Local Automation",
-      "text": "until 100% coverage\n3. once baseline is complete, runs `rootfetch run-hybrid`\n4. rebuilds static RAG + commits safe artifacts only\n\nSee scheduler setups in [docs/local_runner.md](docs/local_runner.md).\n\n## Outputs\n\n- `data/approved_tlds/latest.json`\n- `data/daily_counts/<YYYY-MM-DD>.csv`\n- `data/growth_trends.csv`\n- `data/signals/*`\n- `data/digests/*`\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n- `data/artifacts/latest.json`\n- `data/artifacts/replay/index.json`\n- `data/artifacts/runs/<run_id>/*`\n- `data/state/baseline_complete.json` (written once baseline reaches 100%)\n\n## Docs\n\n- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)\n- Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)\n- Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- Ops scoreboard: [docs/ops_scoreboard.md](docs/ops_scoreboard.md)\n- Public",
+      "text": "until 100% coverage\n3. once baseline is complete, runs `rootfetch run-hybrid`\n4. rebuilds static RAG + commits safe artifacts only\n\nSee scheduler setups in [docs/local_runner.md](docs/local_runner.md).\n\n## Outputs\n\n- `data/approved_tlds/latest.json`\n- `data/daily_counts/<YYYY-MM-DD>.csv`\n- `data/growth_trends.csv`\n- `data/signals/*`\n- `data/digests/*`\n- `data/rag/rag_chunks.json`\n- `data/rag/rag_meta.json`\n- `data/artifacts/latest.json`\n- `data/artifacts/replay/index.json`\n- `data/artifacts/runs/<run_id>/*`\n- `data/state/baseline_complete.json` (written once baseline reaches 100%)\n\n## Docs\n\n- Metrics: [docs/metrics_spec.md](docs/metrics_spec.md)\n- Signals: [docs/signal_spec.md](docs/signal_spec.md)\n- Model contract v1: [docs/model_contract_v1.md](docs/model_contract_v1.md)\n- Artifact + caching contract: [docs/caching_and_artifacts.md](docs/caching_and_artifacts.md)\n- Operational guarantees: [docs/operational_guarantees.md](docs/operational_guarantees.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- MCP docs (public): `https://rootfetch.com/docs/mcp`\n- MCP endpoint: `https",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "4278bc98cd17a28befbaefcbcf65ec7ef2485cd6",
+      "id": "e5d5da505ab4cf6134aaea34d6b83ce0199fa5e8",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
       "title": "Docs",
-      "text": "s/operational_guarantees.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- Ops scoreboard: [docs/ops_scoreboard.md](docs/ops_scoreboard.md)\n- Public positioning page: `https://rootfetch.com/for-teams`\n- Team workflow runbooks: `https://rootfetch.com/for-teams/workflows`\n- Integration runbooks: `https://rootfetch.com/docs/integrations`\n- Operations scoreboard: `https://rootfetch.com/ops`\n- Public endpoints: [docs/public_endpoints.md](docs/public_endpoints.md)\n- Publishing checklist: [docs/PUBLISHING.md](docs/PUBLISHING.md)\n- GCP deployment: [docs/gcp_deployment.md](docs/gcp_deployment.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- CZDS credentials: [docs/czds_credentials.md](docs/czds_credentials.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\nRootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs scheduled ingestion and publish.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/gcp_deploy.yml` deploys web + telemetry service",
+      "text": "s/operational_guarantees.md)\n- MCP server: [docs/mcp_server.md](docs/mcp_server.md)\n- MCP docs (public): `https://rootfetch.com/docs/mcp`\n- MCP endpoint: `https://rootfetch.com/mcp`\n- MCP live usage (public): `https://rootfetch.com/mcp/live`\n- MCP hosting compatibility page: `https://rootfetch.com/docs/hosting/mcp/`\n- MCP glama connector: `https://rootfetch.com/.well-known/glama.json`\n- Ops scoreboard: [docs/ops_scoreboard.md](docs/ops_scoreboard.md)\n- Public positioning page: `https://rootfetch.com/for-teams`\n- Team workflow runbooks: `https://rootfetch.com/for-teams/workflows`\n- Integration runbooks: `https://rootfetch.com/docs/integrations`\n- Operations scoreboard: `https://rootfetch.com/ops`\n- Public endpoints: [docs/public_endpoints.md](docs/public_endpoints.md)\n- Publishing checklist: [docs/PUBLISHING.md](docs/PUBLISHING.md)\n- GCP deployment: [docs/gcp_deployment.md](docs/gcp_deployment.md)\n- RAG: [docs/rag.md](docs/rag.md)\n- CZDS credentials: [docs/czds_credentials.md](docs/czds_credentials.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\nRootFetch is a read-o",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
-      "id": "3ee4323d9a5931afb53ca0486be3bd6cbcfed647",
+      "id": "2d2b64c611f11b5004976026f64a26e43bbb2147",
       "source_path": "README.md",
       "source_type": "readme",
       "date_utc": null,
-      "title": "GitHub Actions",
-      "text": "eduled ingestion and publish.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/gcp_deploy.yml` deploys web + telemetry services to GCP on safe artifact/code changes.",
+      "title": "Docs",
+      "text": "md)\n- CZDS credentials: [docs/czds_credentials.md](docs/czds_credentials.md)\n- Local runner: [docs/local_runner.md](docs/local_runner.md)\n\nRootFetch is a read-only intelligence layer. If it is not in the artifacts, it did not happen.\n\n## GitHub Actions\n\n- `.github/workflows/rootfetch_daily.yml` runs scheduled ingestion and publish.\n- `.github/workflows/release.yml` runs CI tests/build checks.\n- `.github/workflows/gcp_deploy.yml` deploys web + telemetry services to GCP on safe artifact/code changes.",
       "resource_uri": "rootfetch://docs/readme"
     },
     {
@@ -262,39 +262,39 @@
       "resource_uri": "rootfetch://docs/local_runner"
     },
     {
-      "id": "6a64f78094ae12136a9cea1c04a56e034858c410",
+      "id": "76fa6859ffb53b5104c7b0feb6b8bbb72c3092d9",
       "source_path": "docs/mcp_server.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "RootFetch MCP Server",
-      "text": "# RootFetch MCP Server\n\nRootFetch exposes read-only MCP surfaces from committed artifacts.\n\n## Deployment Modes\n\n1. Python MCP server (`rootfetch mcp serve`) for local workflows.\n2. Hosted MCP route at `/mcp` for read-only public access.\n\nNo mode performs CZDS auth or zone downloads.\n\n## Hosted MCP (Pattern 1)\n\nPattern in use: static artifact sync into web `public/rootfetch/*` at build time.\n\nMCP reads from immutable artifact paths:\n\n- `artifacts/latest.json`\n- `artifacts/replay/index.json`\n- `artifacts/runs/<run_id>/manifest.json`\n- `artifacts/runs/<run_id>/model_latest.json`\n- `artifacts/runs/<run_id>/coverage_latest.json`\n- `artifacts/runs/<run_id>/signals_latest.json`\n\n## Security\n\nHosted `/mcp` is public and rate-limited:\n\n- no auth token required\n- token bucket per IP (default: 60 requests/minute, burst 20)\n- returns `429` + `Retry-After` when limited\n- artifact allowlist only (no arbitrary path reads, no recompute)\n- optional shared limiter backend via `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`\n\nOperational endpoints:\n\n- `GET /mcp/health`\n- `GET /mcp/readyz`\n- `GET",
+      "text": "# RootFetch MCP Server\n\nRootFetch exposes read-only MCP surfaces from committed artifacts.\n\n## Deployment Modes\n\n1. Python MCP server (`rootfetch mcp serve`) for local workflows.\n2. Hosted MCP route at `/mcp` for read-only public access.\n\nNo mode performs CZDS auth or zone downloads.\n\n## Hosted MCP (Pattern 1)\n\nPattern in use: static artifact sync into web `public/rootfetch/*` at build time.\n\nMCP reads from immutable artifact paths:\n\n- `artifacts/latest.json`\n- `artifacts/replay/index.json`\n- `artifacts/runs/<run_id>/manifest.json`\n- `artifacts/runs/<run_id>/model_latest.json`\n- `artifacts/runs/<run_id>/coverage_latest.json`\n- `artifacts/runs/<run_id>/signals_latest.json`\n\n## Security\n\nHosted `/mcp` is public and rate-limited:\n\n- no auth token required\n- token bucket per IP (default: 60 requests/minute, burst 20)\n- returns `429` + `Retry-After` when limited\n- artifact allowlist only (no arbitrary path reads, no recompute)\n- optional shared limiter backend via `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`\n\nOperational endpoints:\n\n- `GET /mcp/health`\n- `GET /mcp/healthz`\n- `GET",
       "resource_uri": "rootfetch://docs/mcp_server"
     },
     {
-      "id": "86772c1929c5de69a6fab1377e3a79feb030b5c7",
+      "id": "c8fe8ef30be27ec4cde475b0445d7161245d5d4b",
       "source_path": "docs/mcp_server.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Security",
-      "text": "tional shared limiter backend via `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`\n\nOperational endpoints:\n\n- `GET /mcp/health`\n- `GET /mcp/readyz`\n- `GET /api/mcp/stats?days=7` (admin-protected)\n- `GET /api/mcp/events?limit=50` (admin-protected)\n- `GET /admin/usage` (human usage dashboard, admin-protected)\n- `GET /admin/agent-events` (human event dashboard, admin-protected)\n\nProtocol notes:\n\n- `POST /mcp` supports JSON-RPC `initialize`, `tools/list`, and `tools/call`\n- clients should send `Accept: application/json, text/event-stream`\n\n## MCP Usage Auth + Telemetry\n\n- Admin protection uses HTTP Basic Auth via middleware:\n  - username: `ADMIN_DASH_USER` (fallback `ROOTFETCH_ADMIN_USER`, default `admin`)\n  - password: `ADMIN_DASH_PASS` (fallback `ROOTFETCH_ADMIN_PASS`, then `ROOTFETCH_MCP_TOKEN`)\n- MCP usage telemetry is persisted in a dedicated GCP backend service (Cloud Run + Firestore).\n- RootFetch web runtime forwards telemetry through:\n  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_URL`\n  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN`\n\n- Admin auth env:\n  - `ADMIN_DASH_USER` (default `admin",
+      "text": "tional shared limiter backend via `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`\n\nOperational endpoints:\n\n- `GET /mcp/health`\n- `GET /mcp/healthz`\n- `GET /mcp/readyz`\n- `GET /mcp/live` (public anonymized usage/event view)\n- `GET /api/mcp/public-stats?days=7` (public anonymized stats)\n- `GET /api/mcp/public-events?limit=30` (public anonymized recent event classes)\n- `GET /api/mcp/stats?days=7` (admin-protected)\n- `GET /api/mcp/events?limit=50` (admin-protected)\n- `GET /admin/usage` (human usage dashboard, admin-protected)\n- `GET /admin/agent-events` (human event dashboard, admin-protected)\n- `GET /docs/hosting/mcp/` (hosting compatibility landing)\n- `GET /.well-known/glama.json` (connector metadata)\n\nProtocol notes:\n\n- `POST /mcp` supports JSON-RPC `initialize`, `tools/list`, and `tools/call`\n- clients should send `Accept: application/json, text/event-stream`\n\n## MCP Usage Auth + Telemetry\n\n- Admin protection uses HTTP Basic Auth via middleware:\n  - username: `ADMIN_DASH_USER` (fallback `ROOTFETCH_ADMIN_USER`, default `admin`)\n  - password: `ADMIN_DASH_PASS` (fallback `ROOTFETC",
       "resource_uri": "rootfetch://docs/mcp_server"
     },
     {
-      "id": "1b8dfaf8ade379e265a2e4a4b46be584b4a444c3",
+      "id": "c8b75796ae387fc8f2d35b8ff789791af5a00708",
       "source_path": "docs/mcp_server.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "MCP Usage Auth + Telemetry",
-      "text": "elemetry through:\n  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_URL`\n  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN`\n\n- Admin auth env:\n  - `ADMIN_DASH_USER` (default `admin`)\n  - `ADMIN_DASH_PASS` (required)\n\n## MCP Behavioral Contract\n\n- read-only surface only\n- immutable artifact-backed responses only\n- no compute or signal recomputation in MCP handlers\n- bounded response payload size (`ROOTFETCH_MCP_MAX_PAYLOAD_BYTES`, default 5 MB)\n- rate limits enforced on all MCP methods\n\n## Hosted MCP Tools\n\n- `rootfetch.latest`\n- `rootfetch.replay_index`\n- `rootfetch.run_manifest`\n- `rootfetch.run_bundle`\n- `rootfetch.compare_link`\n\nTool payloads are returned as JSON text content.\n\n## Local MCP Package\n\nPublished local stdio bridge package:\n\n- npm: `@khalidsaidi/rootfetch-mcp`\n- command: `npx -y @khalidsaidi/rootfetch-mcp@latest rootfetch-mcp`\n- registry metadata: `docs/registry/server.json`\n\n## Python MCP Resources/Tools\n\nResources:\n\n- `rootfetch://signals/latest`\n- `rootfetch://growth_trends`\n- `rootfetch://daily_counts/{date}`\n- `rootfetch://approved_tlds/{date}`\n- `rootfetch://digest/{date}` and `roo",
+      "text": "asic Auth via middleware:\n  - username: `ADMIN_DASH_USER` (fallback `ROOTFETCH_ADMIN_USER`, default `admin`)\n  - password: `ADMIN_DASH_PASS` (fallback `ROOTFETCH_ADMIN_PASS`, then `ROOTFETCH_MCP_TOKEN`)\n- MCP usage telemetry is persisted in a dedicated GCP backend service (Cloud Run + Firestore).\n- RootFetch web runtime forwards telemetry through:\n  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_URL`\n  - `ROOTFETCH_MCP_TELEMETRY_BACKEND_TOKEN`\n\n- Admin auth env:\n  - `ADMIN_DASH_USER` (default `admin`)\n  - `ADMIN_DASH_PASS` (required)\n\n## MCP Behavioral Contract\n\n- read-only surface only\n- immutable artifact-backed responses only\n- no compute or signal recomputation in MCP handlers\n- bounded response payload size (`ROOTFETCH_MCP_MAX_PAYLOAD_BYTES`, default 5 MB)\n- rate limits enforced on all MCP methods\n\n## Hosted MCP Tools\n\n- `rootfetch.latest`\n- `rootfetch.replay_index`\n- `rootfetch.run_manifest`\n- `rootfetch.run_bundle`\n- `rootfetch.compare_link`\n\nTool payloads are returned as JSON text content.\n\n## Local MCP Package\n\nPublished local stdio bridge package:\n\n- npm: `@khalidsaidi/rootfetch-mcp`\n-",
       "resource_uri": "rootfetch://docs/mcp_server"
     },
     {
-      "id": "dc8c3573f184a7791637c91e7cfe13078f36f6e1",
+      "id": "5400f0e69c6bab34fa8ed6dd0f97eb48c98f905c",
       "source_path": "docs/mcp_server.md",
       "source_type": "doc",
       "date_utc": null,
-      "title": "Python MCP Resources/Tools",
-      "text": "://signals/latest`\n- `rootfetch://growth_trends`\n- `rootfetch://daily_counts/{date}`\n- `rootfetch://approved_tlds/{date}`\n- `rootfetch://digest/{date}` and `rootfetch://digest/latest`\n- `rootfetch://docs/{doc_name}`\n\nTools:\n\n- `rootfetch_health`, `rootfetch_get_latest`, `rootfetch_get_tld_timeseries`\n- `rootfetch_top_movers`, `rootfetch_anomalies`\n- `rag_search`, `rag_get_chunk`\n\n## Local Run\n\nSTDIO:\n\n```bash\nrootfetch mcp serve --transport stdio\n```\n\nStreamable HTTP:\n\n```bash\nrootfetch mcp serve --transport streamable-http --port 8000\n```\n\nWhen using STDIO transport, logs must stay off stdout.",
+      "title": "Hosted MCP Tools",
+      "text": "pare_link`\n\nTool payloads are returned as JSON text content.\n\n## Local MCP Package\n\nPublished local stdio bridge package:\n\n- npm: `@khalidsaidi/rootfetch-mcp`\n- command: `npx -y @khalidsaidi/rootfetch-mcp@latest rootfetch-mcp`\n- registry metadata: `docs/registry/server.json`\n\n## Python MCP Resources/Tools\n\nResources:\n\n- `rootfetch://signals/latest`\n- `rootfetch://growth_trends`\n- `rootfetch://daily_counts/{date}`\n- `rootfetch://approved_tlds/{date}`\n- `rootfetch://digest/{date}` and `rootfetch://digest/latest`\n- `rootfetch://docs/{doc_name}`\n\nTools:\n\n- `rootfetch_health`, `rootfetch_get_latest`, `rootfetch_get_tld_timeseries`\n- `rootfetch_top_movers`, `rootfetch_anomalies`\n- `rag_search`, `rag_get_chunk`\n\n## Local Run\n\nSTDIO:\n\n```bash\nrootfetch mcp serve --transport stdio\n```\n\nStreamable HTTP:\n\n```bash\nrootfetch mcp serve --transport streamable-http --port 8000\n```\n\nWhen using STDIO transport, logs must stay off stdout.",
       "resource_uri": "rootfetch://docs/mcp_server"
     },
     {
@@ -424,21 +424,30 @@
       "resource_uri": "rootfetch://docs/ops_scoreboard"
     },
     {
-      "id": "5192d1aaf32ed4d2c01a14efed045a779192286b",
+      "id": "4b03d34b49bf7e18811fb40b026862649760b635",
       "source_path": "docs/public_endpoints.md",
       "source_type": "doc",
       "date_utc": null,
       "title": "Public Endpoints",
-      "text": "# Public Endpoints\n\n## MCP (remote)\n- MCP endpoint: `https://rootfetch.com/mcp`\n- MCP health: `https://rootfetch.com/mcp/health`\n- MCP readiness: `https://rootfetch.com/mcp/readyz`\n- MCP usage dashboard: `https://rootfetch.com/admin/usage` (HTTP Basic Auth)\n- MCP agent events: `https://rootfetch.com/admin/agent-events` (HTTP Basic Auth)\n- MCP usage stats API: `https://rootfetch.com/api/mcp/stats?days=7` (HTTP Basic Auth)\n- MCP usage events API: `https://rootfetch.com/api/mcp/events?limit=50` (HTTP Basic Auth)\n- MCP docs: `https://rootfetch.com/docs/mcp`\n\n## Discovery + machine entrypoints\n- AIR: `https://rootfetch.com/air.json`\n- AIR (well-known): `https://rootfetch.com/.well-known/air.json`\n- OpenAPI: `https://rootfetch.com/openapi.json`\n- OpenAPI (well-known): `https://rootfetch.com/.well-known/openapi.json`\n- AI Plugin: `https://rootfetch.com/ai-plugin.json`\n- AI Plugin (well-known): `https://rootfetch.com/.well-known/ai-plugin.json`\n- Agent discovery: `https://rootfetch.com/.well-known/agent.json`\n- Agent card alias: `https://rootfetch.com/.well-known/agent-card.json`\n\n## Artifac",
+      "text": "# Public Endpoints\n\n## MCP (remote)\n- MCP endpoint: `https://rootfetch.com/mcp`\n- MCP metadata JSON: `https://rootfetch.com/mcp?format=json`\n- MCP health: `https://rootfetch.com/mcp/health`\n- MCP healthz: `https://rootfetch.com/mcp/healthz`\n- MCP readiness: `https://rootfetch.com/mcp/readyz`\n- MCP live usage page (public): `https://rootfetch.com/mcp/live`\n- MCP public stats API: `https://rootfetch.com/api/mcp/public-stats?days=7`\n- MCP public events API: `https://rootfetch.com/api/mcp/public-events?limit=30`\n- MCP usage dashboard: `https://rootfetch.com/admin/usage` (HTTP Basic Auth)\n- MCP agent events: `https://rootfetch.com/admin/agent-events` (HTTP Basic Auth)\n- MCP usage stats API: `https://rootfetch.com/api/mcp/stats?days=7` (HTTP Basic Auth)\n- MCP usage events API: `https://rootfetch.com/api/mcp/events?limit=50` (HTTP Basic Auth)\n- MCP docs: `https://rootfetch.com/docs/mcp`\n- MCP hosting compatibility page: `https://rootfetch.com/docs/hosting/mcp/`\n\n## Discovery + machine entrypoints\n- AIR: `https://rootfetch.com/air.json`\n- AIR (well-known): `https://rootfetch.com/.well-known/",
       "resource_uri": "rootfetch://docs/public_endpoints"
     },
     {
-      "id": "adfa9c66a8397c8b8a2052e35fc9177f1e83b25e",
+      "id": "f5679c84e0386ddb11b5ecc48a6bcf6fa8ab3bae",
       "source_path": "docs/public_endpoints.md",
       "source_type": "doc",
       "date_utc": null,
-      "title": "Discovery + machine entrypoints",
-      "text": "ugin.json`\n- Agent discovery: `https://rootfetch.com/.well-known/agent.json`\n- Agent card alias: `https://rootfetch.com/.well-known/agent-card.json`\n\n## Artifact surfaces\n- Latest pointer: `https://rootfetch.com/rootfetch/artifacts/latest.json`\n- Replay index: `https://rootfetch.com/rootfetch/artifacts/replay/index.json`\n- Ops scoreboard: `https://rootfetch.com/rootfetch/ops_scoreboard_latest.json`\n- Ops scoreboard API: `https://rootfetch.com/api/ops/scoreboard`\n- Runs archive UI: `https://rootfetch.com/runs`\n- Compare UI: `https://rootfetch.com/compare`\n\n## Human docs\n- Methodology: `https://rootfetch.com/methodology`\n- Security: `https://rootfetch.com/security`\n- Integrations: `https://rootfetch.com/docs/integrations`\n- Ops scoreboard UI: `https://rootfetch.com/ops`",
+      "title": "MCP (remote)",
+      "text": "fetch.com/docs/hosting/mcp/`\n\n## Discovery + machine entrypoints\n- AIR: `https://rootfetch.com/air.json`\n- AIR (well-known): `https://rootfetch.com/.well-known/air.json`\n- OpenAPI: `https://rootfetch.com/openapi.json`\n- OpenAPI (well-known): `https://rootfetch.com/.well-known/openapi.json`\n- AI Plugin: `https://rootfetch.com/ai-plugin.json`\n- AI Plugin (well-known): `https://rootfetch.com/.well-known/ai-plugin.json`\n- Agent discovery: `https://rootfetch.com/.well-known/agent.json`\n- Agent card alias: `https://rootfetch.com/.well-known/agent-card.json`\n- Glama connector: `https://rootfetch.com/.well-known/glama.json`\n\n## Artifact surfaces\n- Latest pointer: `https://rootfetch.com/rootfetch/artifacts/latest.json`\n- Replay index: `https://rootfetch.com/rootfetch/artifacts/replay/index.json`\n- Ops scoreboard: `https://rootfetch.com/rootfetch/ops_scoreboard_latest.json`\n- Ops scoreboard API: `https://rootfetch.com/api/ops/scoreboard`\n- Runs archive UI: `https://rootfetch.com/runs`\n- Compare UI: `https://rootfetch.com/compare`\n\n## Human docs\n- Methodology: `https://rootfetch.com/methodology",
+      "resource_uri": "rootfetch://docs/public_endpoints"
+    },
+    {
+      "id": "c36f04eb8adb2b35eeb5d5581da50120bb43081d",
+      "source_path": "docs/public_endpoints.md",
+      "source_type": "doc",
+      "date_utc": null,
+      "title": "Artifact surfaces",
+      "text": "`\n- Runs archive UI: `https://rootfetch.com/runs`\n- Compare UI: `https://rootfetch.com/compare`\n\n## Human docs\n- Methodology: `https://rootfetch.com/methodology`\n- Security: `https://rootfetch.com/security`\n- Integrations: `https://rootfetch.com/docs/integrations`\n- Ops scoreboard UI: `https://rootfetch.com/ops`",
       "resource_uri": "rootfetch://docs/public_endpoints"
     },
     {
@@ -998,6 +1007,42 @@
       "title": "Rolling Updates (Since Last Seen)",
       "text": "0 | 4817.0 | 0.0027989540964555 |\n| beer | 106509 | 2026-03-03 | 7.0 | 1356.0 | 0.0128954951356594 |\n| best | 34671 | 2026-03-03 | 7.0 | 585.0 | 0.017162471395881 |\n| health | 48772 | 2026-03-03 | 7.0 | 375.0 | 0.0077484141579023 |\n| chat | 51388 | 2026-03-03 | 7.0 | 369.0 | 0.0072325996197495 |\n| golf | 16885 | 2026-03-03 | 7.0 | 240.0 | 0.0144187443676779 |\n| rocks | 62840 | 2026-03-03 | 7.0 | -235.0 | -0.0037257233452239 |\n| build | 8936 | 2026-03-03 | 7.0 | 96.0 | 0.0108597285067873 |\n| game | 7339 | 2026-03-03 | 7.0 | 73.0 | 0.0100467932837875 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 1718984 | 1996.0 | 0.0011625008445021 | 2 |\n| other | 22200988 | 13555213.0 | 1.567842443274316 | 65 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-03-10"
+    },
+    {
+      "id": "c47629a25f5f44abd45c86499ddc259fed82362d",
+      "source_path": "data/digests/2026-03-11.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-11",
+      "title": "RootFetch Daily Digest \u2014 2026-03-11",
+      "text": "# RootFetch Daily Digest \u2014 2026-03-11\n\n- Run ID: 9ed0bb7b-6542-4084-a662-2e33aea39a98\n- Mode: hybrid\n- Approved TLDs observed: 1060\n- Observed today: 83 (core=3, rolling=80)\n- Snapshot rows today: 86\n\n## Cross-sectional highlights\n- Total delegated counted today: 12,862,705\n- Distribution (p50 / p90 / p99 / max): 1,380 / 38,372 / 2,375,624 / 8,125,867\n- Concentration (Top1 / Top10 share): 63.17% / 97.22% (HHI=0.4228)\n- New approvals vs 2026-03-10: +3 / -0\n- Added approvals (first 10): xn--3ds443g, xn--fiq228c5hs, xn--vuq861b\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 97.22% of delegations; median TLD has 1,380 names; 35 TLDs have <100.\n- [movers/positive] Core movers: .app +2,662, .dev +1,027, .xyz +837 (day-over-day).\n- [approvals/info] New approvals today: +3 (xn--3ds443g, xn--fiq228c5hs, xn--vuq861b).\n- [coverage/neutral] Observed today: 83 (core+rolling) out of 1,060 approved TLDs; snapshot rows today: 86. Missing ever: 1.\n\n## Security Status\n- Safe aggregates checks date: 2026-03-11\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_",
+      "resource_uri": "rootfetch://digest/2026-03-11"
+    },
+    {
+      "id": "12c8a2f1fc3bbc9a9ad2a4cb569eed0f54e4f3ed",
+      "source_path": "data/digests/2026-03-11.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-11",
+      "title": "Daily Insights",
+      "text": "ever: 1.\n\n## Security Status\n- Safe aggregates checks date: 2026-03-11\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_read_only: True\n- runtime_platform: gcp-cloud-run\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| xyz | 8125867 | 63.17385806484717 | other | core |\n| sbs | 1360875 | 10.580006305050144 | other | rolling |\n| app | 1115136 | 8.669529465225239 | ai_tech | core |\n| dev | 607537 | 4.723244449748322 | ai_tech | core |\n| icu | 482818 | 3.753627250255681 | other | rolling |\n| life | 382023 | 2.9700051427751784 | other | rolling |\n| autos | 242795 | 1.887588963596693 | other | rolling |\n| ltd | 111447 | 0.8664351705181764 | other | rolling |\n| bid | 39627 | 0.3080767225867343 | other | rolling |\n| wtf | 37118 | 0.2885707166571883 | other | rolling |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| app | 1115136 | 2662.0 | 0.002392864911899 | ok |\n| dev | 607537 | 1027.0 | 0.0016932944221859 | ok |\n| x",
+      "resource_uri": "rootfetch://digest/2026-03-11"
+    },
+    {
+      "id": "6de78709ceef35182b062cc1e0f414502bc7b4e9",
+      "source_path": "data/digests/2026-03-11.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-11",
+      "title": "Core Daily Movers (Absolute)",
+      "text": "pct | data_quality |\n| --- | --- | --- | --- | --- |\n| app | 1115136 | 2662.0 | 0.002392864911899 | ok |\n| dev | 607537 | 1027.0 | 0.0016932944221859 | ok |\n| xyz | 8125867 | 837.0 | 0.0001030150042522 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| app | 1115136 | 2662.0 | 0.002392864911899 | ok |\n| dev | 607537 | 1027.0 | 0.0016932944221859 | ok |\n| xyz | 8125867 | 837.0 | 0.0001030150042522 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 8125867 | 837.0 | 0.0001030150042522 | ok |\n| dev | 607537 | 1027.0 | 0.0016932944221859 | ok |\n| app | 1115136 | 2662.0 | 0.002392864911899 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| sbs | 1360875 | 2026-03-03 | 8.0 | 10580.0 | 0.0078353248734535 |\n| autos | 242795 | 2026-03-03 | 8.0 | 2402.0 | 0.0099919714800347 |\n| life | 382023 | 2026-03-03 | 8.0 | 1839.0 | 0.00483713149",
+      "resource_uri": "rootfetch://digest/2026-03-11"
+    },
+    {
+      "id": "42059b680d760be3feecba3d89c5aa8ce5b203f3",
+      "source_path": "data/digests/2026-03-11.md",
+      "source_type": "digest",
+      "date_utc": "2026-03-11",
+      "title": "Rolling Updates (Since Last Seen)",
+      "text": "| 10580.0 | 0.0078353248734535 |\n| autos | 242795 | 2026-03-03 | 8.0 | 2402.0 | 0.0099919714800347 |\n| life | 382023 | 2026-03-03 | 8.0 | 1839.0 | 0.0048371314942238 |\n| bid | 39627 | 2026-03-03 | 8.0 | -1605.0 | -0.0389260768335273 |\n| icu | 482818 | 2026-03-03 | 8.0 | -737.0 | -0.0015241285893021 |\n| food | 25777 | 2026-03-03 | 8.0 | -262.0 | -0.0100618303314259 |\n| institute | 18471 | 2026-03-03 | 8.0 | 217.0 | 0.0118878054125123 |\n| wtf | 37118 | 2026-03-03 | 8.0 | 165.0 | 0.0044651313831082 |\n| college | 6897 | 2026-03-03 | 8.0 | -148.0 | -0.0210078069552874 |\n| red | 19101 | 2026-03-03 | 8.0 | -120.0 | -0.0062431715311378 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 1722673 | 3689.0 | 0.0021460350998031 | 2 |\n| other | 11101382 | -11099606.0 | -0.4999600017801009 | 81 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "resource_uri": "rootfetch://digest/2026-03-11"
     }
   ]
 }
