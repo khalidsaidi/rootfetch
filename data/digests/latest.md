@@ -1,23 +1,23 @@
 # RootFetch Daily Digest — 2026-03-11
 
-- Run ID: 9ed0bb7b-6542-4084-a662-2e33aea39a98
+- Run ID: fe2c3daa-5502-4ffa-869d-0139a973a91a
 - Mode: hybrid
-- Approved TLDs observed: 1060
-- Observed today: 83 (core=3, rolling=80)
-- Snapshot rows today: 86
+- Approved TLDs observed: 1064
+- Observed today: 84 (core=3, rolling=81)
+- Snapshot rows today: 90
 
 ## Cross-sectional highlights
-- Total delegated counted today: 12,862,705
-- Distribution (p50 / p90 / p99 / max): 1,380 / 38,372 / 2,375,624 / 8,125,867
-- Concentration (Top1 / Top10 share): 63.17% / 97.22% (HHI=0.4228)
-- New approvals vs 2026-03-10: +3 / -0
-- Added approvals (first 10): xn--3ds443g, xn--fiq228c5hs, xn--vuq861b
+- Total delegated counted today: 12,925,687
+- Distribution (p50 / p90 / p99 / max): 2,006 / 41,186 / 2,105,024 / 8,125,867
+- Concentration (Top1 / Top10 share): 62.87% / 96.89% (HHI=0.4187)
+- New approvals vs 2026-03-10: +7 / -0
+- Added approvals (first 10): africa, capetown, durban, joburg, xn--3ds443g, xn--fiq228c5hs, xn--vuq861b
 
 ## Daily Insights
-- [market/info] Top 10 TLDs hold 97.22% of delegations; median TLD has 1,380 names; 35 TLDs have <100.
+- [market/info] Top 10 TLDs hold 96.89% of delegations; median TLD has 2,006 names; 35 TLDs have <100.
 - [movers/positive] Core movers: .app +2,662, .dev +1,027, .xyz +837 (day-over-day).
-- [approvals/info] New approvals today: +3 (xn--3ds443g, xn--fiq228c5hs, xn--vuq861b).
-- [coverage/neutral] Observed today: 83 (core+rolling) out of 1,060 approved TLDs; snapshot rows today: 86. Missing ever: 1.
+- [approvals/info] New approvals today: +7 (africa, capetown, durban).
+- [coverage/neutral] Observed today: 84 (core+rolling) out of 1,064 approved TLDs; snapshot rows today: 90. Missing ever: 1.
 
 ## Security Status
 - Safe aggregates checks date: 2026-03-11
@@ -30,16 +30,16 @@
 ## Top TLDs by Count (Today)
 | tld | count | share_pct | sector | cadence |
 | --- | --- | --- | --- | --- |
-| xyz | 8125867 | 63.17385806484717 | other | core |
-| sbs | 1360875 | 10.580006305050144 | other | rolling |
-| app | 1115136 | 8.669529465225239 | ai_tech | core |
-| dev | 607537 | 4.723244449748322 | ai_tech | core |
-| icu | 482818 | 3.753627250255681 | other | rolling |
-| life | 382023 | 2.9700051427751784 | other | rolling |
-| autos | 242795 | 1.887588963596693 | other | rolling |
-| ltd | 111447 | 0.8664351705181764 | other | rolling |
-| bid | 39627 | 0.3080767225867343 | other | rolling |
-| wtf | 37118 | 0.2885707166571883 | other | rolling |
+| xyz | 8125867 | 62.866035669902885 | other | core |
+| sbs | 1360875 | 10.528453922797295 | other | rolling |
+| app | 1115136 | 8.627286116397528 | ai_tech | core |
+| dev | 607537 | 4.700229860122716 | ai_tech | core |
+| icu | 482818 | 3.7353372397149953 | other | rolling |
+| life | 382023 | 2.955533427352836 | other | rolling |
+| autos | 242795 | 1.8783914541641 | other | rolling |
+| ltd | 111447 | 0.8622133585626822 | other | rolling |
+| africa | 55213 | 0.4271571793437362 | other | baseline |
+| bid | 39627 | 0.3065755808569401 | other | rolling |
 
 ## Core Daily Movers (Absolute)
 | tld | count | delta_abs | delta_pct | data_quality |
@@ -83,7 +83,7 @@ _No data._
 | sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |
 | --- | --- | --- | --- | --- |
 | ai_tech | 1722673 | 3689.0 | 0.0021460350998031 | 2 |
-| other | 11101382 | -11099606.0 | -0.4999600017801009 | 81 |
+| other | 11103737 | -11097251.0 | -0.4998539254198957 | 82 |
 
 ## Data Quality Notes
 - Failed TLD jobs: 0
