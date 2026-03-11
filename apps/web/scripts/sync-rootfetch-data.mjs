@@ -176,6 +176,8 @@ async function generateSeoTextArtifacts() {
     "/ask",
     "/recipes",
     "/agents",
+    "/agents/playground",
+    "/agents/recipes",
     "/docs/mcp",
     "/docs/integrations",
     "/docs/public-endpoints",
@@ -238,7 +240,9 @@ async function generateSeoTextArtifacts() {
     `- AI Plugin (well-known): ${siteUrl}/.well-known/ai-plugin.json\n` +
     `- MCP endpoint: ${siteUrl}/mcp\n` +
     `- Agent integration: ${siteUrl}/agents\n` +
+    `- Agent task recipes: ${siteUrl}/agents/recipes\n` +
     `- MCP first-call validator: ${siteUrl}/api/mcp/first-call\n` +
+    `- MCP task recipes API: ${siteUrl}/api/mcp/task-recipes\n` +
     `- MCP hosting page: ${siteUrl}/docs/hosting/mcp/\n` +
     `- MCP docs: ${siteUrl}/docs/mcp\n` +
     `- MCP live usage (public): ${siteUrl}/mcp/live\n` +

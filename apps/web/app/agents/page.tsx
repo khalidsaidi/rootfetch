@@ -34,7 +34,8 @@ const strictContract = `Rules:
 
 export const metadata: Metadata = {
   title: "Agent Integration",
-  description: "Outcome-first RootFetch integration path for agents: strict schemas, first-call validation, and evidence discipline.",
+  description:
+    "Outcome-first RootFetch integration path for agents: quickstart, task recipes, strict schemas, and evidence discipline.",
   alternates: {
     canonical: "/agents",
   },
@@ -60,6 +61,41 @@ export default function AgentsPage() {
           </TrackedLink>
           <TrackedLink href="/agents/playground" label="agents_open_playground" pageType="agents" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             Interactive playground
+          </TrackedLink>
+          <TrackedLink href="/agents/recipes" label="agents_open_recipes" pageType="agents" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Task recipes
+          </TrackedLink>
+        </div>
+      </Section>
+
+      <Section title="60-Second Start" subtitle="Fastest path from zero to reliable outputs.">
+        <ol className="ml-5 list-decimal space-y-2 text-sm text-muted-foreground">
+          <li>
+            Connect your client to <code>{siteUrl}/mcp</code> (or run the first cURL below).
+          </li>
+          <li>
+            Validate bootstrap with <code>/api/mcp/first-call</code>.
+          </li>
+          <li>
+            Pick one task from <code>/agents/recipes</code> and enforce the evidence checks.
+          </li>
+        </ol>
+        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+          <TrackedLink
+            href="/agents/recipes"
+            label="agents_quickstart_recipes_page"
+            pageType="agents"
+            className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50"
+          >
+            Open recipes page
+          </TrackedLink>
+          <TrackedLink
+            href="/api/mcp/task-recipes"
+            label="agents_quickstart_recipes_api"
+            pageType="agents"
+            className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50"
+          >
+            Open recipes JSON
           </TrackedLink>
         </div>
       </Section>
@@ -102,6 +138,14 @@ export default function AgentsPage() {
           className="mt-3 inline-flex rounded-lg border border-border/70 px-2.5 py-1.5 text-xs hover:border-primary/50"
         >
           Open playground
+        </TrackedLink>
+        <TrackedLink
+          href="/agents/recipes"
+          label="agents_go_recipes"
+          pageType="agents"
+          className="mt-3 ml-2 inline-flex rounded-lg border border-border/70 px-2.5 py-1.5 text-xs hover:border-primary/50"
+        >
+          Open task recipes
         </TrackedLink>
       </Section>
 

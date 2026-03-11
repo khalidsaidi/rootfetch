@@ -24,9 +24,11 @@ export default function PublicEndpointsPage() {
           <li>MCP first-call validator: <code>https://rootfetch.com/api/mcp/first-call</code></li>
           <li>MCP probe (seeding/test): <code>https://rootfetch.com/api/mcp/probe</code></li>
           <li>MCP outcome schemas: <code>https://rootfetch.com/api/mcp/outcome-schemas</code></li>
+          <li>MCP task recipes: <code>https://rootfetch.com/api/mcp/task-recipes</code></li>
           <li>MCP hosting page: <code>https://rootfetch.com/docs/hosting/mcp/</code></li>
           <li>Agent integration guide: <code>https://rootfetch.com/agents</code></li>
           <li>Agent playground: <code>https://rootfetch.com/agents/playground</code></li>
+          <li>Agent task recipes page: <code>https://rootfetch.com/agents/recipes</code></li>
           <li>Glama connector metadata: <code>https://rootfetch.com/.well-known/glama.json</code></li>
           <li>MCP live usage page (public): <code>https://rootfetch.com/mcp/live</code></li>
           <li>MCP public stats API: <code>https://rootfetch.com/api/mcp/public-stats?days=7</code></li>

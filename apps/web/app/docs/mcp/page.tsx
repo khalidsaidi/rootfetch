@@ -52,6 +52,10 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           Interactive MCP playground: <code>https://rootfetch.com/agents/playground</code>.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
+          Task recipes page: <code>https://rootfetch.com/agents/recipes</code>. Machine-readable recipes:
+          <code> https://rootfetch.com/api/mcp/task-recipes</code>.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
           Browser-friendly MCP landing page: <code>https://rootfetch.com/mcp</code>. Raw metadata:{" "}
           <code>https://rootfetch.com/mcp?format=json</code>.
         </p>
@@ -83,6 +87,9 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
         </ul>
         <p className="mt-3 text-sm text-muted-foreground">
           Machine-readable outcome contracts: <code>/api/mcp/outcome-schemas</code>.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Task-oriented tool recipes: <code>/api/mcp/task-recipes</code>.
         </p>
       </Section>
 
@@ -165,6 +172,14 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
         >
           Open MCP playground
+        </TrackedLink>
+        <TrackedLink
+          href="/agents/recipes"
+          label="mcp_docs_agent_recipes"
+          pageType="mcp_docs"
+          className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
+        >
+          Open task recipes
         </TrackedLink>
         <TrackedLink
           href="/mcp/live"

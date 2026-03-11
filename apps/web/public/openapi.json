@@ -876,6 +876,52 @@
           }
         }
       }
+    },
+    "/api/mcp/task-recipes": {
+      "get": {
+        "summary": "MCP task recipes catalog",
+        "operationId": "getMcpTaskRecipes",
+        "responses": {
+          "200": {
+            "description": "Task-oriented MCP recipes with expected output keys and verification checks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpTaskRecipes"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "generated_at_utc": "2026-03-11T00:00:00.000Z",
+                      "schema_version": "1.0",
+                      "endpoint": "https://rootfetch.com/mcp",
+                      "docs_url": "https://rootfetch.com/agents/recipes",
+                      "recipes": [
+                        {
+                          "id": "current-structural-state",
+                          "title": "Current Structural State",
+                          "tool_name": "rootfetch.outcome.current_state",
+                          "expected_top_level": [
+                            "outcome",
+                            "schema_version",
+                            "run_id",
+                            "regime",
+                            "concentration",
+                            "coverage",
+                            "volatility",
+                            "top_anomalies",
+                            "evidence"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1078,6 +1124,92 @@
         "required": [
           "ok",
           "generated_at_utc"
+        ]
+      },
+      "McpTaskRecipe": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "intent": {
+            "type": "string"
+          },
+          "tool_name": {
+            "type": "string"
+          },
+          "arguments": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "expected_top_level": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "verification": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rpc_request": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "curl_example": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "intent",
+          "tool_name",
+          "arguments",
+          "expected_top_level",
+          "verification",
+          "rpc_request",
+          "curl_example"
+        ]
+      },
+      "McpTaskRecipes": {
+        "type": "object",
+        "properties": {
+          "generated_at_utc": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string",
+            "enum": [
+              "1.0"
+            ]
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "docs_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "recipes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/McpTaskRecipe"
+            }
+          }
+        },
+        "required": [
+          "generated_at_utc",
+          "schema_version",
+          "endpoint",
+          "docs_url",
+          "recipes"
         ]
       }
     },

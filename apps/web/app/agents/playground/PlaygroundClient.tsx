@@ -16,6 +16,11 @@ type JsonRpcEnvelope = {
   };
 };
 
+type ToolTemplate = {
+  args: Record<string, unknown>;
+  hint: string;
+};
+
 const TOOLS = [
   "rootfetch.outcome.current_state",
   "rootfetch.outcome.run_delta",
@@ -27,6 +32,48 @@ const TOOLS = [
   "rootfetch.run_bundle",
   "rootfetch.compare_link",
 ];
+
+const TOOL_TEMPLATES: Record<string, ToolTemplate> = {
+  "rootfetch.outcome.current_state": {
+    args: {},
+    hint: "Current run snapshot with regime, concentration, coverage, and evidence block.",
+  },
+  "rootfetch.outcome.run_delta": {
+    args: {},
+    hint: "Latest run vs previous run with model transition disclosure checks.",
+  },
+  "rootfetch.outcome.tld_spotlight": {
+    args: { tld: "app" },
+    hint: "Single-namespace view. Change tld to any delegated TLD label.",
+  },
+  "rootfetch.outcome.alert_candidates": {
+    args: { limit: 10 },
+    hint: "Top anomaly and mover candidates with trigger context.",
+  },
+  "rootfetch.latest": {
+    args: {},
+    hint: "Latest immutable run pointer and scoped artifact URLs.",
+  },
+  "rootfetch.replay_index": {
+    args: {},
+    hint: "Run lineage from replay index.",
+  },
+  "rootfetch.run_manifest": {
+    args: {},
+    hint: "Run hash/check summary (optional run_id).",
+  },
+  "rootfetch.run_bundle": {
+    args: {},
+    hint: "Model + coverage + signals bundle for one run (optional run_id).",
+  },
+  "rootfetch.compare_link": {
+    args: {
+      left: "20260226T090051Z_f229c6bb7bba_rootfetch_model_v1",
+      right: "20260307T231738Z_8a3bde89bd87_rootfetch_model_v1",
+    },
+    hint: "Compare URL helper. Replace left/right with explicit run_ids.",
+  },
+};
 
 function parseSsePayload(raw: string): JsonRpcEnvelope | null {
   let parsed: JsonRpcEnvelope | null = null;
@@ -46,7 +93,9 @@ function parseSsePayload(raw: string): JsonRpcEnvelope | null {
 
 export default function PlaygroundClient() {
   const [toolName, setToolName] = useState<string>(TOOLS[0]);
-  const [argsJson, setArgsJson] = useState<string>("{}");
+  const [argsJson, setArgsJson] = useState<string>(
+    JSON.stringify(TOOL_TEMPLATES[TOOLS[0]]?.args || {}, null, 2),
+  );
   const [responseText, setResponseText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -67,6 +116,8 @@ export default function PlaygroundClient() {
     }),
     [],
   );
+
+  const selectedHint = TOOL_TEMPLATES[toolName]?.hint || "Calls the selected MCP tool.";
 
   async function callTool() {
     setLoading(true);
@@ -150,6 +201,12 @@ export default function PlaygroundClient() {
           <TrackedLink href="/api/mcp/first-call" label="playground_open_first_call" pageType="agents_playground" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             First-call validator
           </TrackedLink>
+          <TrackedLink href="/agents/recipes" label="playground_open_recipes_page" pageType="agents_playground" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Task recipes page
+          </TrackedLink>
+          <TrackedLink href="/api/mcp/task-recipes" label="playground_open_recipes_json" pageType="agents_playground" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Task recipes JSON
+          </TrackedLink>
         </div>
       </Section>
 
@@ -159,7 +216,12 @@ export default function PlaygroundClient() {
             Tool
             <select
               value={toolName}
-              onChange={(event) => setToolName(event.target.value)}
+              onChange={(event) => {
+                const nextTool = event.target.value;
+                setToolName(nextTool);
+                const template = TOOL_TEMPLATES[nextTool];
+                setArgsJson(JSON.stringify(template?.args || {}, null, 2));
+              }}
               className="rounded-md border border-border/70 bg-background/70 px-2 py-2 text-sm"
             >
               {TOOLS.map((name) => (
@@ -179,6 +241,7 @@ export default function PlaygroundClient() {
             />
           </label>
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">{selectedHint}</p>
         <div className="mt-3">
           <button
             type="button"
@@ -202,4 +265,3 @@ export default function PlaygroundClient() {
     </main>
   );
 }
-
