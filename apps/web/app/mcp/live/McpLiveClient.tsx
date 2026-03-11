@@ -34,14 +34,14 @@ type PublicStats = {
     rate_limited: number;
     errors: number;
   }>;
-  backend?: "configured" | "missing" | "error";
+  backend?: "configured" | "local" | "error";
   note?: string | null;
 };
 
 type PublicEvents = {
   generated_at_utc: string;
   mode: "shared" | "local";
-  backend?: "configured" | "missing" | "error";
+  backend?: "configured" | "local" | "error";
   note?: string | null;
   events: Array<{
     ts_utc: string;
@@ -67,14 +67,14 @@ const EMPTY_STATS: PublicStats = {
   by_kind: {},
   by_tool: {},
   daily: [],
-  backend: "missing",
+  backend: "local",
   note: "No usage data yet.",
 };
 
 const EMPTY_EVENTS: PublicEvents = {
   generated_at_utc: "",
   mode: "local",
-  backend: "missing",
+  backend: "local",
   note: "No usage events yet.",
   events: [],
 };
@@ -93,6 +93,7 @@ export default function McpLiveClient() {
   const [days, setDays] = useState(7);
   const [limit, setLimit] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [probeLoading, setProbeLoading] = useState(false);
   const [error, setError] = useState("");
   const [stats, setStats] = useState<PublicStats>(EMPTY_STATS);
   const [eventsPayload, setEventsPayload] = useState<PublicEvents>(EMPTY_EVENTS);
@@ -117,6 +118,26 @@ export default function McpLiveClient() {
       setError(err instanceof Error ? err.message : "Unable to load MCP live data.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function runProbe() {
+    setProbeLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/mcp/probe", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      });
+      if (!response.ok) {
+        throw new Error(`Probe failed (${response.status})`);
+      }
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Probe failed.");
+    } finally {
+      setProbeLoading(false);
     }
   }
 
@@ -172,6 +193,14 @@ export default function McpLiveClient() {
             className="rounded-md border border-border/70 bg-background/70 px-3 py-1 hover:border-primary/50"
           >
             Refresh
+          </button>
+          <button
+            type="button"
+            onClick={() => void runProbe()}
+            disabled={probeLoading}
+            className="rounded-md border border-border/70 bg-background/70 px-3 py-1 hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {probeLoading ? "Probing..." : "Run probe"}
           </button>
         </div>
 

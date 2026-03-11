@@ -21,7 +21,7 @@ function withCors(response: Response): Response {
   });
 }
 
-function emptyEvents(backend: "missing" | "error", note: string) {
+function emptyEvents(backend: "local" | "error", note: string) {
   return {
     generated_at_utc: new Date().toISOString(),
     mode: "local" as const,
@@ -50,20 +50,6 @@ export async function GET(request: Request): Promise<Response> {
   const statusRaw = searchParams.get("status");
   const status = statusRaw ? Number(statusRaw) : undefined;
 
-  if (!hasMcpTelemetryBackend()) {
-    return withCors(
-      new Response(
-        JSON.stringify(
-          emptyEvents("missing", "Telemetry backend is not configured for this deployment."),
-        ),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
-      ),
-    );
-  }
-
   try {
     const payload = await listMcpUsageEvents({
       limit,
@@ -90,8 +76,8 @@ export async function GET(request: Request): Promise<Response> {
         JSON.stringify({
           generated_at_utc: new Date().toISOString(),
           mode: payload.mode,
-          backend: "configured",
-          note: null,
+          backend: hasMcpTelemetryBackend() ? "configured" : "local",
+          note: hasMcpTelemetryBackend() ? null : "Telemetry is running in local in-process mode for this deployment.",
           events: redacted,
         }),
         {
@@ -104,7 +90,7 @@ export async function GET(request: Request): Promise<Response> {
     return withCors(
       new Response(
         JSON.stringify(
-          emptyEvents("error", "Telemetry backend is temporarily unavailable."),
+          emptyEvents("error", "Telemetry is temporarily unavailable."),
         ),
         {
           status: 200,

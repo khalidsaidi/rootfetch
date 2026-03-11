@@ -4,7 +4,7 @@ import type { RunScopedBundle } from "@/lib/rootfetch-data";
 
 const SHA256_RE = /^[a-f0-9]{64}$/i;
 
-const ToolArtifactUrlsSchema = z.object({
+export const ToolArtifactUrlsSchema = z.object({
   manifest: z.string(),
   model: z.string(),
   coverage: z.string(),
@@ -14,7 +14,7 @@ const ToolArtifactUrlsSchema = z.object({
   digest: z.string(),
 });
 
-const EvidenceSchema = z.object({
+export const EvidenceSchema = z.object({
   run_id: z.string().min(1),
   run_url: z.string().min(1),
   manifest_url: z.string().min(1),
@@ -24,7 +24,7 @@ const EvidenceSchema = z.object({
   artifact_urls: ToolArtifactUrlsSchema,
 });
 
-const CurrentStateOutcomeSchema = z.object({
+export const CurrentStateOutcomeSchema = z.object({
   outcome: z.literal("current_state"),
   schema_version: z.literal("1.0"),
   generated_at_utc: z.string(),
@@ -65,7 +65,7 @@ const CurrentStateOutcomeSchema = z.object({
   evidence: EvidenceSchema,
 });
 
-const RunDeltaOutcomeSchema = z.object({
+export const RunDeltaOutcomeSchema = z.object({
   outcome: z.literal("run_delta"),
   schema_version: z.literal("1.0"),
   generated_at_utc: z.string(),
@@ -114,7 +114,7 @@ const RunDeltaOutcomeSchema = z.object({
   }),
 });
 
-const TldSpotlightOutcomeSchema = z.object({
+export const TldSpotlightOutcomeSchema = z.object({
   outcome: z.literal("tld_spotlight"),
   schema_version: z.literal("1.0"),
   generated_at_utc: z.string(),
@@ -145,7 +145,7 @@ const TldSpotlightOutcomeSchema = z.object({
   evidence: EvidenceSchema,
 });
 
-const AlertCandidateSchema = z.object({
+export const AlertCandidateSchema = z.object({
   tld: z.string(),
   category: z.enum(["anomaly", "mover"]),
   count: z.number(),
@@ -157,7 +157,7 @@ const AlertCandidateSchema = z.object({
   reason: z.string(),
 });
 
-const AlertCandidatesOutcomeSchema = z.object({
+export const AlertCandidatesOutcomeSchema = z.object({
   outcome: z.literal("alert_candidates"),
   schema_version: z.literal("1.0"),
   generated_at_utc: z.string(),
@@ -480,4 +480,71 @@ export function buildAlertCandidatesOutcome(
     candidates,
     evidence: buildEvidenceForRun(runId, bundle),
   });
+}
+
+export function getOutcomeToolContracts(): Record<string, unknown> {
+  return {
+    schema_version: "1.0",
+    tools: {
+      "rootfetch.outcome.current_state": {
+        description: "Strict state snapshot for one immutable run.",
+        required_top_level: [
+          "outcome",
+          "schema_version",
+          "run_id",
+          "regime",
+          "concentration",
+          "coverage",
+          "volatility",
+          "top_anomalies",
+          "evidence",
+        ],
+        evidence_required: true,
+      },
+      "rootfetch.outcome.run_delta": {
+        description: "Strict run-pair deltas with model transition disclosure.",
+        required_top_level: [
+          "outcome",
+          "schema_version",
+          "left_run_id",
+          "right_run_id",
+          "transition",
+          "concentration_delta",
+          "coverage_delta",
+          "temporal",
+          "compare",
+          "evidence",
+        ],
+        evidence_required: true,
+      },
+      "rootfetch.outcome.tld_spotlight": {
+        description: "Strict TLD-focused metrics and anomaly presence for one run.",
+        required_top_level: [
+          "outcome",
+          "schema_version",
+          "run_id",
+          "tld",
+          "metrics",
+          "signals",
+          "links",
+          "evidence",
+        ],
+        evidence_required: true,
+      },
+      "rootfetch.outcome.alert_candidates": {
+        description: "Strict anomaly/mover candidate list with trigger context.",
+        required_top_level: [
+          "outcome",
+          "schema_version",
+          "run_id",
+          "limit",
+          "total_candidates",
+          "triggers",
+          "candidates",
+          "evidence",
+        ],
+        evidence_required: true,
+      },
+    },
+  };
 }

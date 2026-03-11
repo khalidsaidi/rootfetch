@@ -3,7 +3,7 @@
   "info": {
     "title": "RootFetch Public API",
     "version": "1.0.0",
-    "description": "Read-only, artifact-backed API surface for MCP discovery and immutable run artifacts."
+    "description": "Read-only, artifact-backed API surface for MCP discovery, strict outcome contracts, and immutable run artifacts."
   },
   "servers": [
     {
@@ -606,7 +606,7 @@
                       "type": "string",
                       "enum": [
                         "configured",
-                        "missing",
+                        "local",
                         "error"
                       ]
                     },
@@ -690,7 +690,7 @@
                       "type": "string",
                       "enum": [
                         "configured",
-                        "missing",
+                        "local",
                         "error"
                       ]
                     },
@@ -778,6 +778,101 @@
           },
           "503": {
             "description": "Not ready"
+          }
+        }
+      }
+    },
+    "/api/mcp/outcome-schemas": {
+      "get": {
+        "summary": "Outcome tool contracts",
+        "operationId": "getMcpOutcomeSchemas",
+        "responses": {
+          "200": {
+            "description": "Machine-readable contracts for outcome tools",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeToolContracts"
+                },
+                "examples": {
+                  "default": {
+                    "value": {
+                      "generated_at_utc": "2026-03-11T00:00:00.000Z",
+                      "schema_version": "1.0",
+                      "tools": {
+                        "rootfetch.outcome.current_state": {
+                          "description": "Strict state snapshot for one immutable run.",
+                          "required_top_level": [
+                            "outcome",
+                            "schema_version",
+                            "run_id",
+                            "regime",
+                            "concentration",
+                            "coverage",
+                            "volatility",
+                            "top_anomalies",
+                            "evidence"
+                          ],
+                          "evidence_required": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mcp/probe": {
+      "post": {
+        "summary": "Run MCP probe sequence",
+        "operationId": "postMcpProbe",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "examples": {
+                "default": {
+                  "value": {}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Probe completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpProbeResult"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "ok": true,
+                      "generated_at_utc": "2026-03-11T00:00:00.000Z",
+                      "duration_ms": 84,
+                      "statuses": {
+                        "initialize": 200,
+                        "tools_list": 200,
+                        "current_state": 200
+                      },
+                      "endpoint": "https://rootfetch.com/mcp"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Probe failed"
           }
         }
       }
@@ -903,6 +998,86 @@
         },
         "required": [
           "jsonrpc"
+        ]
+      },
+      "OutcomeToolContracts": {
+        "type": "object",
+        "properties": {
+          "generated_at_utc": {
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "tools": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "required_top_level": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "evidence_required": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "generated_at_utc",
+          "schema_version",
+          "tools"
+        ]
+      },
+      "McpProbeResult": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "generated_at_utc": {
+            "type": "string"
+          },
+          "duration_ms": {
+            "type": "integer"
+          },
+          "statuses": {
+            "type": "object",
+            "properties": {
+              "initialize": {
+                "type": "integer"
+              },
+              "tools_list": {
+                "type": "integer"
+              },
+              "current_state": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "initialize",
+              "tools_list",
+              "current_state"
+            ]
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "generated_at_utc"
         ]
       }
     },

@@ -189,7 +189,10 @@ export async function GET(request: Request): Promise<Response> {
     endpoint: `${origin}/mcp`,
     docs_url: "https://rootfetch.com/docs/mcp",
     agents_url: `${origin}/agents`,
+    agents_playground_url: `${origin}/agents/playground`,
     first_call_url: `${origin}/api/mcp/first-call`,
+    probe_url: `${origin}/api/mcp/probe`,
+    outcome_schemas_url: `${origin}/api/mcp/outcome-schemas`,
     openapi_url: `${origin}/openapi.json`,
     ai_plugin_url: `${origin}/ai-plugin.json`,
     health_url: `${origin}/mcp/health`,
@@ -263,7 +266,10 @@ export async function GET(request: Request): Promise<Response> {
           <ul>
             <li><a href="${payload.docs_url}">${payload.docs_url}</a></li>
             <li><a href="${payload.agents_url}">${payload.agents_url}</a></li>
+            <li><a href="${payload.agents_playground_url}">${payload.agents_playground_url}</a></li>
             <li><a href="${payload.first_call_url}">${payload.first_call_url}</a></li>
+            <li><a href="${payload.probe_url}">${payload.probe_url}</a></li>
+            <li><a href="${payload.outcome_schemas_url}">${payload.outcome_schemas_url}</a></li>
             <li><a href="${payload.usage_live_url}">${payload.usage_live_url}</a></li>
             <li><a href="${payload.openapi_url}">${payload.openapi_url}</a></li>
             <li><a href="${payload.hosting_page_url}">${payload.hosting_page_url}</a></li>

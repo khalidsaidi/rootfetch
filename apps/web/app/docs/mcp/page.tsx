@@ -45,6 +45,13 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           <code>https://rootfetch.com/api/mcp/first-call</code>.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
+          Live probe endpoint (initialize + tools/list + outcome tool call):{" "}
+          <code>https://rootfetch.com/api/mcp/probe</code>.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Interactive MCP playground: <code>https://rootfetch.com/agents/playground</code>.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
           Browser-friendly MCP landing page: <code>https://rootfetch.com/mcp</code>. Raw metadata:{" "}
           <code>https://rootfetch.com/mcp?format=json</code>.
         </p>
@@ -74,6 +81,9 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           <li><code>rootfetch.run_bundle</code> (<code>run_id?</code>): model + coverage + signals for one run.</li>
           <li><code>rootfetch.compare_link</code> (<code>left</code>, <code>right</code>): compare URL only.</li>
         </ul>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Machine-readable outcome contracts: <code>/api/mcp/outcome-schemas</code>.
+        </p>
       </Section>
 
       <Section title="Calling Pattern">
@@ -147,6 +157,14 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
         >
           Open agent integration
+        </TrackedLink>
+        <TrackedLink
+          href="/agents/playground"
+          label="mcp_docs_playground"
+          pageType="mcp_docs"
+          className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
+        >
+          Open MCP playground
         </TrackedLink>
         <TrackedLink
           href="/mcp/live"

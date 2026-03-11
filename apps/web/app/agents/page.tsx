@@ -58,6 +58,9 @@ export default function AgentsPage() {
           <TrackedLink href="/mcp/live" label="agents_open_live_usage" pageType="agents" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
             Live usage
           </TrackedLink>
+          <TrackedLink href="/agents/playground" label="agents_open_playground" pageType="agents" className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50">
+            Interactive playground
+          </TrackedLink>
         </div>
       </Section>
 
@@ -86,6 +89,20 @@ export default function AgentsPage() {
         <div className="mt-2">
           <CopyValueButton value={firstCallCurl} keyName="agents_first_call_curl" context="agents_page" />
         </div>
+      </Section>
+
+      <Section title="2.5) Interactive Calling" subtitle="Use the browser playground when CLI is not convenient.">
+        <p className="text-sm text-muted-foreground">
+          Open <code>/agents/playground</code> to call any MCP tool with JSON args and inspect the raw JSON-RPC envelope.
+        </p>
+        <TrackedLink
+          href="/agents/playground"
+          label="agents_go_playground"
+          pageType="agents"
+          className="mt-3 inline-flex rounded-lg border border-border/70 px-2.5 py-1.5 text-xs hover:border-primary/50"
+        >
+          Open playground
+        </TrackedLink>
       </Section>
 
       <Section title="3) Outcome Tools (Strict)" subtitle="Use these before raw tools for operational workflows.">
@@ -125,4 +142,3 @@ export default function AgentsPage() {
     </main>
   );
 }
-
