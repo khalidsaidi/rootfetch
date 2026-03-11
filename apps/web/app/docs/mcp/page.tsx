@@ -56,6 +56,9 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           <code> https://rootfetch.com/api/mcp/task-recipes</code>.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
+          Includes production workflows: <code>regime-flip-bulletin-prep</code> and <code>monthly-brief-payload</code>.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
           Browser-friendly MCP landing page: <code>https://rootfetch.com/mcp</code>. Raw metadata:{" "}
           <code>https://rootfetch.com/mcp?format=json</code>.
         </p>

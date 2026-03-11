@@ -183,6 +183,35 @@ export default function AgentsPage() {
           <li>Admin events: <code>/admin/agent-events</code></li>
         </ul>
       </Section>
+
+      <Section title="6) High-Value Workflows" subtitle="Use these when running production governance operations.">
+        <ul className="ml-5 list-disc space-y-1 text-sm text-muted-foreground">
+          <li>
+            <code>regime-flip-bulletin-prep</code>: run-delta + current-state + alert-candidates with publish fields.
+          </li>
+          <li>
+            <code>monthly-brief-payload</code>: monthly brief payload with state, deltas, and top candidate appendix.
+          </li>
+        </ul>
+        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+          <TrackedLink
+            href="/agents/recipes"
+            label="agents_high_value_recipes_page"
+            pageType="agents"
+            className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50"
+          >
+            Open workflow recipes
+          </TrackedLink>
+          <TrackedLink
+            href="/api/mcp/task-recipes"
+            label="agents_high_value_recipes_api"
+            pageType="agents"
+            className="rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50"
+          >
+            Open recipe JSON
+          </TrackedLink>
+        </div>
+      </Section>
     </main>
   );
 }

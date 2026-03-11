@@ -64,11 +64,21 @@ export default function AgentTaskRecipesPage() {
                 </p>
                 <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">RPC request</p>
                 <pre className="rounded-lg border border-border/70 bg-background/70 p-4 text-xs rf-mono-digits">{rpc}</pre>
-                <CopyValueButton
-                  value={rpc}
-                  keyName={`agent_recipe_rpc_${recipe.id}`}
-                  context="agent_recipes_page"
-                />
+                <div className="flex flex-wrap gap-2">
+                  <CopyValueButton
+                    value={rpc}
+                    keyName={`agent_recipe_rpc_${recipe.id}`}
+                    context="agent_recipes_page"
+                  />
+                  <TrackedLink
+                    href={recipe.playground_url}
+                    label={`agent_recipe_playground_${recipe.id}`}
+                    pageType="agent_recipes"
+                    className="inline-flex items-center rounded-lg border border-border/70 px-2 py-1 text-xs hover:border-primary/50"
+                  >
+                    Open in playground
+                  </TrackedLink>
+                </div>
                 <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">cURL</p>
                 <pre className="rounded-lg border border-border/70 bg-background/70 p-4 text-xs rf-mono-digits">
                   {recipe.curl_example}
@@ -95,8 +105,59 @@ export default function AgentTaskRecipesPage() {
                     <li key={rule}>{rule}</li>
                   ))}
                 </ul>
+                {recipe.publish_template_fields?.length ? (
+                  <>
+                    <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                      Publish template fields
+                    </p>
+                    <ul className="ml-5 list-disc space-y-1 text-sm text-muted-foreground">
+                      {recipe.publish_template_fields.map((field) => (
+                        <li key={field}>
+                          <code>{field}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : null}
               </div>
             </div>
+
+            {recipe.steps?.length ? (
+              <div className="mt-4 rounded-lg border border-border/70 bg-background/50 p-4">
+                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Workflow steps</p>
+                <div className="mt-3 grid gap-3">
+                  {recipe.steps.map((step) => {
+                    const stepRpc = JSON.stringify(step.rpc_request, null, 2);
+                    return (
+                      <div key={`${recipe.id}-${step.id}`} className="rounded-lg border border-border/70 bg-background/70 p-3">
+                        <p className="text-sm font-semibold text-foreground">{step.label}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Tool: <code>{step.tool_name}</code>
+                        </p>
+                        <pre className="mt-2 rounded-lg border border-border/70 bg-background/70 p-3 text-xs rf-mono-digits">
+                          {stepRpc}
+                        </pre>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <CopyValueButton
+                            value={stepRpc}
+                            keyName={`agent_recipe_step_rpc_${recipe.id}_${step.id}`}
+                            context="agent_recipes_page"
+                          />
+                          <TrackedLink
+                            href={step.playground_url}
+                            label={`agent_recipe_step_playground_${recipe.id}_${step.id}`}
+                            pageType="agent_recipes"
+                            className="inline-flex items-center rounded-lg border border-border/70 px-2 py-1 text-xs hover:border-primary/50"
+                          >
+                            Open step in playground
+                          </TrackedLink>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </Section>
         );
       })}

@@ -911,7 +911,8 @@
                             "volatility",
                             "top_anomalies",
                             "evidence"
-                          ]
+                          ],
+                          "playground_url": "https://rootfetch.com/agents/playground?tool=rootfetch.outcome.current_state&args=%7B%7D"
                         }
                       ]
                     }
@@ -1163,6 +1164,22 @@
           },
           "curl_example": {
             "type": "string"
+          },
+          "playground_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/McpTaskRecipeStep"
+            }
+          },
+          "publish_template_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -1174,7 +1191,8 @@
           "expected_top_level",
           "verification",
           "rpc_request",
-          "curl_example"
+          "curl_example",
+          "playground_url"
         ]
       },
       "McpTaskRecipes": {
@@ -1210,6 +1228,58 @@
           "endpoint",
           "docs_url",
           "recipes"
+        ]
+      },
+      "McpTaskRecipeStep": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tool_name": {
+            "type": "string"
+          },
+          "arguments": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "expected_top_level": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "verification": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rpc_request": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "curl_example": {
+            "type": "string"
+          },
+          "playground_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "tool_name",
+          "arguments",
+          "expected_top_level",
+          "verification",
+          "rpc_request",
+          "curl_example",
+          "playground_url"
         ]
       }
     },

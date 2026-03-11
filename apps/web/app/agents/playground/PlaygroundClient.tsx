@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Section from "@/components/Section";
 import TrackedLink from "@/components/TrackedLink";
@@ -118,6 +118,30 @@ export default function PlaygroundClient() {
   );
 
   const selectedHint = TOOL_TEMPLATES[toolName]?.hint || "Calls the selected MCP tool.";
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedTool = params.get("tool");
+    const requestedArgs = params.get("args");
+    if (!requestedTool || !TOOLS.includes(requestedTool)) {
+      return;
+    }
+    setToolName(requestedTool);
+
+    if (!requestedArgs) {
+      const template = TOOL_TEMPLATES[requestedTool];
+      setArgsJson(JSON.stringify(template?.args || {}, null, 2));
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(requestedArgs) as Record<string, unknown>;
+      setArgsJson(JSON.stringify(parsed, null, 2));
+    } catch {
+      const template = TOOL_TEMPLATES[requestedTool];
+      setArgsJson(JSON.stringify(template?.args || {}, null, 2));
+    }
+  }, []);
 
   async function callTool() {
     setLoading(true);
