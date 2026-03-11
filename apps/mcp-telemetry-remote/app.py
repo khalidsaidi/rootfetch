@@ -159,6 +159,11 @@ def stats() -> Any:
     by_kind: Dict[str, int] = {}
     by_tool: Dict[str, int] = {}
     daily_map: Dict[str, Dict[str, int]] = {}
+    unique_ips: set[str] = set()
+    requests_by_ip: Dict[str, int] = {}
+    tool_call_requests = 0
+    tool_call_success = 0
+    initialize_requests = 0
 
     def bump(target: Dict[str, int], key: Optional[str]) -> None:
         if not key:
@@ -173,12 +178,24 @@ def stats() -> Any:
         status = _safe_int(row.get("status"), 0)
         if status >= 400:
             totals["errors"] += 1
+        rpc_method_value = str(row.get("rpc_method") or "")
+        if rpc_method_value == "tools/call":
+            tool_call_requests += 1
+            if status < 400:
+                tool_call_success += 1
+        elif rpc_method_value == "initialize":
+            initialize_requests += 1
 
         bump(by_status, str(status))
         bump(by_http_method, str(row.get("http_method") or ""))
         bump(by_rpc_method, str(row.get("rpc_method") or ""))
         bump(by_kind, str(row.get("kind") or ""))
         bump(by_tool, str(row.get("tool_name") or ""))
+
+        ip_hash = str(row.get("ip_hash") or "")
+        if ip_hash:
+            unique_ips.add(ip_hash)
+            requests_by_ip[ip_hash] = requests_by_ip.get(ip_hash, 0) + 1
 
         date_utc = str(row.get("date_utc") or "")
         if not date_utc:
@@ -208,6 +225,11 @@ def stats() -> Any:
             }
         )
 
+    unique_clients = len(unique_ips)
+    repeat_clients = sum(1 for count in requests_by_ip.values() if count >= 2)
+    repeat_client_rate_pct = (repeat_clients / unique_clients * 100.0) if unique_clients else 0.0
+    tool_call_success_rate_pct = (tool_call_success / tool_call_requests * 100.0) if tool_call_requests else 0.0
+
     return jsonify(
         {
             "mode": "shared",
@@ -220,6 +242,15 @@ def stats() -> Any:
             "by_kind": by_kind,
             "by_tool": by_tool,
             "daily": day_list,
+            "adoption_kpi": {
+                "unique_clients": unique_clients,
+                "repeat_clients": repeat_clients,
+                "repeat_client_rate_pct": round(repeat_client_rate_pct, 3),
+                "tool_call_requests": tool_call_requests,
+                "tool_call_success_rate_pct": round(tool_call_success_rate_pct, 3),
+                "initialize_requests": initialize_requests,
+                "weekly_active_clients_proxy": unique_clients if days <= 7 else None,
+            },
         }
     )
 

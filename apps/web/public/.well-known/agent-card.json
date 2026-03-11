@@ -3,11 +3,15 @@
   "description": "Read-only structural intelligence over immutable namespace run artifacts.",
   "url": "https://rootfetch.com",
   "version": "0.1.0",
-  "documentationUrl": "https://rootfetch.com/docs/mcp",
+  "documentationUrl": "https://rootfetch.com/agents",
   "apiEndpoints": [
     {
       "name": "openapi",
       "url": "https://rootfetch.com/openapi.json"
+    },
+    {
+      "name": "first_call",
+      "url": "https://rootfetch.com/api/mcp/first-call"
     }
   ],
   "mcpServers": [

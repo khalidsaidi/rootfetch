@@ -19,6 +19,15 @@ type PublicStats = {
   by_rpc_method: Record<string, number>;
   by_kind: Record<string, number>;
   by_tool: Record<string, number>;
+  adoption_kpi?: {
+    unique_clients: number;
+    repeat_clients: number;
+    repeat_client_rate_pct: number;
+    tool_call_requests: number;
+    tool_call_success_rate_pct: number;
+    initialize_requests: number;
+    weekly_active_clients_proxy?: number | null;
+  };
   daily: Array<{
     date_utc: string;
     requests: number;
@@ -118,6 +127,7 @@ export default function McpLiveClient() {
 
   const topTool = useMemo(() => ordered(stats.by_tool)[0], [stats.by_tool]);
   const topRpc = useMemo(() => ordered(stats.by_rpc_method)[0], [stats.by_rpc_method]);
+  const adoption = stats.adoption_kpi;
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 pb-16 pt-8 md:px-8">
@@ -199,6 +209,32 @@ export default function McpLiveClient() {
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Top tool</p>
             <p className="mt-1 text-sm font-semibold">
               {topTool ? <><code>{topTool[0]}</code> ({topTool[1]})</> : "none"}
+            </p>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Adoption KPIs (Public)">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-lg border border-border/70 bg-background/70 p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Unique clients</p>
+            <p className="mt-1 text-2xl font-semibold">{adoption?.unique_clients ?? 0}</p>
+          </div>
+          <div className="rounded-lg border border-border/70 bg-background/70 p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Repeat clients</p>
+            <p className="mt-1 text-2xl font-semibold">{adoption?.repeat_clients ?? 0}</p>
+            <p className="text-xs text-muted-foreground">rate: {(adoption?.repeat_client_rate_pct ?? 0).toFixed(2)}%</p>
+          </div>
+          <div className="rounded-lg border border-border/70 bg-background/70 p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Tool-call success</p>
+            <p className="mt-1 text-2xl font-semibold">{(adoption?.tool_call_success_rate_pct ?? 0).toFixed(2)}%</p>
+            <p className="text-xs text-muted-foreground">calls: {adoption?.tool_call_requests ?? 0}</p>
+          </div>
+          <div className="rounded-lg border border-border/70 bg-background/70 p-4">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Initialize requests</p>
+            <p className="mt-1 text-2xl font-semibold">{adoption?.initialize_requests ?? 0}</p>
+            <p className="text-xs text-muted-foreground">
+              weekly active proxy: {adoption?.weekly_active_clients_proxy ?? 0}
             </p>
           </div>
         </div>

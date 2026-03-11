@@ -10,6 +10,12 @@ import {
   type ReplayIndexArtifact,
   type RunScopedBundle,
 } from "@/lib/rootfetch-data";
+import {
+  buildAlertCandidatesOutcome,
+  buildCurrentStateOutcome,
+  buildRunDeltaOutcome,
+  buildTldSpotlightOutcome,
+} from "@/lib/mcp-outcomes";
 import { recordMcpUsageEvent } from "@/lib/mcp-telemetry";
 
 export const runtime = "nodejs";
@@ -349,6 +355,23 @@ async function resolveRunId(explicitRunId?: string): Promise<string> {
   return assertRunId(runId);
 }
 
+async function resolvePreviousRunId(excludeRunId?: string): Promise<string> {
+  const replay = await loadReplayIndex();
+  const rows = Array.isArray(replay.runs) ? replay.runs : [];
+  const ordered = [...rows].sort((a, b) =>
+    String(b.snapshot_ts_utc || "").localeCompare(String(a.snapshot_ts_utc || "")),
+  );
+  const hit = ordered.find((row) => {
+    const runId = String(row.run_id || "").trim();
+    return Boolean(runId) && runId !== excludeRunId;
+  });
+  const runId = String(hit?.run_id || "").trim();
+  if (!runId) {
+    throw new Error("previous_run_unavailable");
+  }
+  return assertRunId(runId);
+}
+
 function shapeLatest(pointer: ArtifactLatestPointer | null): Record<string, unknown> {
   if (!pointer || !pointer.run_id) {
     return {
@@ -474,6 +497,136 @@ const mcpHandler = createMcpHandler(
         }
         const payload = ensurePayloadWithinLimit("rootfetch.run_bundle", shapeRunBundle(runId, bundle));
         return textContent(payload);
+      },
+    );
+
+    server.registerTool(
+      "rootfetch.outcome.current_state",
+      {
+        title: "RootFetch Outcome: Current Structural State",
+        description:
+          "Returns a strict, evidence-bound summary of regime, concentration, coverage, and volatility for one immutable run.",
+        inputSchema: {
+          run_id: z.string().optional(),
+        },
+      },
+      async ({ run_id }) => {
+        try {
+          const runId = await resolveRunId(run_id);
+          const bundle = await loadRunBundleById(runId);
+          if (!bundle) {
+            return textContent({ error: "run_not_found", run_id: runId });
+          }
+          const payload = ensurePayloadWithinLimit(
+            "rootfetch.outcome.current_state",
+            buildCurrentStateOutcome(runId, bundle),
+          );
+          return textContent(payload);
+        } catch (error) {
+          return textContent({
+            error: error instanceof Error ? error.message : "current_state_unavailable",
+          });
+        }
+      },
+    );
+
+    server.registerTool(
+      "rootfetch.outcome.run_delta",
+      {
+        title: "RootFetch Outcome: Run Delta",
+        description:
+          "Returns strict run-to-run deltas with model transition disclosure and mandatory evidence for both runs.",
+        inputSchema: {
+          left_run_id: z.string().optional(),
+          right_run_id: z.string().optional(),
+        },
+      },
+      async ({ left_run_id, right_run_id }) => {
+        try {
+          const rightId = await resolveRunId(right_run_id);
+          const leftId = left_run_id ? assertRunId(left_run_id) : await resolvePreviousRunId(rightId);
+          const [leftBundle, rightBundle] = await Promise.all([loadRunBundleById(leftId), loadRunBundleById(rightId)]);
+          if (!leftBundle || !rightBundle) {
+            return textContent({
+              error: "run_not_found",
+              left_run_id: leftId,
+              right_run_id: rightId,
+            });
+          }
+          const payload = ensurePayloadWithinLimit(
+            "rootfetch.outcome.run_delta",
+            buildRunDeltaOutcome(leftId, leftBundle, rightId, rightBundle),
+          );
+          return textContent(payload);
+        } catch (error) {
+          return textContent({
+            error: error instanceof Error ? error.message : "run_delta_unavailable",
+          });
+        }
+      },
+    );
+
+    server.registerTool(
+      "rootfetch.outcome.tld_spotlight",
+      {
+        title: "RootFetch Outcome: TLD Spotlight",
+        description:
+          "Returns strict, evidence-bound TLD metrics (count/share/deltas/anomaly flags) from one immutable run.",
+        inputSchema: {
+          tld: z.string(),
+          run_id: z.string().optional(),
+        },
+      },
+      async ({ tld, run_id }) => {
+        try {
+          const runId = await resolveRunId(run_id);
+          const bundle = await loadRunBundleById(runId);
+          if (!bundle) {
+            return textContent({ error: "run_not_found", run_id: runId });
+          }
+          const payload = ensurePayloadWithinLimit(
+            "rootfetch.outcome.tld_spotlight",
+            buildTldSpotlightOutcome(runId, bundle, tld),
+          );
+          return textContent(payload);
+        } catch (error) {
+          return textContent({
+            error: error instanceof Error ? error.message : "invalid_tld",
+            tld,
+            run_id: run_id || "latest",
+          });
+        }
+      },
+    );
+
+    server.registerTool(
+      "rootfetch.outcome.alert_candidates",
+      {
+        title: "RootFetch Outcome: Alert Candidates",
+        description:
+          "Returns strict candidate rows from anomaly/mover evidence with trigger context for one immutable run.",
+        inputSchema: {
+          run_id: z.string().optional(),
+          limit: z.number().int().min(1).max(50).optional(),
+        },
+      },
+      async ({ run_id, limit }) => {
+        try {
+          const runId = await resolveRunId(run_id);
+          const bundle = await loadRunBundleById(runId);
+          if (!bundle) {
+            return textContent({ error: "run_not_found", run_id: runId });
+          }
+          const payload = ensurePayloadWithinLimit(
+            "rootfetch.outcome.alert_candidates",
+            buildAlertCandidatesOutcome(runId, bundle, limit ?? 10),
+          );
+          return textContent(payload);
+        } catch (error) {
+          return textContent({
+            error: error instanceof Error ? error.message : "alert_candidates_unavailable",
+          });
+        }
       },
     );
 

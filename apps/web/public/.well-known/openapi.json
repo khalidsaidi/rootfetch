@@ -32,6 +32,8 @@
                       "transport": "http",
                       "endpoint": "https://rootfetch.com/mcp",
                       "docs_url": "https://rootfetch.com/docs/mcp",
+                      "agents_url": "https://rootfetch.com/agents",
+                      "first_call_url": "https://rootfetch.com/api/mcp/first-call",
                       "artifact_backed": true,
                       "read_only": true,
                       "no_recompute": true
@@ -77,6 +79,18 @@
                     "id": 2,
                     "method": "tools/list",
                     "params": {}
+                  }
+                },
+                "tools_call_current_state": {
+                  "summary": "Call strict outcome tool",
+                  "value": {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "method": "tools/call",
+                    "params": {
+                      "name": "rootfetch.outcome.current_state",
+                      "arguments": {}
+                    }
                   }
                 }
               }
@@ -237,6 +251,20 @@
         }
       }
     },
+    "/api/mcp/first-call": {
+      "get": {
+        "summary": "MCP first-call validator",
+        "operationId": "getMcpFirstCall",
+        "responses": {
+          "200": {
+            "description": "First-call validation payload with sample requests and strict outcome response keys"
+          },
+          "503": {
+            "description": "Latest run or bundle unavailable"
+          }
+        }
+      }
+    },
     "/api/mcp/stats": {
       "get": {
         "summary": "MCP usage stats",
@@ -307,6 +335,29 @@
                           "errors": {
                             "type": "integer"
                           }
+                        }
+                      }
+                    },
+                    "adoption_kpi": {
+                      "type": "object",
+                      "properties": {
+                        "unique_clients": {
+                          "type": "integer"
+                        },
+                        "repeat_clients": {
+                          "type": "integer"
+                        },
+                        "repeat_client_rate_pct": {
+                          "type": "number"
+                        },
+                        "tool_call_requests": {
+                          "type": "integer"
+                        },
+                        "tool_call_success_rate_pct": {
+                          "type": "number"
+                        },
+                        "initialize_requests": {
+                          "type": "integer"
                         }
                       }
                     }

@@ -28,6 +28,15 @@ export type McpUsageStats = {
   by_rpc_method: Record<string, number>;
   by_kind: Record<string, number>;
   by_tool: Record<string, number>;
+  adoption_kpi?: {
+    unique_clients: number;
+    repeat_clients: number;
+    repeat_client_rate_pct: number;
+    tool_call_requests: number;
+    tool_call_success_rate_pct: number;
+    initialize_requests: number;
+    weekly_active_clients_proxy?: number | null;
+  };
   daily: Array<{
     date_utc: string;
     requests: number;
@@ -154,6 +163,23 @@ function normalizeStats(payload: unknown, days: number): McpUsageStats {
     by_rpc_method: (raw.by_rpc_method || {}) as Record<string, number>,
     by_kind: (raw.by_kind || {}) as Record<string, number>,
     by_tool: (raw.by_tool || {}) as Record<string, number>,
+    adoption_kpi:
+      raw.adoption_kpi && typeof raw.adoption_kpi === "object"
+        ? {
+            unique_clients: Number((raw.adoption_kpi as { unique_clients?: number }).unique_clients || 0),
+            repeat_clients: Number((raw.adoption_kpi as { repeat_clients?: number }).repeat_clients || 0),
+            repeat_client_rate_pct: Number(
+              (raw.adoption_kpi as { repeat_client_rate_pct?: number }).repeat_client_rate_pct || 0,
+            ),
+            tool_call_requests: Number((raw.adoption_kpi as { tool_call_requests?: number }).tool_call_requests || 0),
+            tool_call_success_rate_pct: Number(
+              (raw.adoption_kpi as { tool_call_success_rate_pct?: number }).tool_call_success_rate_pct || 0,
+            ),
+            initialize_requests: Number((raw.adoption_kpi as { initialize_requests?: number }).initialize_requests || 0),
+            weekly_active_clients_proxy:
+              (raw.adoption_kpi as { weekly_active_clients_proxy?: number | null }).weekly_active_clients_proxy ?? null,
+          }
+        : undefined,
     daily: Array.isArray(raw.daily) ? raw.daily : [],
   };
 }

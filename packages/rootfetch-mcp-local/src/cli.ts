@@ -199,6 +199,72 @@ server.registerTool(
 );
 
 server.registerTool(
+  "rootfetch.outcome.current_state",
+  {
+    title: "RootFetch Outcome: Current Structural State",
+    description: "Returns strict state summary with mandatory evidence fields.",
+    inputSchema: {
+      run_id: z.string().optional(),
+    },
+  },
+  async ({ run_id }: { run_id?: string }) =>
+    callRemoteTool("rootfetch.outcome.current_state", {
+      ...(run_id ? { run_id } : {}),
+    }),
+);
+
+server.registerTool(
+  "rootfetch.outcome.run_delta",
+  {
+    title: "RootFetch Outcome: Run Delta",
+    description: "Returns strict run-pair deltas with model-transition disclosure.",
+    inputSchema: {
+      left_run_id: z.string().optional(),
+      right_run_id: z.string().optional(),
+    },
+  },
+  async ({ left_run_id, right_run_id }: { left_run_id?: string; right_run_id?: string }) =>
+    callRemoteTool("rootfetch.outcome.run_delta", {
+      ...(left_run_id ? { left_run_id } : {}),
+      ...(right_run_id ? { right_run_id } : {}),
+    }),
+);
+
+server.registerTool(
+  "rootfetch.outcome.tld_spotlight",
+  {
+    title: "RootFetch Outcome: TLD Spotlight",
+    description: "Returns strict TLD metrics/anomaly flags with evidence links.",
+    inputSchema: {
+      tld: z.string(),
+      run_id: z.string().optional(),
+    },
+  },
+  async ({ tld, run_id }: { tld: string; run_id?: string }) =>
+    callRemoteTool("rootfetch.outcome.tld_spotlight", {
+      tld,
+      ...(run_id ? { run_id } : {}),
+    }),
+);
+
+server.registerTool(
+  "rootfetch.outcome.alert_candidates",
+  {
+    title: "RootFetch Outcome: Alert Candidates",
+    description: "Returns strict anomaly/mover candidate rows with trigger context.",
+    inputSchema: {
+      run_id: z.string().optional(),
+      limit: z.number().int().min(1).max(50).optional(),
+    },
+  },
+  async ({ run_id, limit }: { run_id?: string; limit?: number }) =>
+    callRemoteTool("rootfetch.outcome.alert_candidates", {
+      ...(run_id ? { run_id } : {}),
+      ...(typeof limit === "number" ? { limit } : {}),
+    }),
+);
+
+server.registerTool(
   "rootfetch.compare_link",
   {
     title: "RootFetch Compare Link",

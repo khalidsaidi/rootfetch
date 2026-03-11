@@ -383,6 +383,14 @@ export default async function Home() {
             Connect via MCP
           </TrackedLink>
           <TrackedLink
+            href="/agents"
+            label="hero_agent_integration"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
+          >
+            Agent integration
+          </TrackedLink>
+          <TrackedLink
             href="/runs"
             label="hero_browse_runs"
             pageType="home"
@@ -771,6 +779,9 @@ state=${state}
           </Link>
           <Link href="/recipes" className="hover:text-foreground">
             recipes
+          </Link>
+          <Link href="/agents" className="hover:text-foreground">
+            agents
           </Link>
           <Link href="/docs/integrations" className="hover:text-foreground">
             integrations

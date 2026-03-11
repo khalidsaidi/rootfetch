@@ -11,6 +11,11 @@ RootFetch provides read-only delegation analytics from locally ingested CZDS zon
 - https://rootfetch.com/rootfetch/coverage_latest.json
 - https://rootfetch.com/rootfetch/latest.md
 
+## Agent entrypoints
+- https://rootfetch.com/agents
+- https://rootfetch.com/mcp
+- https://rootfetch.com/api/mcp/first-call
+
 ## Metric definitions
 - approved_tlds_count: approved TLDs visible in latest discovery snapshot
 - counted_today_count: observed today (core+rolling)
@@ -19,7 +24,7 @@ RootFetch provides read-only delegation analytics from locally ingested CZDS zon
 - missing_ever_count: approved - counted_ever
 - top*_share_pct and hhi: concentration metrics
 
-Current snapshot date: 2026-03-10
+Current snapshot date: 2026-03-11
 
 ## Machine entrypoints
 - AIR: https://rootfetch.com/air.json
@@ -29,6 +34,8 @@ Current snapshot date: 2026-03-10
 - AI Plugin: https://rootfetch.com/ai-plugin.json
 - AI Plugin (well-known): https://rootfetch.com/.well-known/ai-plugin.json
 - MCP endpoint: https://rootfetch.com/mcp
+- Agent integration: https://rootfetch.com/agents
+- MCP first-call validator: https://rootfetch.com/api/mcp/first-call
 - MCP hosting page: https://rootfetch.com/docs/hosting/mcp/
 - MCP docs: https://rootfetch.com/docs/mcp
 - MCP live usage (public): https://rootfetch.com/mcp/live

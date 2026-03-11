@@ -188,6 +188,8 @@ export async function GET(request: Request): Promise<Response> {
     transport: "http",
     endpoint: `${origin}/mcp`,
     docs_url: "https://rootfetch.com/docs/mcp",
+    agents_url: `${origin}/agents`,
+    first_call_url: `${origin}/api/mcp/first-call`,
     openapi_url: `${origin}/openapi.json`,
     ai_plugin_url: `${origin}/ai-plugin.json`,
     health_url: `${origin}/mcp/health`,
@@ -210,6 +212,10 @@ export async function GET(request: Request): Promise<Response> {
       "rootfetch.run_manifest",
       "rootfetch.run_bundle",
       "rootfetch.compare_link",
+      "rootfetch.outcome.current_state",
+      "rootfetch.outcome.run_delta",
+      "rootfetch.outcome.tld_spotlight",
+      "rootfetch.outcome.alert_candidates",
     ],
     artifact_backed: true,
     read_only: true,
@@ -253,9 +259,11 @@ export async function GET(request: Request): Promise<Response> {
           <p class="muted">JSON metadata: <a href="${payload.endpoint}?format=json">${payload.endpoint}?format=json</a></p>
         </div>
         <div class="card">
-          <strong>Docs + Live Usage</strong>
+          <strong>Docs + Agent Usage</strong>
           <ul>
             <li><a href="${payload.docs_url}">${payload.docs_url}</a></li>
+            <li><a href="${payload.agents_url}">${payload.agents_url}</a></li>
+            <li><a href="${payload.first_call_url}">${payload.first_call_url}</a></li>
             <li><a href="${payload.usage_live_url}">${payload.usage_live_url}</a></li>
             <li><a href="${payload.openapi_url}">${payload.openapi_url}</a></li>
             <li><a href="${payload.hosting_page_url}">${payload.hosting_page_url}</a></li>

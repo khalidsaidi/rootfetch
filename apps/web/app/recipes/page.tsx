@@ -198,6 +198,14 @@ export default function RecipesPage() {
             Agent monitor example <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <TrackedLink
+            href="/agents"
+            label="recipes_agents"
+            pageType="recipes"
+            className="inline-flex items-center gap-1 rounded-lg border border-border/70 px-2 py-1 hover:border-primary/50"
+          >
+            Agent integration
+          </TrackedLink>
+          <TrackedLink
             href="/methodology#operational-guarantees"
             label="recipes_operational_guarantees"
             pageType="recipes"

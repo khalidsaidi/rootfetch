@@ -41,6 +41,10 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           server-side recompute).
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
+          Agent quickstart: <code>https://rootfetch.com/agents</code>. First-call validator:{" "}
+          <code>https://rootfetch.com/api/mcp/first-call</code>.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
           Browser-friendly MCP landing page: <code>https://rootfetch.com/mcp</code>. Raw metadata:{" "}
           <code>https://rootfetch.com/mcp?format=json</code>.
         </p>
@@ -60,6 +64,10 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
 
       <Section title="Tool Surface">
         <ul className="ml-5 list-disc space-y-2 text-sm text-muted-foreground">
+          <li><code>rootfetch.outcome.current_state</code>: strict state summary + mandatory evidence.</li>
+          <li><code>rootfetch.outcome.run_delta</code> (<code>left_run_id?</code>, <code>right_run_id?</code>): strict run deltas + disclosure.</li>
+          <li><code>rootfetch.outcome.tld_spotlight</code> (<code>tld</code>, <code>run_id?</code>): strict TLD outcome row + evidence.</li>
+          <li><code>rootfetch.outcome.alert_candidates</code> (<code>run_id?</code>, <code>limit?</code>): strict candidate rows + trigger context.</li>
           <li><code>rootfetch.latest</code>: latest pointer + run-scoped artifact URLs.</li>
           <li><code>rootfetch.replay_index</code>: immutable replay index.</li>
           <li><code>rootfetch.run_manifest</code> (<code>run_id?</code>): manifest + hash/check counts.</li>
@@ -120,6 +128,10 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           <code>/api/mcp/public-stats</code> and <code>/api/mcp/public-events</code>.
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
+          Stats now include adoption KPIs (<code>unique_clients</code>, <code>repeat_clients</code>, and
+          <code>tool_call_success_rate_pct</code>) for weekly integration tracking.
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
           Usage telemetry is persisted through a dedicated backend service (Cloud Run + Firestore), so stats/events remain
           durable across instances and deploys.
         </p>
@@ -128,6 +140,14 @@ data: {"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"{...js
           Page-level analytics events (for example <code>rf_mcp_doc_open</code> and <code>rf_copy_mcp_snippet</code>) are
           still tracked separately.
         </p>
+        <TrackedLink
+          href="/agents"
+          label="mcp_docs_agents"
+          pageType="mcp_docs"
+          className="mt-3 inline-flex text-sm text-primary hover:text-primary/80"
+        >
+          Open agent integration
+        </TrackedLink>
         <TrackedLink
           href="/mcp/live"
           label="mcp_docs_public_live_usage"

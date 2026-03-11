@@ -23,6 +23,9 @@ test("public docs and ops pages render without uncaught browser errors", async (
   await page.goto("/docs/mcp", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "RootFetch MCP Docs" })).toBeVisible();
 
+  await page.goto("/agents", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Agent Integration" })).toBeVisible();
+
   await page.goto("/mcp/live", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "MCP Live Activity" })).toBeVisible();
 
@@ -72,6 +75,31 @@ test("MCP initialize and tools/list JSON-RPC calls succeed", async ({ request })
   const toolsBody = await tools.text();
   expect(toolsBody).toContain("rootfetch.latest");
   expect(toolsBody).toContain("rootfetch.compare_link");
+  expect(toolsBody).toContain("rootfetch.outcome.current_state");
+  expect(toolsBody).toContain("rootfetch.outcome.run_delta");
+  expect(toolsBody).toContain("rootfetch.outcome.tld_spotlight");
+  expect(toolsBody).toContain("rootfetch.outcome.alert_candidates");
+
+  const currentState = await request.post("/mcp", {
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json, text/event-stream",
+    },
+    data: {
+      jsonrpc: "2.0",
+      id: "tools-live-2",
+      method: "tools/call",
+      params: {
+        name: "rootfetch.outcome.current_state",
+        arguments: {},
+      },
+    },
+  });
+
+  expect(currentState.status()).toBe(200);
+  const currentStateBody = await currentState.text();
+  expect(currentStateBody).toContain("\"outcome\": \"current_state\"");
+  expect(currentStateBody).toContain("\"evidence\"");
 });
 
 test("legacy /api/mcp endpoint still serves tools/list and tools/call", async ({ request }) => {
@@ -92,6 +120,7 @@ test("legacy /api/mcp endpoint still serves tools/list and tools/call", async ({
   const toolsBody = await tools.text();
   expect(toolsBody).toContain("rootfetch.latest");
   expect(toolsBody).toContain("rootfetch.compare_link");
+  expect(toolsBody).toContain("rootfetch.outcome.current_state");
 
   const call = await request.post("/api/mcp", {
     headers: {
@@ -112,6 +141,26 @@ test("legacy /api/mcp endpoint still serves tools/list and tools/call", async ({
   expect(call.status()).toBe(200);
   const callBody = await call.text();
   expect(callBody).toContain("run_id");
+
+  const outcomeCall = await request.post("/api/mcp", {
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json, text/event-stream",
+    },
+    data: {
+      jsonrpc: "2.0",
+      id: "api-call-live-2",
+      method: "tools/call",
+      params: {
+        name: "rootfetch.outcome.current_state",
+        arguments: {},
+      },
+    },
+  });
+  expect(outcomeCall.status()).toBe(200);
+  const outcomeBody = await outcomeCall.text();
+  expect(outcomeBody).toContain("\"schema_version\": \"1.0\"");
+  expect(outcomeBody).toContain("\"evidence\"");
 });
 
 test("well-known discovery artifacts resolve", async ({ request }) => {
@@ -123,6 +172,8 @@ test("well-known discovery artifacts resolve", async ({ request }) => {
     "/.well-known/openapi.json",
     "/ai-plugin.json",
     "/.well-known/ai-plugin.json",
+    "/agents",
+    "/api/mcp/first-call",
     "/llms.txt",
     "/llms-full.txt",
     "/docs/hosting/mcp/",
@@ -142,6 +193,10 @@ test("public MCP telemetry endpoints resolve without auth", async ({ request }) 
   ]) {
     const response = await request.get(path);
     expect(response.status(), path).toBe(200);
+    if (path.includes("public-stats")) {
+      const body = await response.json();
+      expect(body).toHaveProperty("adoption_kpi");
+    }
   }
 });
 

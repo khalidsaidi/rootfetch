@@ -7,6 +7,8 @@
   "documentation_url": "https://rootfetch.com/docs/mcp",
   "docs_url": "https://rootfetch.com/docs/mcp",
   "mcp_url": "https://rootfetch.com/mcp",
+  "agents_url": "https://rootfetch.com/agents",
+  "mcp_first_call_url": "https://rootfetch.com/api/mcp/first-call",
   "mcp_health_url": "https://rootfetch.com/mcp/health",
   "mcp_healthz_url": "https://rootfetch.com/mcp/healthz",
   "mcp_ready_url": "https://rootfetch.com/mcp/readyz",
@@ -53,6 +55,10 @@
     "rootfetch.replay_index",
     "rootfetch.run_manifest",
     "rootfetch.run_bundle",
-    "rootfetch.compare_link"
+    "rootfetch.compare_link",
+    "rootfetch.outcome.current_state",
+    "rootfetch.outcome.run_delta",
+    "rootfetch.outcome.tld_spotlight",
+    "rootfetch.outcome.alert_candidates"
   ]
 }

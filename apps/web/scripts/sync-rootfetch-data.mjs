@@ -175,6 +175,7 @@ async function generateSeoTextArtifacts() {
     "/compare",
     "/ask",
     "/recipes",
+    "/agents",
     "/docs/mcp",
     "/docs/integrations",
     "/docs/public-endpoints",
@@ -213,6 +214,10 @@ async function generateSeoTextArtifacts() {
     `- ${siteUrl}/rootfetch/security_status_latest.json\n` +
     `- ${siteUrl}/rootfetch/coverage_latest.json\n` +
     `- ${siteUrl}/rootfetch/latest.md\n\n` +
+    `## Agent entrypoints\n` +
+    `- ${siteUrl}/agents\n` +
+    `- ${siteUrl}/mcp\n` +
+    `- ${siteUrl}/api/mcp/first-call\n\n` +
     `## Metric definitions\n` +
     `- approved_tlds_count: approved TLDs visible in latest discovery snapshot\n` +
     `- counted_today_count: observed today (core+rolling)\n` +
@@ -232,6 +237,8 @@ async function generateSeoTextArtifacts() {
     `- AI Plugin: ${siteUrl}/ai-plugin.json\n` +
     `- AI Plugin (well-known): ${siteUrl}/.well-known/ai-plugin.json\n` +
     `- MCP endpoint: ${siteUrl}/mcp\n` +
+    `- Agent integration: ${siteUrl}/agents\n` +
+    `- MCP first-call validator: ${siteUrl}/api/mcp/first-call\n` +
     `- MCP hosting page: ${siteUrl}/docs/hosting/mcp/\n` +
     `- MCP docs: ${siteUrl}/docs/mcp\n` +
     `- MCP live usage (public): ${siteUrl}/mcp/live\n` +
@@ -248,8 +255,11 @@ async function generateSeoTextArtifacts() {
       description: "Read-only structural intelligence over immutable namespace run artifacts.",
       url: siteUrl,
       version: "0.1.0",
-      documentationUrl: `${siteUrl}/docs/mcp`,
-      apiEndpoints: [{ name: "openapi", url: `${siteUrl}/openapi.json` }],
+      documentationUrl: `${siteUrl}/agents`,
+      apiEndpoints: [
+        { name: "openapi", url: `${siteUrl}/openapi.json` },
+        { name: "first_call", url: `${siteUrl}/api/mcp/first-call` },
+      ],
       mcpServers: [{ name: "rootfetch", transport: "streamable-http", url: `${siteUrl}/mcp` }],
       mcpInstall: {
         stdio: {

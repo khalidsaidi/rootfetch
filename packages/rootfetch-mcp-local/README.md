@@ -44,6 +44,10 @@ claude mcp add --transport http rootfetch https://rootfetch.com/mcp
 
 ## Tools
 
+- `rootfetch.outcome.current_state`
+- `rootfetch.outcome.run_delta`
+- `rootfetch.outcome.tld_spotlight`
+- `rootfetch.outcome.alert_candidates`
 - `rootfetch.latest`
 - `rootfetch.replay_index`
 - `rootfetch.run_manifest`
@@ -59,6 +63,8 @@ claude mcp add --transport http rootfetch https://rootfetch.com/mcp
 
 ## Links
 
+- Agent guide: `https://rootfetch.com/agents`
 - MCP docs: `https://rootfetch.com/docs/mcp`
+- First-call validator: `https://rootfetch.com/api/mcp/first-call`
 - Public endpoints: `https://rootfetch.com/mcp`, `/mcp/health`, `/mcp/readyz`
 - AIR: `https://rootfetch.com/.well-known/air.json`
