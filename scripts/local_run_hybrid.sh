@@ -17,12 +17,22 @@ load_env_file_if_present() {
   fi
 }
 
-require_czds_credentials() {
+ensure_czds_auth() {
+  if [[ -n "${CZDS_USERNAME:-}" && -n "${CZDS_PASSWORD:-}" ]]; then
+    return 0
+  fi
+
+  if rootfetch auth-check >/dev/null 2>&1; then
+    echo "[rootfetch] using cached CZDS auth token"
+    return 0
+  fi
+
   local missing=()
   [[ -n "${CZDS_USERNAME:-}" ]] || missing+=("CZDS_USERNAME")
   [[ -n "${CZDS_PASSWORD:-}" ]] || missing+=("CZDS_PASSWORD")
   if (( ${#missing[@]} > 0 )); then
     echo "[rootfetch] missing required credentials: ${missing[*]}" >&2
+    echo "[rootfetch] no valid cached token found at .ai/token.json" >&2
     echo "[rootfetch] expected local credential file: .env.czds (gitignored)" >&2
     echo "[rootfetch] setup:" >&2
     echo "  cp .env.example .env.czds" >&2
@@ -38,7 +48,7 @@ load_env_file_if_present ".env.czds"
 load_env_file_if_present ".env"
 load_env_file_if_present ".env.mcp"
 echo "[rootfetch] env files loaded: ${ROOTFETCH_ENV_FILES_LOADED[*]:-(none)}"
-require_czds_credentials
+ensure_czds_auth
 
 TODAY="$(date -u +%F)"
 
