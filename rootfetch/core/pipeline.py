@@ -82,15 +82,44 @@ class RunResult:
 
 
 class _CountingReader:
-    def __init__(self, raw: Any):
+    def __init__(
+        self,
+        raw: Any,
+        *,
+        deadline_monotonic: float | None = None,
+        timeout_error: str = "fetch_time_budget_exceeded",
+    ):
         self.raw = raw
         self.bytes_read = 0
+        self.deadline_monotonic = deadline_monotonic
+        self.timeout_error = timeout_error
+
+    def _check_deadline(self) -> None:
+        if self.deadline_monotonic is None:
+            return
+        if time.monotonic() >= self.deadline_monotonic:
+            raise TimeoutError(self.timeout_error)
 
     def read(self, size: int = -1) -> bytes:
+        self._check_deadline()
         data = self.raw.read(size)
+        self._check_deadline()
         if data:
             self.bytes_read += len(data)
         return data
+
+    def readinto(self, b: Any) -> int | None:
+        self._check_deadline()
+        if hasattr(self.raw, "readinto"):
+            size = self.raw.readinto(b)
+        else:
+            data = self.raw.read(len(b))
+            size = len(data)
+            b[:size] = data
+        self._check_deadline()
+        if size and size > 0:
+            self.bytes_read += int(size)
+        return size
 
     def readable(self) -> bool:
         return True
@@ -256,6 +285,23 @@ def _apply_tld_filters(links: list[dict[str, str]], settings: Settings) -> list[
     return out
 
 
+def _apply_tld_name_filters(tlds: Iterable[str], settings: Settings) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for value in tlds:
+        tld = str(value).strip().lower()
+        if not tld or tld in seen:
+            continue
+        seen.add(tld)
+        if settings.allowlist and tld not in settings.allowlist:
+            continue
+        if tld in settings.blocklist:
+            continue
+        out.append(tld)
+    out.sort()
+    return out
+
+
 def _sleep_backoff(attempt: int) -> None:
     base = min(2**attempt, 32)
     jitter = random.uniform(0.0, 1.0)
@@ -323,7 +369,7 @@ def _download_and_count(
                 }
 
             response.raw.decode_content = False
-            counter = _CountingReader(response.raw)
+            counter = _CountingReader(response.raw, deadline_monotonic=deadline)
             content_type = response.headers.get("Content-Type", "").lower()
             content_encoding = response.headers.get("Content-Encoding", "").lower()
             looks_gzip = url.lower().endswith(".gz") or "gzip" in content_type or "gzip" in content_encoding
@@ -616,9 +662,18 @@ def baseline_completion_status(*, date_utc: str | None = None, settings: Setting
     coverage_meta = compute_coverage_latest(target_date, settings=settings)
     coverage_payload = coverage_meta["coverage_payload"]
 
-    approved_count = int(coverage_payload.get("approved_tlds_count", 0))
-    counted_ever_count = int(coverage_payload.get("counted_ever_count", 0))
-    missing_ever_count = int(coverage_payload.get("missing_ever_count", 0))
+    approved_tlds_filtered = _apply_tld_name_filters(coverage_payload.get("approved_tlds", []), settings)
+    approved_set = set(approved_tlds_filtered)
+    if approved_set:
+        counted_ever = _normalize_tld_set(coverage_payload.get("counted_ever_tlds", []))
+        missing_ever = _normalize_tld_set(coverage_payload.get("missing_ever_tlds", []))
+        approved_count = len(approved_set)
+        counted_ever_count = len(approved_set & counted_ever)
+        missing_ever_count = len(approved_set & missing_ever)
+    else:
+        approved_count = int(coverage_payload.get("approved_tlds_count", 0))
+        counted_ever_count = int(coverage_payload.get("counted_ever_count", 0))
+        missing_ever_count = int(coverage_payload.get("missing_ever_count", 0))
     has_marker = settings.baseline_complete_path.exists()
     baseline_complete = bool(
         has_marker
@@ -678,17 +733,49 @@ def _prepare_daily_rows_for_targets(
         pending_links.append(item)
 
     if pending_links:
+        total_pending = len(pending_links)
+        log_every = max(1, settings.log_every)
         with ThreadPoolExecutor(max_workers=max(1, settings.max_workers)) as executor:
             future_map = {
                 executor.submit(_download_and_count, item["url"], item["tld"], token, settings): item
                 for item in pending_links
             }
-            for future in as_completed(future_map):
-                item = future_map[future]
-                metric = future.result()
-                cadence = _normalize_cadence(cadence_map.get(item["tld"]))
-                processed_rows.append(_as_daily_row(date_utc, metric, cadence=cadence))
-                logger.info("processed tld=%s status=%s cadence=%s", item["tld"], metric["status"], cadence)
+            future_started_at = {future: time.monotonic() for future in future_map}
+            completed = 0
+            pending_futures = set(future_map.keys())
+            last_wait_log_at = time.monotonic()
+            while pending_futures:
+                done, pending_futures = wait(pending_futures, timeout=5, return_when=FIRST_COMPLETED)
+                if not done:
+                    now = time.monotonic()
+                    if now - last_wait_log_at >= 30:
+                        in_flight_items = sorted(
+                            ((future_map[f]["tld"], now - future_started_at.get(f, now)) for f in pending_futures),
+                            key=lambda item: item[1],
+                            reverse=True,
+                        )
+                        in_flight_preview = ", ".join(
+                            f"{tld}:{int(seconds)}s" for tld, seconds in in_flight_items[:6]
+                        )
+                        logger.info(
+                            "daily waiting in_flight=%s completed=%s/%s tlds=[%s]",
+                            len(pending_futures),
+                            completed,
+                            total_pending,
+                            in_flight_preview,
+                        )
+                        last_wait_log_at = now
+                    continue
+
+                for future in done:
+                    item = future_map[future]
+                    metric = future.result()
+                    cadence = _normalize_cadence(cadence_map.get(item["tld"]))
+                    processed_rows.append(_as_daily_row(date_utc, metric, cadence=cadence))
+                    completed += 1
+                    logger.info("processed tld=%s status=%s cadence=%s", item["tld"], metric["status"], cadence)
+                    if completed % log_every == 0 or completed == total_pending:
+                        logger.info("daily progress completed=%s/%s", completed, total_pending)
 
     merged_rows: dict[str, dict[str, Any]] = {row["tld"]: row for row in existing_rows if row.get("tld")}
     for row in processed_rows:
@@ -1008,7 +1095,7 @@ def run_hybrid(
     }
 
     if dry_run:
-        approved_tlds = _load_approved_tlds_latest(settings)
+        approved_tlds = _apply_tld_name_filters(_load_approved_tlds_latest(settings), settings)
     else:
         token = get_access_token(settings=settings, dry_run=False)
         if skip_discovery:
@@ -1018,11 +1105,13 @@ def run_hybrid(
                     "Missing .ai/approved_snapshot.json links; run discover first or remove --skip-discovery."
                 )
             discovery_meta = write_discovery_artifacts(approved_links, date_utc=date_utc, settings=settings)
-            approved_tlds = sorted({item["tld"] for item in approved_links})
+            approved_links = _apply_tld_filters(approved_links, settings)
+            approved_tlds = [item["tld"] for item in approved_links]
         else:
             approved_links = fetch_approved_links(token, settings=settings, dry_run=False)
             discovery_meta = write_discovery_artifacts(approved_links, date_utc=date_utc, settings=settings)
-            approved_tlds = discovery_meta.get("tlds", [])
+            approved_links = _apply_tld_filters(approved_links, settings)
+            approved_tlds = [item["tld"] for item in approved_links]
 
     selection = select_hybrid_tlds(approved_tlds=approved_tlds, date_utc=date_utc, settings=settings)
     target_tlds = selection["target_today"]
@@ -1148,11 +1237,12 @@ def run_baseline(
     }
 
     if dry_run:
-        approved_tlds = _load_approved_tlds_latest(settings)
+        approved_tlds = _apply_tld_name_filters(_load_approved_tlds_latest(settings), settings)
         source = "approved_latest"
         if not approved_tlds:
             approved_links = _load_links_from_internal_snapshot(settings)
-            approved_tlds = sorted({item["tld"] for item in approved_links})
+            approved_links = _apply_tld_filters(approved_links, settings)
+            approved_tlds = [item["tld"] for item in approved_links]
             source = "internal_snapshot"
     else:
         token = get_access_token(settings=settings, dry_run=False)
@@ -1163,12 +1253,14 @@ def run_baseline(
                     "Missing .ai/approved_snapshot.json links; run discover first or remove --skip-discovery."
                 )
             discovery_meta = write_discovery_artifacts(approved_links, date_utc=baseline_date_utc, settings=settings)
-            approved_tlds = sorted({item["tld"] for item in approved_links})
+            approved_links = _apply_tld_filters(approved_links, settings)
+            approved_tlds = [item["tld"] for item in approved_links]
             source = "internal_snapshot"
         else:
             approved_links = fetch_approved_links(token, settings=settings, dry_run=False)
             discovery_meta = write_discovery_artifacts(approved_links, date_utc=baseline_date_utc, settings=settings)
-            approved_tlds = discovery_meta.get("tlds", [])
+            approved_links = _apply_tld_filters(approved_links, settings)
+            approved_tlds = [item["tld"] for item in approved_links]
             source = "czds_discovery"
 
     approved_set = set(approved_tlds)

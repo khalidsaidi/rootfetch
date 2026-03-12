@@ -89,3 +89,58 @@ def test_prepare_baseline_rows_uses_tail_policy_for_small_pending(temp_settings,
     assert seen_fetch_budget_values
     assert all(value == temp_settings.baseline_tail_retry_max for value in seen_retry_values)
     assert all(value == temp_settings.baseline_tail_fetch_max_seconds for value in seen_fetch_budget_values)
+
+
+def test_download_and_count_enforces_budget_during_stream_parse(temp_settings, monkeypatch) -> None:
+    settings = replace(temp_settings, http_timeout=120, retry_max=0, fetch_max_seconds=5)
+
+    class _SlowRaw:
+        def __init__(self) -> None:
+            self.decode_content = False
+            self.closed = False
+
+        def read(self, _size: int = -1) -> bytes:
+            return b"example.\t60\tIN\tNS\tns1.example.\n"
+
+        def readable(self) -> bool:
+            return True
+
+        def writable(self) -> bool:
+            return False
+
+        def seekable(self) -> bool:
+            return False
+
+        def close(self) -> None:
+            self.closed = True
+
+    class _SlowResponse:
+        def __init__(self) -> None:
+            self.status_code = 200
+            self.headers = {"Content-Type": "text/plain"}
+            self.raw = _SlowRaw()
+
+        def close(self) -> None:
+            return None
+
+    monotonic_tick = {"value": 0}
+
+    def _fake_monotonic() -> int:
+        monotonic_tick["value"] += 1
+        return monotonic_tick["value"]
+
+    monkeypatch.setattr("rootfetch.core.pipeline.requests.get", lambda *_args, **_kwargs: _SlowResponse())
+    monkeypatch.setattr("rootfetch.core.pipeline._sleep_backoff", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("rootfetch.core.pipeline.time.monotonic", _fake_monotonic)
+
+    metric = _download_and_count(
+        "https://example.test/slow.zone",
+        "slow",
+        "token",
+        settings,
+        retry_max=0,
+        fetch_max_seconds=5,
+    )
+
+    assert metric["status"] == "failed"
+    assert metric["error"] == "fetch_time_budget_exceeded"
