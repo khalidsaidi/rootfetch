@@ -47,7 +47,7 @@ resolve_href() {
 extract_links() {
   local base="$1"
   local file="$2"
-  rg -o 'href=["'"'"'][^"'"'"']+["'"'"']' "$file" \
+  (rg -o 'href=["'"'"'][^"'"'"']+["'"'"']' "$file" || true) \
     | sed -E 's/^href=["'"'"'](.*)["'"'"']$/\1/' \
     | while IFS= read -r href; do resolve_href "$base" "$href"; done \
     | rg -v '^$' \
@@ -213,8 +213,8 @@ report_project() {
   sitemap_code="${sitemap_meta%%|*}"
 
   local home_loading stats_loading
-  home_loading="$(rg -io '\bloading(\.\.\.|…)?\b' "$home_body" | wc -l | tr -d ' ')"
-  stats_loading="$(rg -io '\bloading(\.\.\.|…)?\b' "$stats_body" | wc -l | tr -d ' ')"
+  home_loading="$( (rg -io '\bloading(\.\.\.|…)?\b' "$home_body" || true) | wc -l | tr -d ' ' )"
+  stats_loading="$( (rg -io '\bloading(\.\.\.|…)?\b' "$stats_body" || true) | wc -l | tr -d ' ' )"
 
   local required_present="false"
   if check_required_strings "$host" "$home_body"; then
