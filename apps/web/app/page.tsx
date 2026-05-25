@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Activity,
@@ -30,6 +31,7 @@ import {
   loadReplayIndex,
   loadRunBundleById,
 } from "@/lib/rootfetch-data";
+import { loadRootfetchPublicStats } from "@/lib/public-stats";
 
 function asNumber(value: unknown): number {
   const out = Number(value);
@@ -71,7 +73,27 @@ function timeSince(isoLike: string | undefined | null): string {
   return `${Math.floor(ms / 86_400_000)}d ago`;
 }
 
+export async function generateMetadata(): Promise<Metadata> {
+  const stats = await loadRootfetchPublicStats();
+  const description =
+    `Delegation intelligence with live counters: ${stats.mcp_calls_7d} MCP calls (7d), ` +
+    `${stats.unique_callers_7d} unique callers (7d), snapshot freshness ${stats.snapshot_freshness_label}.`;
+  return {
+    description,
+    openGraph: {
+      title: "RootFetch | Delegation Intelligence",
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "RootFetch | Delegation Intelligence",
+      description,
+    },
+  };
+}
+
 export default async function Home() {
+  const publicStats = await loadRootfetchPublicStats();
   const published = await loadPublishedRunBundle();
   const [fallbackLatest, fallbackCoverage, digestSnippet] = await Promise.all([
     published ? Promise.resolve(null) : loadLatest(),
@@ -357,6 +379,30 @@ export default async function Home() {
             Workflow runbooks
           </TrackedLink>
           <TrackedLink
+            href="/mcp/live"
+            label="hero_mcp_live_usage"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
+          >
+            MCP live usage
+          </TrackedLink>
+          <TrackedLink
+            href="/stats"
+            label="hero_public_stats_html"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
+          >
+            Public stats
+          </TrackedLink>
+          <TrackedLink
+            href="/stats.json"
+            label="hero_public_stats_json"
+            pageType="home"
+            className="rounded-full border border-border/70 px-3.5 py-2 text-[0.78rem] hover:border-primary/50"
+          >
+            Stats JSON
+          </TrackedLink>
+          <TrackedLink
             href="/ops"
             label="hero_ops_scoreboard"
             pageType="home"
@@ -407,6 +453,69 @@ export default async function Home() {
             Browse TLD index →
           </TrackedLink>
         </div>
+      </section>
+
+      <section className="rf-glass rounded-3xl p-5 md:p-7">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Public counters</p>
+            <h2 className="font-display text-[1.35rem] font-semibold leading-[1.2] md:text-[1.6rem]">
+              External observability
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <TrackedLink href="/stats" label="counter_strip_stats_html" pageType="home" className="rounded-full border border-border/70 px-2.5 py-1 hover:border-primary/50">
+              /stats
+            </TrackedLink>
+            <TrackedLink href="/stats.json" label="counter_strip_stats_json" pageType="home" className="rounded-full border border-border/70 px-2.5 py-1 hover:border-primary/50">
+              /stats.json
+            </TrackedLink>
+            <TrackedLink href="/mcp/live" label="counter_strip_mcp_live" pageType="home" className="rounded-full border border-border/70 px-2.5 py-1 hover:border-primary/50">
+              /mcp/live
+            </TrackedLink>
+            <TrackedLink href="/ops" label="counter_strip_ops" pageType="home" className="rounded-full border border-border/70 px-2.5 py-1 hover:border-primary/50">
+              /ops
+            </TrackedLink>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">Unique callers (7d / 30d)</p>
+            <p className="mt-1 rf-mono-digits text-xl font-semibold">
+              {fmtInt(publicStats.unique_callers_7d)} / {fmtInt(publicStats.unique_callers_30d)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">MCP calls (7d / 30d)</p>
+            <p className="mt-1 rf-mono-digits text-xl font-semibold">
+              {fmtInt(publicStats.mcp_calls_7d)} / {fmtInt(publicStats.mcp_calls_30d)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">Tool-call success (7d)</p>
+            <p className="mt-1 rf-mono-digits text-xl font-semibold">{publicStats.tool_call_success_pct.toFixed(2)}%</p>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">Last successful run</p>
+            <p className="mt-1 rf-mono-digits text-xs font-semibold">
+              {publicStats.last_run_ts || "n/a"}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/70 bg-background/45 p-3">
+            <p className="text-xs text-muted-foreground">Snapshot freshness</p>
+            <p className="mt-1 rf-mono-digits text-xl font-semibold">{publicStats.snapshot_freshness_label}</p>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Cross-project stats:{" "}
+          <a href="https://a2abench-api.web.app/stats" className="text-primary hover:text-primary/80">
+            A2ABench
+          </a>{" "}
+          ·{" "}
+          <a href="https://ragmap-api.web.app/stats" className="text-primary hover:text-primary/80">
+            Ragmap
+          </a>
+        </p>
       </section>
 
       <section className="rf-glass rounded-3xl p-5 md:p-7">
