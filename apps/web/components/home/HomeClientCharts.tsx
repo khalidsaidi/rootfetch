@@ -9,7 +9,7 @@ export const PulseSeriesChartClient = dynamic(() => import("@/components/charts/
 
 export const MarketTreemapClient = dynamic(() => import("@/components/charts/MarketTreemap"), {
   ssr: false,
-  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">loading market map…</div>,
+  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">Market map requires JavaScript.</div>,
 });
 
 export const PowerCurveChartClient = dynamic(() => import("@/components/charts/PowerCurveChart"), {
