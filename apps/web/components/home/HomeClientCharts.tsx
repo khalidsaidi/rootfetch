@@ -14,7 +14,7 @@ export const MarketTreemapClient = dynamic(() => import("@/components/charts/Mar
 
 export const PowerCurveChartClient = dynamic(() => import("@/components/charts/PowerCurveChart"), {
   ssr: false,
-  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">loading power curve…</div>,
+  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">Power curve requires JavaScript.</div>,
 });
 
 export const DelegationRadarChartClient = dynamic(() => import("@/components/charts/DelegationRadarChart"), {
