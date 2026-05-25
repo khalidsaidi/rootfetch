@@ -1,12 +1,22 @@
-import { NextResponse } from "next/server";
-
 import { loadCompareSeries, loadTldSeries } from "@/lib/rootfetch-data";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-export async function GET(request: Request) {
+function json(payload: unknown, status = 200): Response {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+export async function GET(request: Request): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
     const tldParam = (searchParams.get("tld") || "").trim().toLowerCase();
@@ -18,17 +28,17 @@ export async function GET(request: Request) {
 
     if (tldParam) {
       const series = await loadTldSeries(tldParam, days);
-      return NextResponse.json({ tld: tldParam, days, rows: series });
+      return json({ tld: tldParam, days, rows: series });
     }
 
     if (tldsParam.length > 0) {
       const limited = tldsParam.slice(0, 3);
       const rows = await loadCompareSeries(limited, days);
-      return NextResponse.json({ tlds: limited, days, rows });
+      return json({ tlds: limited, days, rows });
     }
 
-    return NextResponse.json({ error: "tld_or_tlds_required" }, { status: 400 });
+    return json({ error: "tld_or_tlds_required" }, 400);
   } catch {
-    return NextResponse.json({ error: "failed" }, { status: 500 });
+    return json({ error: "failed" }, 500);
   }
 }

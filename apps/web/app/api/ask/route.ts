@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
-
 import { loadLatest } from "@/lib/rootfetch-data";
 import { deterministicAnswerFromHits, ragSearch } from "@/lib/rag";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type AskPayload = {
   question?: string;
@@ -10,6 +11,15 @@ type AskPayload = {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+function json(payload: unknown, status = 200): Response {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 async function maybeGenerateLlmAnswer({
@@ -76,15 +86,15 @@ export async function POST(request: Request) {
   try {
     body = (await request.json()) as AskPayload;
   } catch {
-    return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+    return json({ error: "invalid_json" }, 400);
   }
 
   const question = (body.question || "").trim();
   if (!question) {
-    return NextResponse.json({ error: "question_required" }, { status: 400 });
+    return json({ error: "question_required" }, 400);
   }
   if (question.length > 1000) {
-    return NextResponse.json({ error: "question_too_long" }, { status: 400 });
+    return json({ error: "question_too_long" }, 400);
   }
 
   const k = clamp(Number(body.k || 6), 1, 20);
@@ -117,7 +127,7 @@ export async function POST(request: Request) {
         }
       : {};
 
-    return NextResponse.json({
+    return json({
       query: question,
       k,
       hits_count: citations.length,
@@ -129,11 +139,11 @@ export async function POST(request: Request) {
       computed_facts: computedFacts,
     });
   } catch {
-    return NextResponse.json(
+    return json(
       {
         error: "ask_failed",
       },
-      { status: 500 }
+      500,
     );
   }
 }
