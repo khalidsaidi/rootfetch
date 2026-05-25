@@ -24,5 +24,5 @@ export const DelegationRadarChartClient = dynamic(() => import("@/components/cha
 
 export const SectorIndexGridClient = dynamic(() => import("@/components/SectorIndexGrid"), {
   ssr: false,
-  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">loading sector indices…</div>,
+  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">Sector indices require JavaScript.</div>,
 });
