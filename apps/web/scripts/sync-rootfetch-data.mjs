@@ -167,6 +167,8 @@ async function generateSeoTextArtifacts() {
 
   const baseRoutes = [
     "/",
+    "/stats",
+    "/stats.json",
     "/coverage",
     "/about",
     "/methodology",
