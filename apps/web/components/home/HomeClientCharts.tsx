@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 export const PulseSeriesChartClient = dynamic(() => import("@/components/charts/PulseSeriesChart"), {
   ssr: false,
-  loading: () => <div className="flex h-[180px] items-center justify-center text-xs text-muted-foreground">loading pulse…</div>,
+  loading: () => <div className="flex h-[180px] items-center justify-center text-xs text-muted-foreground">Pulse chart requires JavaScript.</div>,
 });
 
 export const MarketTreemapClient = dynamic(() => import("@/components/charts/MarketTreemap"), {
