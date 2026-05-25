@@ -561,6 +561,10 @@ export default async function Home() {
           <span className="rf-mono-digits text-foreground">{fmtPct(delta7dPct)}</span> change, while structure remains{" "}
           <span className="font-semibold uppercase text-foreground">{state}</span>.
         </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          DVI labels: <span className="text-foreground">DVI (live run)</span> in this brief and{" "}
+          <span className="text-foreground">DVI (replay window)</span> in structural analysis below.
+        </p>
       </section>
 
       <ReplayTimelineProvider initialDays={0}>
