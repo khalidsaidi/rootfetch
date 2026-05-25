@@ -19,7 +19,7 @@ export const PowerCurveChartClient = dynamic(() => import("@/components/charts/P
 
 export const DelegationRadarChartClient = dynamic(() => import("@/components/charts/DelegationRadarChart"), {
   ssr: false,
-  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">loading radar…</div>,
+  loading: () => <div className="rf-glass rounded-2xl p-4 text-xs text-muted-foreground">Radar chart requires JavaScript.</div>,
 });
 
 export const SectorIndexGridClient = dynamic(() => import("@/components/SectorIndexGrid"), {
