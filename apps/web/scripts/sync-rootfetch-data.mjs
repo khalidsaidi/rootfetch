@@ -202,6 +202,8 @@ async function generateSeoTextArtifacts() {
   const robotsTxt =
     `User-agent: *\n` +
     `Allow: /\n` +
+    `Allow: /stats\n` +
+    `Allow: /stats.json\n` +
     `Disallow: /api/\n` +
     `\n` +
     `Sitemap: ${siteUrl}/sitemap.xml\n` +
