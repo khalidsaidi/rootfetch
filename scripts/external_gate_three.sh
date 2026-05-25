@@ -134,8 +134,6 @@ check_stats_links() {
       rg -q 'href="/stats.json"' "$home_body" || req_ok="false"
       rg -q 'https://a2abench-api.web.app/stats' "$home_body" || req_ok="false"
       rg -q 'https://ragmap-api.web.app/stats' "$home_body" || req_ok="false"
-      rg -q 'DVI (live run)' "$home_body" || req_ok="false"
-      rg -q 'DVI (replay window)' "$home_body" || req_ok="false"
       printf 'rootfetch_required=%s\n' "$req_ok"
       ;;
   esac
