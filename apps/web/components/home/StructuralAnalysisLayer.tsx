@@ -328,7 +328,7 @@ export default function StructuralAnalysisLayer({
               {replayStats.state}
             </p>
             <div className="mt-2 grid grid-cols-2 gap-1 text-[11px]">
-              <p>DVI <span className="rf-mono-digits">{replayStats.dviScore.toFixed(1)}</span> ({dviBand(replayStats.dviScore)})</p>
+              <p>DVI (replay window) <span className="rf-mono-digits">{replayStats.dviScore.toFixed(1)}</span> ({dviBand(replayStats.dviScore)})</p>
               <p>Top10 <span className="rf-mono-digits">{fmtPct(replayStats.top10Share)}</span></p>
               <p>HHI <span className="rf-mono-digits">{replayStats.hhi.toFixed(4)}</span></p>
               <p>Total <span className="rf-mono-digits">{fmtNum(replayStats.total)}</span></p>

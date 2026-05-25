@@ -430,7 +430,7 @@ export default async function Home() {
             <p className="mt-1 font-display text-2xl font-semibold uppercase leading-none">{state}</p>
           </div>
           <div className="rounded-xl border border-border/70 bg-background/45 p-3">
-            <p className="text-xs text-muted-foreground">DVI</p>
+            <p className="text-xs text-muted-foreground">DVI (live run)</p>
             <p className="mt-1 rf-mono-digits text-2xl font-semibold leading-none">{dviScore.toFixed(1)}</p>
           </div>
           <div className="rounded-xl border border-border/70 bg-background/45 p-3">
