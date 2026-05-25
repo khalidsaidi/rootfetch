@@ -65,6 +65,16 @@ export default async function StatsPage() {
             </p>
           </div>
         </div>
+        <p className="mt-4 text-xs text-muted-foreground">
+          Cross-project stats:{" "}
+          <a href="https://a2abench-api.web.app/stats" className="text-primary hover:text-primary/80">
+            A2ABench
+          </a>{" "}
+          ·{" "}
+          <a href="https://ragmap-api.web.app/stats" className="text-primary hover:text-primary/80">
+            Ragmap
+          </a>
+        </p>
       </section>
     </main>
   );

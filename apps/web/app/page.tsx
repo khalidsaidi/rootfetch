@@ -33,6 +33,8 @@ import {
 } from "@/lib/rootfetch-data";
 import { loadRootfetchPublicStats } from "@/lib/public-stats";
 
+export const dynamic = "force-dynamic";
+
 function asNumber(value: unknown): number {
   const out = Number(value);
   return Number.isFinite(out) ? out : 0;
