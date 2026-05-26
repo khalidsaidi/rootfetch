@@ -16,6 +16,7 @@ PROJECT_HOSTS=(
   "a2abench-api.web.app"
   "ragmap-api.web.app"
   "rootfetch.com"
+  "agentability.org"
 )
 
 is_project_host() {
@@ -119,13 +120,16 @@ expected_footer_urls() {
   local host="$1"
   case "$host" in
     a2abench-api.web.app)
-      printf 'https://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\n'
+      printf 'https://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\n'
       ;;
     ragmap-api.web.app)
-      printf 'https://a2abench-api.web.app/stats\nhttps://rootfetch.com/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\n'
       ;;
     rootfetch.com)
-      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://agentability.org/stats\n'
+      ;;
+    agentability.org)
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\n'
       ;;
     *)
       ;;
@@ -240,6 +244,14 @@ check_required_strings() {
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       ;;
+    agentability.org)
+      rg -Fq '/stats' "$home_body" || return 1
+      rg -Fq '/stats.json' "$home_body" || return 1
+      rg -Fq '/.well-known/agent.json' "$home_body" || return 1
+      rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
+      rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
+      rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
+      ;;
   esac
   return 0
 }
@@ -276,7 +288,7 @@ check_siblings_object() {
   local self_key="$2"
   local missing=""
   local key
-  for key in a2abench ragmap rootfetch; do
+  for key in a2abench ragmap rootfetch agentability; do
     [[ "$key" == "$self_key" ]] && continue
     if ! jq -e --arg k "$key" '.siblings and (.siblings | has($k))' "$json_file" >/dev/null 2>&1; then
       missing+="${key},"
@@ -290,7 +302,7 @@ check_siblings_urls() {
   local self_key="$2"
   local fail=0
   local key
-  for key in a2abench ragmap rootfetch; do
+  for key in a2abench ragmap rootfetch agentability; do
     [[ "$key" == "$self_key" ]] && continue
     local url stats_url stats_json_url agent_card_url
     url="$(jq -r --arg k "$key" '.siblings[$k].url // empty' "$json_file")"
@@ -319,8 +331,8 @@ check_agent_related() {
   fi
   local related_len
   related_len="$(jq -r '.related | length // 0' "$body")"
-  if [[ "$related_len" != "2" ]]; then
-    echo "  ${base}/.well-known/agent.json => related_count=${related_len} (expected 2)"
+  if [[ "$related_len" != "3" ]]; then
+    echo "  ${base}/.well-known/agent.json => related_count=${related_len} (expected 3)"
     fail=1
   fi
   local idx=0
@@ -356,14 +368,22 @@ check_llms_related() {
     a2abench-api.web.app)
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
+      rg -Fq 'https://agentability.org' "$llms" || pass=false
       ;;
     ragmap-api.web.app)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
+      rg -Fq 'https://agentability.org' "$llms" || pass=false
       ;;
     rootfetch.com)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://agentability.org' "$llms" || pass=false
+      ;;
+    agentability.org)
+      rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://rootfetch.com' "$llms" || pass=false
       ;;
   esac
   echo "  ${base}/llms.txt => HTTP ${code}, related_section_ok=${pass}"
@@ -446,7 +466,7 @@ link_walk_report() {
     if is_project_host "$link_host"; then
       case "$path" in
         /stats.json)
-          if [[ "$json_ok" == "true" ]] && jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 2)' "$body" >/dev/null 2>&1; then
+          if [[ "$json_ok" == "true" ]] && jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 3)' "$body" >/dev/null 2>&1; then
             content_assert_ok="true"
           else
             content_assert_ok="false"
@@ -454,7 +474,7 @@ link_walk_report() {
           fi
           ;;
         /.well-known/agent.json|/.well-known/agent-card.json)
-          if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 2)' "$body" >/dev/null 2>&1; then
+          if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 3)' "$body" >/dev/null 2>&1; then
             content_assert_ok="true"
           else
             content_assert_ok="false"
@@ -683,5 +703,7 @@ report_project "ragmap" "ragmap-api.web.app" "ragmap" \
   servers_indexed upstream_total coverage_pct last_ingest_ts weekly_distinct_callers weekly_queries bulk_scraper_callers bulk_scraper_calls generated_at siblings
 report_project "rootfetch" "rootfetch.com" "rootfetch" \
   unique_callers_7d unique_callers_30d mcp_calls_7d mcp_calls_30d tool_call_success_pct last_run_id last_run_ts snapshot_freshness_hours generated_at siblings
+report_project "agentability" "agentability.org" "agentability" \
+  audits_run_total distinct_domains_audited audits_run_7d audits_run_30d median_audit_duration_seconds p95_audit_duration_seconds last_run_id last_run_ts score_distribution_30d generated_at siblings
 
 check_rag_search
