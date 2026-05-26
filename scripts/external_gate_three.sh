@@ -14,7 +14,14 @@ require_cmd rg
 fetch_with_meta() {
   local url="$1"
   local out="$2"
-  curl -sS -L -H 'Cache-Control: no-cache' -o "$out" -w '%{http_code}|%{url_effective}' "$url"
+  curl -sS -L -X GET \
+    -H 'Cache-Control: no-cache' \
+    -H 'Pragma: no-cache' \
+    --cookie '' \
+    --cookie-jar /dev/null \
+    -o "$out" \
+    -w '%{http_code}|%{url_effective}' \
+    "$url"
 }
 
 append_cb() {
@@ -60,6 +67,40 @@ expects_json() {
     */stats.json*|*/api/stats*|*/rag/stats*|*/v1/eval/leaderboard*) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+check_target() {
+  local target="$1"
+  local body meta code effective pass json_ok
+  body="$(mktemp)"
+  meta="$(fetch_with_meta "$target" "$body")"
+  code="${meta%%|*}"
+  effective="${meta#*|}"
+  pass="true"
+  json_ok="n/a"
+  if [[ "$code" != "200" ]]; then
+    pass="false"
+  fi
+  if expects_json "$target"; then
+    if jq -e . "$body" >/dev/null 2>&1; then
+      json_ok="true"
+    else
+      json_ok="false"
+      pass="false"
+    fi
+  fi
+  printf '%s|%s|%s|%s\n' "$code" "$effective" "$json_ok" "$pass"
+}
+
+run_self_test_404() {
+  local probe="https://a2abench-api.web.app/__gate_runner_known_404__?cb=${TS}"
+  local code effective json_ok pass
+  IFS='|' read -r code effective json_ok pass <<<"$(check_target "$probe")"
+  if [[ "$code" == "200" || "$pass" == "true" ]]; then
+    echo "gate_self_test_404: FAIL ${probe} => HTTP ${code}, pass=${pass}"
+    exit 1
+  fi
+  echo "gate_self_test_404: PASS ${probe} => HTTP ${code}, pass=${pass}"
 }
 
 check_required_strings() {
@@ -155,24 +196,8 @@ link_walk_report() {
         target="$(append_cb "$target")"
         ;;
     esac
-    local body meta code effective pass json_ok
-    body="$(mktemp)"
-    meta="$(fetch_with_meta "$target" "$body")"
-    code="${meta%%|*}"
-    effective="${meta#*|}"
-    pass="true"
-    json_ok="n/a"
-    if [[ "$code" != "200" ]]; then
-      pass="false"
-    fi
-    if expects_json "$target"; then
-      if jq -e . "$body" >/dev/null 2>&1; then
-        json_ok="true"
-      else
-        json_ok="false"
-        pass="false"
-      fi
-    fi
+    local code effective pass json_ok
+    IFS='|' read -r code effective json_ok pass <<<"$(check_target "$target")"
     if [[ "$pass" == "false" ]]; then
       fail=1
     fi
@@ -270,6 +295,8 @@ report_project() {
   fi
   echo
 }
+
+run_self_test_404
 
 report_project "a2abench" "a2abench-api.web.app" \
   submissions entrants_external keys_issued feedback_count baseline_runs last_submission_ts generated_at
