@@ -75,6 +75,34 @@ function timeSince(isoLike: string | undefined | null): string {
   return `${Math.floor(ms / 86_400_000)}d ago`;
 }
 
+type AgentabilityReportSummary = {
+  score: number | null;
+  grade: string | null;
+};
+
+async function fetchAgentabilityReportSummary(domain: string): Promise<AgentabilityReportSummary> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 1500);
+  try {
+    const response = await fetch(
+      `https://agentability.org/v1/evaluations/${encodeURIComponent(domain)}/latest.json`,
+      { cache: "no-store", signal: controller.signal },
+    );
+    if (!response.ok) {
+      return { score: null, grade: null };
+    }
+    const payload = (await response.json()) as Record<string, unknown>;
+    return {
+      score: typeof payload.score === "number" ? payload.score : null,
+      grade: typeof payload.grade === "string" ? payload.grade : null,
+    };
+  } catch {
+    return { score: null, grade: null };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const stats = await loadRootfetchPublicStats();
   const description =
@@ -95,7 +123,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const publicStats = await loadRootfetchPublicStats();
+  const [publicStats, audit] = await Promise.all([
+    loadRootfetchPublicStats(),
+    fetchAgentabilityReportSummary("rootfetch.com"),
+  ]);
   const published = await loadPublishedRunBundle();
   const [fallbackLatest, fallbackCoverage, digestSnippet] = await Promise.all([
     published ? Promise.resolve(null) : loadLatest(),
@@ -520,6 +551,17 @@ export default async function Home() {
           {" · "}
           <a href="https://agentability.org/stats" className="text-primary hover:text-primary/80">
             Agentability
+          </a>
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          <a
+            href="https://agentability.org/reports/rootfetch.com"
+            aria-label="Agentability report for Rootfetch"
+            className="text-primary hover:text-primary/80"
+          >
+            {typeof audit.score === "number"
+              ? `Audited by Agentability - score ${audit.score.toFixed(1)}/100${audit.grade ? ` (${audit.grade})` : ""} (full report ->)`
+              : "Audited by Agentability (full report ->)"}
           </a>
         </p>
       </section>
