@@ -10,18 +10,21 @@ require_cmd() {
 require_cmd curl
 require_cmd jq
 require_cmd rg
+require_cmd perl
 
-fetch_with_meta() {
-  local url="$1"
-  local out="$2"
-  curl -sS -L -X GET \
-    -H 'Cache-Control: no-cache' \
-    -H 'Pragma: no-cache' \
-    --cookie '' \
-    --cookie-jar /dev/null \
-    -o "$out" \
-    -w '%{http_code}|%{url_effective}' \
-    "$url"
+PROJECT_HOSTS=(
+  "a2abench-api.web.app"
+  "ragmap-api.web.app"
+  "rootfetch.com"
+)
+
+is_project_host() {
+  local host="$1"
+  local item
+  for item in "${PROJECT_HOSTS[@]}"; do
+    [[ "$item" == "$host" ]] && return 0
+  done
+  return 1
 }
 
 append_cb() {
@@ -35,6 +38,19 @@ append_cb() {
   else
     printf '%s?cb=%s' "$url" "$TS"
   fi
+}
+
+fetch_with_meta() {
+  local url="$1"
+  local out="$2"
+  curl -sS -L -X GET \
+    -H 'Cache-Control: no-cache' \
+    -H 'Pragma: no-cache' \
+    --cookie '' \
+    --cookie-jar /dev/null \
+    -o "$out" \
+    -w '%{http_code}|%{url_effective}|%{content_type}' \
+    "$url"
 }
 
 resolve_href() {
@@ -54,8 +70,7 @@ resolve_href() {
 extract_links() {
   local base="$1"
   local file="$2"
-  # Case-insensitive anchor extraction from rendered HTML.
-  perl -ne 'while (/href\s*=\s*["'"'"'"'"'"'"'"'"']([^"'"'"'"'"'"'"'"'"']+)["'"'"'"'"'"'"'"'"']/ig) { print "$1\n"; }' "$file" \
+  perl -ne 'while (/href\s*=\s*["'"'"'"'"'"']([^"'"'"'"'"'"']+)["'"'"'"'"'"']/ig) { print "$1\n"; }' "$file" \
     | while IFS= read -r href; do resolve_href "$base" "$href"; done \
     | rg -v '^$' \
     | sort -u
@@ -64,20 +79,69 @@ extract_links() {
 expects_json() {
   local url="$1"
   case "$url" in
-    */stats.json*|*/api/stats*|*/rag/stats*|*/v1/eval/leaderboard*) return 0 ;;
+    */stats.json*|*/api/stats*|*/rag/stats*|*/v1/eval/leaderboard*|*/.well-known/agent.json*|*/.well-known/agent-card.json*) return 0 ;;
     *) return 1 ;;
   esac
 }
 
+should_enforce_footer() {
+  local path="$1"
+  case "$path" in
+    /stats.json|/llms.txt|/.well-known/agent.json|/.well-known/agent-card.json|/robots.txt|/sitemap.xml|/health|/healthz|/readyz|/v1/eval/leaderboard|/v1/eval/questions|/api/stats|/rag/stats|/api/openapi.json)
+      return 1
+      ;;
+    /v0.1/servers/*|/_next/*|/assets/*)
+      return 1
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
+expected_footer_urls() {
+  local host="$1"
+  case "$host" in
+    a2abench-api.web.app)
+      printf 'https://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\n'
+      ;;
+    ragmap-api.web.app)
+      printf 'https://a2abench-api.web.app/stats\nhttps://rootfetch.com/stats\n'
+      ;;
+    rootfetch.com)
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\n'
+      ;;
+    *)
+      ;;
+  esac
+}
+
+check_footer_body() {
+  local host="$1"
+  local file="$2"
+  local required
+  while IFS= read -r required; do
+    [[ -z "$required" ]] && continue
+    if ! rg -Fq "$required" "$file"; then
+      return 1
+    fi
+  done < <(expected_footer_urls "$host")
+  rg -Fq 'Cross-project:' "$file" || return 1
+  return 0
+}
+
 check_target() {
   local target="$1"
-  local body meta code effective pass json_ok
+  local body meta code effective ctype pass json_ok
   body="$(mktemp)"
   meta="$(fetch_with_meta "$target" "$body")"
   code="${meta%%|*}"
   effective="${meta#*|}"
+  ctype="${effective#*|}"
+  effective="${effective%%|*}"
   pass="true"
   json_ok="n/a"
+
   if [[ "$code" != "200" ]]; then
     pass="false"
   fi
@@ -89,18 +153,32 @@ check_target() {
       pass="false"
     fi
   fi
-  printf '%s|%s|%s|%s\n' "$code" "$effective" "$json_ok" "$pass"
+
+  printf '%s|%s|%s|%s|%s|%s\n' "$code" "$effective" "$json_ok" "$pass" "$ctype" "$body"
 }
 
 run_self_test_404() {
   local probe="https://a2abench-api.web.app/__gate_runner_known_404__?cb=${TS}"
-  local code effective json_ok pass
-  IFS='|' read -r code effective json_ok pass <<<"$(check_target "$probe")"
+  local code effective json_ok pass ctype body
+  IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$probe")"
   if [[ "$code" == "200" || "$pass" == "true" ]]; then
     echo "gate_self_test_404: FAIL ${probe} => HTTP ${code}, pass=${pass}"
     exit 1
   fi
   echo "gate_self_test_404: PASS ${probe} => HTTP ${code}, pass=${pass}"
+}
+
+run_self_test_footer_logic() {
+  local tmp
+  tmp="$(mktemp)"
+  cat >"$tmp" <<'HTML'
+<!doctype html><html><body><main>No footer links here</main></body></html>
+HTML
+  if check_footer_body "a2abench-api.web.app" "$tmp"; then
+    echo "gate_self_test_footer: FAIL missing footer accepted"
+    exit 1
+  fi
+  echo "gate_self_test_footer: PASS missing footer rejected"
 }
 
 check_required_strings() {
@@ -116,6 +194,8 @@ check_required_strings() {
       rg -Fq 'API keys issued' "$home_body" || return 1
       rg -Fq 'Feedback issues opened' "$home_body" || return 1
       rg -Fq 'href="/v1/eval/leaderboard"' "$home_body" || return 1
+      rg -Fq 'href="/request-key"' "$home_body" || return 1
+      rg -Fq 'href="/feedback"' "$home_body" || return 1
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
       ;;
@@ -172,17 +252,148 @@ check_stats_json_fields() {
       json_missing="$(IFS=,; printf '%s' "${missing[*]}")"
     fi
   fi
-  printf '%s|%s|%s\n' "$code" "$json_valid" "$json_missing"
+  printf '%s|%s|%s|%s\n' "$code" "$json_valid" "$json_missing" "$tmp"
+}
+
+check_siblings_object() {
+  local json_file="$1"
+  local self_key="$2"
+  local missing=""
+  local key
+  for key in a2abench ragmap rootfetch; do
+    [[ "$key" == "$self_key" ]] && continue
+    if ! jq -e --arg k "$key" '.siblings and (.siblings | has($k))' "$json_file" >/dev/null 2>&1; then
+      missing+="${key},"
+    fi
+  done
+  printf '%s' "${missing%,}"
+}
+
+check_siblings_urls() {
+  local json_file="$1"
+  local self_key="$2"
+  local fail=0
+  local key
+  for key in a2abench ragmap rootfetch; do
+    [[ "$key" == "$self_key" ]] && continue
+    local url stats_url stats_json_url agent_card_url
+    url="$(jq -r --arg k "$key" '.siblings[$k].url // empty' "$json_file")"
+    stats_url="$(jq -r --arg k "$key" '.siblings[$k].stats_url // empty' "$json_file")"
+    stats_json_url="$(jq -r --arg k "$key" '.siblings[$k].stats_json_url // empty' "$json_file")"
+    agent_card_url="$(jq -r --arg k "$key" '.siblings[$k].agent_card_url // empty' "$json_file")"
+    for target in "$url" "$stats_url" "$stats_json_url" "$agent_card_url"; do
+      [[ -z "$target" ]] && fail=1 && continue
+      local code effective json_ok pass ctype body
+      IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "$target")")"
+      echo "    siblings_check ${target} => HTTP ${code}, pass=${pass}"
+      [[ "$pass" == "true" ]] || fail=1
+    done
+  done
+  return "$fail"
+}
+
+check_agent_related() {
+  local base="$1"
+  local fail=0
+  local meta code effective ctype json_ok pass body
+  IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "${base}/.well-known/agent.json")")"
+  if [[ "$code" != "200" || "$json_ok" != "true" ]]; then
+    echo "  ${base}/.well-known/agent.json => HTTP ${code}, related_ok=false"
+    return 1
+  fi
+  local related_len
+  related_len="$(jq -r '.related | length // 0' "$body")"
+  if [[ "$related_len" != "2" ]]; then
+    echo "  ${base}/.well-known/agent.json => related_count=${related_len} (expected 2)"
+    fail=1
+  fi
+  local idx=0
+  while [[ "$idx" -lt "$related_len" ]]; do
+    local url card
+    url="$(jq -r --argjson i "$idx" '.related[$i].url // empty' "$body")"
+    card="$(jq -r --argjson i "$idx" '.related[$i].agent_card_url // empty' "$body")"
+    for target in "$url" "$card"; do
+      [[ -z "$target" ]] && fail=1 && continue
+      local c e j p ct b
+      IFS='|' read -r c e j p ct b <<<"$(check_target "$(append_cb "$target")")"
+      echo "    related_check ${target} => HTTP ${c}, pass=${p}"
+      [[ "$p" == "true" ]] || fail=1
+    done
+    idx=$((idx + 1))
+  done
+  [[ "$fail" -eq 0 ]]
+}
+
+check_llms_related() {
+  local base="$1"
+  local self_host="$2"
+  local llms="$(mktemp)"
+  local meta code effective ctype
+  meta="$(fetch_with_meta "$(append_cb "${base}/llms.txt")" "$llms")"
+  code="${meta%%|*}"
+  effective="${meta#*|}"; effective="${effective%%|*}"
+  ctype="${meta##*|}"
+  local pass=true
+  [[ "$code" == "200" ]] || pass=false
+  rg -Fq '## Related projects' "$llms" || pass=false
+  case "$self_host" in
+    a2abench-api.web.app)
+      rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://rootfetch.com' "$llms" || pass=false
+      ;;
+    ragmap-api.web.app)
+      rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://rootfetch.com' "$llms" || pass=false
+      ;;
+    rootfetch.com)
+      rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
+      ;;
+  esac
+  echo "  ${base}/llms.txt => HTTP ${code}, related_section_ok=${pass}"
+  [[ "$pass" == "true" ]]
+}
+
+extract_html_timestamp() {
+  local file="$1"
+  rg -o '20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-9:.]+Z' "$file" | head -n 1 || true
+}
+
+timestamp_to_epoch() {
+  local iso="$1"
+  if [[ -z "$iso" ]]; then
+    printf '0'
+    return
+  fi
+  date -u -d "$iso" +%s 2>/dev/null || printf '0'
+}
+
+check_stats_timestamp_drift() {
+  local stats_html_file="$1"
+  local stats_json_file="$2"
+  local html_iso json_iso html_epoch json_epoch diff
+  html_iso="$(extract_html_timestamp "$stats_html_file")"
+  json_iso="$(jq -r '.generated_at // empty' "$stats_json_file")"
+  html_epoch="$(timestamp_to_epoch "$html_iso")"
+  json_epoch="$(timestamp_to_epoch "$json_iso")"
+  if [[ "$html_epoch" -eq 0 || "$json_epoch" -eq 0 ]]; then
+    echo "unknown|${html_iso}|${json_iso}"
+    return
+  fi
+  diff=$((html_epoch - json_epoch))
+  if [[ "$diff" -lt 0 ]]; then diff=$(( -diff )); fi
+  echo "${diff}|${html_iso}|${json_iso}"
 }
 
 link_walk_report() {
-  local host="$1"
+  local project_host="$1"
   local home_file="$2"
   local stats_file="$3"
-  local base="https://${host}"
+  local base="https://${project_host}"
   local fail=0
   local links_file
   links_file="$(mktemp)"
+
   {
     extract_links "$base" "$home_file"
     extract_links "$base" "$stats_file"
@@ -191,27 +402,84 @@ link_walk_report() {
   while IFS= read -r link; do
     [[ -z "$link" ]] && continue
     local target="$link"
-    case "$target" in
-      https://a2abench-api.web.app/*|https://ragmap-api.web.app/*|https://rootfetch.com/*)
-        target="$(append_cb "$target")"
-        ;;
-    esac
-    local code effective pass json_ok
-    IFS='|' read -r code effective json_ok pass <<<"$(check_target "$target")"
+    local link_host path
+    link_host="$(printf '%s' "$target" | sed -E 's#^https?://([^/]+).*$#\1#')"
+    path="$(printf '%s' "$target" | sed -E 's#^https?://[^/]+(/[^?]*)?.*$#\1#')"
+    [[ -z "$path" ]] && path='/'
+
+    if is_project_host "$link_host"; then
+      target="$(append_cb "$target")"
+    fi
+
+    local code effective json_ok pass ctype body
+    IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$target")"
+
+    local footer_ok="n/a"
+    if [[ "$code" == "200" && "$ctype" == text/html* ]]; then
+      if should_enforce_footer "$path"; then
+        if is_project_host "$link_host" && check_footer_body "$link_host" "$body"; then
+          footer_ok="true"
+        elif is_project_host "$link_host"; then
+          footer_ok="false"
+          fail=1
+        fi
+      fi
+    fi
+
     if [[ "$pass" == "false" ]]; then
       fail=1
     fi
-    echo "    ${target} => HTTP ${code}, final_url=${effective}, json_valid=${json_ok}, pass=${pass}"
+
+    echo "    ${target} => HTTP ${code}, final_url=${effective}, content_type=${ctype}, json_valid=${json_ok}, footer_ok=${footer_ok}, pass=${pass}"
   done <"$links_file"
 
   return "$fail"
 }
 
+check_required_urls() {
+  local host="$1"
+  local home_body="$2"
+  local fail=0
+  if [[ "$host" == "a2abench-api.web.app" ]]; then
+    local url
+    for url in "/feedback" "/request-key"; do
+      local full="https://${host}${url}"
+      local code effective json_ok pass ctype body
+      IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "$full")")"
+      echo "  ${full} => HTTP ${code}, pass=${pass}"
+      [[ "$pass" == "true" ]] || fail=1
+    done
+  fi
+  return "$fail"
+}
+
+check_rag_search() {
+  local url="https://ragmap-api.web.app/rag/search?q=a2abench&cb=${TS}"
+  local body="$(mktemp)"
+  local meta code
+  meta="$(fetch_with_meta "$url" "$body")"
+  code="${meta%%|*}"
+  local pass="false"
+  if [[ "$code" == "200" ]] && jq -e . "$body" >/dev/null 2>&1; then
+    if jq -e '[.results[]?.url // .results[]?.homepage // ""] | map(tostring | ascii_downcase) | any(contains("a2abench-api.web.app"))' "$body" >/dev/null 2>&1; then
+      pass="true"
+    fi
+  fi
+  echo "ragmap_search_check: ${url} => HTTP ${code}, pass=${pass}"
+  echo "ragmap_search_json:"
+  cat "$body"
+  if [[ "$pass" != "true" ]]; then
+    return 1
+  fi
+}
+
 report_project() {
   local project="$1"
   local host="$2"
-  shift 2
+  local self_key="$3"
+  shift 3
   local fields=("$@")
+
   local base="https://${host}"
   local home_url stats_url json_url robots_url sitemap_url
   home_url="$(append_cb "${base}/")"
@@ -238,7 +506,6 @@ report_project() {
   sitemap_code="${sitemap_meta%%|*}"
 
   local home_loading stats_loading
-  # Explicit mixed-case loading detector: loading / Loading / LOADING / loading...
   home_loading="$( (rg -io '\bloading(\.\.\.|…)?\b' "$home_body" || true) | wc -l | tr -d ' ' )"
   stats_loading="$( (rg -io '\bloading(\.\.\.|…)?\b' "$stats_body" || true) | wc -l | tr -d ' ' )"
 
@@ -255,37 +522,71 @@ report_project() {
     stats_in_sitemap="true"
   fi
 
-  local json_info json_code json_valid json_missing
+  local json_info json_code json_valid json_missing json_file
   json_info="$(check_stats_json_fields "$json_url" "${fields[@]}")"
-  IFS='|' read -r json_code json_valid json_missing <<<"$json_info"
+  IFS='|' read -r json_code json_valid json_missing json_file <<<"$json_info"
+
+  local sibling_missing
+  sibling_missing="$(check_siblings_object "$json_file" "$self_key")"
+
+  local drift_info drift_seconds html_iso json_iso
+  drift_info="$(check_stats_timestamp_drift "$stats_body" "$json_file")"
+  IFS='|' read -r drift_seconds html_iso json_iso <<<"$drift_info"
+  local drift_ok="false"
+  if [[ "$drift_seconds" != "unknown" ]] && [[ "$drift_seconds" -le 300 ]]; then
+    drift_ok="true"
+  fi
 
   echo "project: ${project}"
   echo "external_gate:"
   echo "  ${home_url}            => HTTP ${home_code}, loading_count=${home_loading}, required_strings_present=${required_present}"
   echo "  ${stats_url}       => HTTP ${stats_code}, loading_count=${stats_loading}, required_strings_present=${required_present}"
   if [[ -n "$json_missing" ]]; then
-    echo "  ${json_url}  => HTTP ${json_code}, json_valid=${json_valid}, missing_fields=[${json_missing}]"
+    echo "  ${json_url}  => HTTP ${json_code}, json_valid=${json_valid}, missing_fields=[${json_missing}], missing_siblings=[${sibling_missing}]"
   else
-    echo "  ${json_url}  => HTTP ${json_code}, json_valid=${json_valid}, missing_fields=[]"
+    echo "  ${json_url}  => HTTP ${json_code}, json_valid=${json_valid}, missing_fields=[], missing_siblings=[${sibling_missing}]"
   fi
   echo "  ${robots_url}          => stats_allowed=${stats_allowed}"
   echo "  ${sitemap_url}         => stats_in_sitemap=${stats_in_sitemap}"
+  echo "  timestamp_drift: html_ts=${html_iso}, json_ts=${json_iso}, drift_seconds=${drift_seconds}, pass=${drift_ok}"
+
+  local fail_reason=""
+
   echo "  link_walk:"
   local link_walk_failed="false"
   if ! link_walk_report "$host" "$home_body" "$stats_body"; then
     link_walk_failed="true"
   fi
 
-  local fail_reason=""
-  [[ "$home_code" == "200" ]] || fail_reason="home_http"
+  echo "  sibling_url_checks:"
+  if ! check_siblings_urls "$json_file" "$self_key"; then
+    fail_reason="${fail_reason:-siblings_urls}"
+  fi
+
+  echo "  agent_related_checks:"
+  if ! check_agent_related "$base"; then
+    fail_reason="${fail_reason:-agent_related}"
+  fi
+
+  if ! check_llms_related "$base" "$host"; then
+    fail_reason="${fail_reason:-llms_related}"
+  fi
+
+  if ! check_required_urls "$host" "$home_body"; then
+    fail_reason="${fail_reason:-required_routes}"
+  fi
+
+  [[ "$home_code" == "200" ]] || fail_reason="${fail_reason:-home_http}"
   [[ "$stats_code" == "200" ]] || fail_reason="${fail_reason:-stats_http}"
   [[ "$json_code" == "200" ]] || fail_reason="${fail_reason:-json_http}"
   [[ "$home_loading" == "0" ]] || fail_reason="${fail_reason:-home_loading}"
   [[ "$stats_loading" == "0" ]] || fail_reason="${fail_reason:-stats_loading}"
   [[ "$required_present" == "true" ]] || fail_reason="${fail_reason:-required_strings}"
   [[ "$json_valid" == "true" && -z "$json_missing" ]] || fail_reason="${fail_reason:-json_fields}"
+  [[ -z "$sibling_missing" ]] || fail_reason="${fail_reason:-siblings_missing}"
   [[ "$stats_allowed" == "true" ]] || fail_reason="${fail_reason:-robots}"
   [[ "$stats_in_sitemap" == "true" ]] || fail_reason="${fail_reason:-sitemap}"
+  [[ "$drift_ok" == "true" ]] || fail_reason="${fail_reason:-timestamp_drift}"
   [[ "$link_walk_failed" == "false" ]] || fail_reason="${fail_reason:-link_walk}"
 
   if [[ -z "$fail_reason" ]]; then
@@ -297,10 +598,13 @@ report_project() {
 }
 
 run_self_test_404
+run_self_test_footer_logic
 
-report_project "a2abench" "a2abench-api.web.app" \
-  submissions entrants_external keys_issued feedback_count baseline_runs last_submission_ts generated_at
-report_project "ragmap" "ragmap-api.web.app" \
-  servers_indexed upstream_total coverage_pct last_ingest_ts weekly_distinct_callers weekly_queries bulk_scraper_callers bulk_scraper_calls generated_at
-report_project "rootfetch" "rootfetch.com" \
-  unique_callers_7d unique_callers_30d mcp_calls_7d mcp_calls_30d tool_call_success_pct last_run_id last_run_ts snapshot_freshness_hours generated_at
+report_project "a2abench" "a2abench-api.web.app" "a2abench" \
+  submissions entrants_external keys_issued feedback_count baseline_runs last_submission_ts generated_at siblings
+report_project "ragmap" "ragmap-api.web.app" "ragmap" \
+  servers_indexed upstream_total coverage_pct last_ingest_ts weekly_distinct_callers weekly_queries bulk_scraper_callers bulk_scraper_calls generated_at siblings
+report_project "rootfetch" "rootfetch.com" "rootfetch" \
+  unique_callers_7d unique_callers_30d mcp_calls_7d mcp_calls_30d tool_call_success_pct last_run_id last_run_ts snapshot_freshness_hours generated_at siblings
+
+check_rag_search
