@@ -47,8 +47,8 @@ resolve_href() {
 extract_links() {
   local base="$1"
   local file="$2"
-  (rg -o 'href=["'"'"'][^"'"'"']+["'"'"']' "$file" || true) \
-    | sed -E 's/^href=["'"'"'](.*)["'"'"']$/\1/' \
+  # Case-insensitive anchor extraction from rendered HTML.
+  perl -ne 'while (/href\s*=\s*["'"'"'"'"'"'"'"'"']([^"'"'"'"'"'"'"'"'"']+)["'"'"'"'"'"'"'"'"']/ig) { print "$1\n"; }' "$file" \
     | while IFS= read -r href; do resolve_href "$base" "$href"; done \
     | rg -v '^$' \
     | sort -u
@@ -213,6 +213,7 @@ report_project() {
   sitemap_code="${sitemap_meta%%|*}"
 
   local home_loading stats_loading
+  # Explicit mixed-case loading detector: loading / Loading / LOADING / loading...
   home_loading="$( (rg -io '\bloading(\.\.\.|…)?\b' "$home_body" || true) | wc -l | tr -d ' ' )"
   stats_loading="$( (rg -io '\bloading(\.\.\.|…)?\b' "$stats_body" || true) | wc -l | tr -d ' ' )"
 
