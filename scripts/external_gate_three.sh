@@ -45,6 +45,8 @@ fetch_with_meta() {
   local url="$1"
   local out="$2"
   curl -sS -L -X GET \
+    --connect-timeout 5 \
+    --max-time 20 \
     -H 'Cache-Control: no-cache' \
     -H 'Pragma: no-cache' \
     --cookie '' \
