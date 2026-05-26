@@ -20,6 +20,13 @@ export async function GET(): Promise<Response> {
       stats_json_url: "https://ragmap-api.web.app/stats.json",
       agent_card_url: "https://ragmap-api.web.app/.well-known/agent.json",
     },
+    agentability: {
+      name: "Agentability",
+      url: "https://agentability.org",
+      stats_url: "https://agentability.org/stats",
+      stats_json_url: "https://agentability.org/stats.json",
+      agent_card_url: "https://agentability.org/.well-known/agent.json",
+    },
   };
   return new Response(JSON.stringify({ ...payload, siblings }), {
     status: 200,

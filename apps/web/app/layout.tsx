@@ -108,7 +108,11 @@ export default function RootLayout({
             <a href="https://ragmap-api.web.app/stats" className="text-primary hover:underline">
               Ragmap
             </a>{" "}
-            — benchmark · MCP search
+            ·{" "}
+            <a href="https://agentability.org/stats" className="text-primary hover:underline">
+              Agentability
+            </a>{" "}
+            — benchmark · MCP search · agent-readiness audit
           </footer>
         </Providers>
       </body>

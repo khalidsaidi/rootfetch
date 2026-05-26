@@ -78,6 +78,10 @@ export default async function StatsPage() {
           <a href="https://ragmap-api.web.app/stats" className="text-primary hover:text-primary/80">
             Ragmap
           </a>
+          {" · "}
+          <a href="https://agentability.org/stats" className="text-primary hover:text-primary/80">
+            Agentability
+          </a>
         </p>
       </section>
     </main>

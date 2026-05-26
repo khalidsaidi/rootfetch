@@ -116,6 +116,7 @@ function normalizeSiteUrl(raw) {
 
 const siblingA2aUrl = "https://a2abench-api.web.app";
 const siblingRagmapUrl = "https://ragmap-api.web.app";
+const siblingAgentabilityUrl = "https://agentability.org";
 
 function escapeXml(value) {
   return String(value)
@@ -229,7 +230,8 @@ async function generateSeoTextArtifacts() {
     `- ${siteUrl}/api/mcp/first-call\n\n` +
     `## Related projects\n` +
     `- A2ABench: ${siblingA2aUrl} (stats: ${siblingA2aUrl}/stats)\n` +
-    `- Ragmap: ${siblingRagmapUrl} (stats: ${siblingRagmapUrl}/stats)\n\n` +
+    `- Ragmap: ${siblingRagmapUrl} (stats: ${siblingRagmapUrl}/stats)\n` +
+    `- Agentability: ${siblingAgentabilityUrl} (stats: ${siblingAgentabilityUrl}/stats)\n\n` +
     `## Metric definitions\n` +
     `- approved_tlds_count: approved TLDs visible in latest discovery snapshot\n` +
     `- counted_today_count: observed today (core+rolling)\n` +
@@ -298,6 +300,12 @@ async function generateSeoTextArtifacts() {
           url: siblingRagmapUrl,
           agent_card_url: `${siblingRagmapUrl}/.well-known/agent.json`,
           description: "MCP search and RAG-focused server discovery.",
+        },
+        {
+          name: "Agentability",
+          url: siblingAgentabilityUrl,
+          agent_card_url: `${siblingAgentabilityUrl}/.well-known/agent.json`,
+          description: "Agent-readiness audit and evidence-backed report publishing.",
         },
       ],
     },
