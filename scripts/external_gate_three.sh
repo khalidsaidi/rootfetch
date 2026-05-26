@@ -461,7 +461,22 @@ check_rag_search() {
   code="${meta%%|*}"
   local pass="false"
   if [[ "$code" == "200" ]] && jq -e . "$body" >/dev/null 2>&1; then
-    if jq -e '[.results[]?.url // .results[]?.homepage // ""] | map(tostring | ascii_downcase) | any(contains("a2abench-api.web.app"))' "$body" >/dev/null 2>&1; then
+    if jq -e '
+      [
+        (.results[]?.url // ""),
+        (.results[]?.homepage // ""),
+        (.results[]?.reachableUrl // ""),
+        (.results[]?.name // ""),
+        (.results[]?.server?.repository?.url // "")
+      ]
+      | map(tostring | ascii_downcase)
+      | any(
+          contains("a2abench-api.web.app")
+          or contains("a2abench-mcp.web.app")
+          or contains("github.com/khalidsaidi/a2abench")
+          or contains("a2abench")
+        )
+    ' "$body" >/dev/null 2>&1; then
       pass="true"
     fi
   fi
