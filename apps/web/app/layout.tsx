@@ -96,6 +96,20 @@ export default function RootLayout({
         <Providers>
           <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_16%_18%,rgba(0,212,255,0.08),transparent_36%),radial-gradient(circle_at_82%_12%,rgba(168,85,247,0.1),transparent_34%)]" />
           {children}
+          <footer
+            data-cross-project-footer
+            className="mx-auto mt-8 w-full max-w-6xl border-t border-border/70 px-4 py-5 text-xs text-muted-foreground md:px-8"
+          >
+            Cross-project:{" "}
+            <a href="https://a2abench-api.web.app/stats" className="text-primary hover:underline">
+              A2ABench
+            </a>{" "}
+            ·{" "}
+            <a href="https://ragmap-api.web.app/stats" className="text-primary hover:underline">
+              Ragmap
+            </a>{" "}
+            — benchmark · MCP search
+          </footer>
         </Providers>
       </body>
     </html>

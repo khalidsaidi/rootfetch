@@ -66,6 +66,10 @@ export default async function StatsPage() {
           </div>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
+          <Link href="/" className="text-primary hover:text-primary/80">
+            Back to homepage
+          </Link>{" "}
+          ·{" "}
           Cross-project stats:{" "}
           <a href="https://a2abench-api.web.app/stats" className="text-primary hover:text-primary/80">
             A2ABench

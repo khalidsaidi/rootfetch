@@ -114,6 +114,9 @@ function normalizeSiteUrl(raw) {
   return (raw || "https://rootfetch.com").trim().replace(/\/+$/, "");
 }
 
+const siblingA2aUrl = "https://a2abench-api.web.app";
+const siblingRagmapUrl = "https://ragmap-api.web.app";
+
 function escapeXml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -224,6 +227,9 @@ async function generateSeoTextArtifacts() {
     `- ${siteUrl}/agents\n` +
     `- ${siteUrl}/mcp\n` +
     `- ${siteUrl}/api/mcp/first-call\n\n` +
+    `## Related projects\n` +
+    `- A2ABench: ${siblingA2aUrl} (stats: ${siblingA2aUrl}/stats)\n` +
+    `- Ragmap: ${siblingRagmapUrl} (stats: ${siblingRagmapUrl}/stats)\n\n` +
     `## Metric definitions\n` +
     `- approved_tlds_count: approved TLDs visible in latest discovery snapshot\n` +
     `- counted_today_count: observed today (core+rolling)\n` +
@@ -280,6 +286,20 @@ async function generateSeoTextArtifacts() {
         artifactBacked: true,
         noRecompute: true,
       },
+      related: [
+        {
+          name: "A2ABench",
+          url: siblingA2aUrl,
+          agent_card_url: `${siblingA2aUrl}/.well-known/agent.json`,
+          description: "Public benchmark for agent Q&A performance.",
+        },
+        {
+          name: "Ragmap",
+          url: siblingRagmapUrl,
+          agent_card_url: `${siblingRagmapUrl}/.well-known/agent.json`,
+          description: "MCP search and RAG-focused server discovery.",
+        },
+      ],
     },
     null,
     2,
