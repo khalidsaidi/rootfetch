@@ -70,10 +70,26 @@ resolve_href() {
 extract_links() {
   local base="$1"
   local file="$2"
-  perl -ne 'while (/href\s*=\s*["'"'"'"'"'"']([^"'"'"'"'"'"']+)["'"'"'"'"'"']/ig) { print "$1\n"; }' "$file" \
+  perl -0777 -ne 'while (/<a\b[^>]*\bhref\s*=\s*["'"'"'"'"'"']([^"'"'"'"'"'"']+)["'"'"'"'"'"']/ig) { print "$1\n"; }' "$file" \
     | while IFS= read -r href; do resolve_href "$base" "$href"; done \
     | rg -v '^$' \
     | sort -u
+}
+
+emit_raw_html() {
+  local label="$1"
+  local file="$2"
+  echo "  raw_${label}_begin"
+  sed 's/></>\n</g' "$file" | sed -n '1,200p'
+  echo "  raw_${label}_end"
+}
+
+emit_raw_text() {
+  local label="$1"
+  local file="$2"
+  echo "  raw_${label}_begin"
+  sed -n '1,200p' "$file"
+  echo "  raw_${label}_end"
 }
 
 expects_json() {
@@ -541,6 +557,12 @@ report_project() {
   json_info="$(check_stats_json_fields "$json_url" "${fields[@]}")"
   IFS='|' read -r json_code json_valid json_missing json_file <<<"$json_info"
 
+  local agent_url agent_body agent_meta agent_code
+  agent_url="$(append_cb "${base}/.well-known/agent.json")"
+  agent_body="$(mktemp)"
+  agent_meta="$(fetch_with_meta "$agent_url" "$agent_body")"
+  agent_code="${agent_meta%%|*}"
+
   local sibling_missing
   sibling_missing="$(check_siblings_object "$json_file" "$self_key")"
 
@@ -564,6 +586,16 @@ report_project() {
   echo "  ${robots_url}          => stats_allowed=${stats_allowed}"
   echo "  ${sitemap_url}         => stats_in_sitemap=${stats_in_sitemap}"
   echo "  timestamp_drift: html_ts=${html_iso}, json_ts=${json_iso}, drift_seconds=${drift_seconds}, pass=${drift_ok}"
+  emit_raw_html "home" "$home_body"
+  emit_raw_html "stats" "$stats_body"
+  emit_raw_text "stats_json" "$json_file"
+  if [[ "$agent_code" == "200" ]]; then
+    emit_raw_text "agent_json" "$agent_body"
+  else
+    echo "  raw_agent_json_begin"
+    echo "  failed_to_fetch_agent_json_http_${agent_code}"
+    echo "  raw_agent_json_end"
+  fi
 
   local fail_reason=""
 
