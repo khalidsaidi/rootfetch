@@ -431,6 +431,7 @@ link_walk_report() {
     IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$target")"
 
     local footer_ok="n/a"
+    local content_assert_ok="n/a"
     if [[ "$code" == "200" && "$ctype" == text/html* ]]; then
       if should_enforce_footer "$path"; then
         if is_project_host "$link_host" && check_footer_body "$link_host" "$body"; then
@@ -442,11 +443,40 @@ link_walk_report() {
       fi
     fi
 
+    if is_project_host "$link_host"; then
+      case "$path" in
+        /stats.json)
+          if [[ "$json_ok" == "true" ]] && jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 2)' "$body" >/dev/null 2>&1; then
+            content_assert_ok="true"
+          else
+            content_assert_ok="false"
+            fail=1
+          fi
+          ;;
+        /.well-known/agent.json|/.well-known/agent-card.json)
+          if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 2)' "$body" >/dev/null 2>&1; then
+            content_assert_ok="true"
+          else
+            content_assert_ok="false"
+            fail=1
+          fi
+          ;;
+        /llms.txt)
+          if rg -Fq '## Related projects' "$body"; then
+            content_assert_ok="true"
+          else
+            content_assert_ok="false"
+            fail=1
+          fi
+          ;;
+      esac
+    fi
+
     if [[ "$pass" == "false" ]]; then
       fail=1
     fi
 
-    echo "    ${target} => HTTP ${code}, final_url=${effective}, content_type=${ctype}, json_valid=${json_ok}, footer_ok=${footer_ok}, pass=${pass}"
+    echo "    ${target} => HTTP ${code}, final_url=${effective}, content_type=${ctype}, json_valid=${json_ok}, footer_ok=${footer_ok}, content_assert_ok=${content_assert_ok}, pass=${pass}"
   done <"$links_file"
 
   return "$fail"
