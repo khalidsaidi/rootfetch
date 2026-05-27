@@ -117,6 +117,7 @@ function normalizeSiteUrl(raw) {
 const siblingA2aUrl = "https://a2abench-api.web.app";
 const siblingRagmapUrl = "https://ragmap-api.web.app";
 const siblingAgentabilityUrl = "https://agentability.org";
+const siblingRelayorbUrl = "https://relayorb.com";
 
 function escapeXml(value) {
   return String(value)
@@ -231,7 +232,8 @@ async function generateSeoTextArtifacts() {
     `## Related projects\n` +
     `- A2ABench: ${siblingA2aUrl} (stats: ${siblingA2aUrl}/stats)\n` +
     `- Ragmap: ${siblingRagmapUrl} (stats: ${siblingRagmapUrl}/stats)\n` +
-    `- Agentability: ${siblingAgentabilityUrl} (stats: ${siblingAgentabilityUrl}/stats)\n\n` +
+    `- Agentability: ${siblingAgentabilityUrl} (stats: ${siblingAgentabilityUrl}/stats)\n` +
+    `- RelayOrb: ${siblingRelayorbUrl} (stats: ${siblingRelayorbUrl}/stats)\n\n` +
     `## Metric definitions\n` +
     `- approved_tlds_count: approved TLDs visible in latest discovery snapshot\n` +
     `- counted_today_count: observed today (core+rolling)\n` +
@@ -306,6 +308,12 @@ async function generateSeoTextArtifacts() {
           url: siblingAgentabilityUrl,
           agent_card_url: `${siblingAgentabilityUrl}/.well-known/agent.json`,
           description: "Agent-readiness audit and evidence-backed report publishing.",
+        },
+        {
+          name: "RelayOrb",
+          url: siblingRelayorbUrl,
+          agent_card_url: `${siblingRelayorbUrl}/.well-known/agent.json`,
+          description: "Tool control plane for AI agents with contract-first routing.",
         },
       ],
     },

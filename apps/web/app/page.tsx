@@ -552,6 +552,10 @@ export default async function Home() {
           <a href="https://agentability.org/stats" className="text-primary hover:text-primary/80">
             Agentability
           </a>
+          {" · "}
+          <a href="https://relayorb.com/stats" className="text-primary hover:text-primary/80">
+            RelayOrb
+          </a>
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
           <a

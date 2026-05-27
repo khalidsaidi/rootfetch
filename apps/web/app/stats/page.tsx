@@ -82,6 +82,10 @@ export default async function StatsPage() {
           <a href="https://agentability.org/stats" className="text-primary hover:text-primary/80">
             Agentability
           </a>
+          {" · "}
+          <a href="https://relayorb.com/stats" className="text-primary hover:text-primary/80">
+            RelayOrb
+          </a>
         </p>
       </section>
     </main>

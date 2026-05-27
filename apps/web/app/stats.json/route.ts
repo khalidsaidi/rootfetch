@@ -27,6 +27,13 @@ export async function GET(): Promise<Response> {
       stats_json_url: "https://agentability.org/stats.json",
       agent_card_url: "https://agentability.org/.well-known/agent.json",
     },
+    relayorb: {
+      name: "RelayOrb",
+      url: "https://relayorb.com",
+      stats_url: "https://relayorb.com/stats",
+      stats_json_url: "https://relayorb.com/stats.json",
+      agent_card_url: "https://relayorb.com/.well-known/agent.json",
+    },
   };
   return new Response(JSON.stringify({ ...payload, siblings }), {
     status: 200,

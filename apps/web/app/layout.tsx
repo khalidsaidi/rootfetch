@@ -112,7 +112,11 @@ export default function RootLayout({
             <a href="https://agentability.org/stats" className="text-primary hover:underline">
               Agentability
             </a>{" "}
-            — benchmark · MCP search · agent-readiness audit
+            ·{" "}
+            <a href="https://relayorb.com/stats" className="text-primary hover:underline">
+              RelayOrb
+            </a>{" "}
+            — benchmark · MCP search · agent-readiness audit · tool control plane
           </footer>
         </Providers>
       </body>
