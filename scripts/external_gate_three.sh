@@ -19,6 +19,7 @@ PROJECT_HOSTS=(
   "rootfetch.com"
   "agentability.org"
   "relayorb.com"
+  "aistatusdashboard.com"
 )
 
 is_project_host() {
@@ -124,19 +125,22 @@ expected_footer_urls() {
   local host="$1"
   case "$host" in
     a2abench-api.web.app)
-      printf 'https://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\n'
+      printf 'https://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\nhttps://aistatusdashboard.com/stats\n'
       ;;
     ragmap-api.web.app)
-      printf 'https://a2abench-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\nhttps://aistatusdashboard.com/stats\n'
       ;;
     rootfetch.com)
-      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\nhttps://aistatusdashboard.com/stats\n'
       ;;
     agentability.org)
-      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://relayorb.com/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://relayorb.com/stats\nhttps://aistatusdashboard.com/stats\n'
       ;;
     relayorb.com)
-      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://aistatusdashboard.com/stats\n'
+      ;;
+    aistatusdashboard.com)
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\n'
       ;;
     *)
       ;;
@@ -161,19 +165,22 @@ expected_related_names_for_host() {
   local host="$1"
   case "$host" in
     a2abench-api.web.app)
-      printf 'ragmap\nrootfetch\nagentability\nrelayorb\n'
+      printf 'ragmap\nrootfetch\nagentability\nrelayorb\naistatusdashboard\n'
       ;;
     ragmap-api.web.app)
-      printf 'a2abench\nrootfetch\nagentability\nrelayorb\n'
+      printf 'a2abench\nrootfetch\nagentability\nrelayorb\naistatusdashboard\n'
       ;;
     rootfetch.com)
-      printf 'a2abench\nragmap\nagentability\nrelayorb\n'
+      printf 'a2abench\nragmap\nagentability\nrelayorb\naistatusdashboard\n'
       ;;
     agentability.org)
-      printf 'a2abench\nragmap\nrootfetch\nrelayorb\n'
+      printf 'a2abench\nragmap\nrootfetch\nrelayorb\naistatusdashboard\n'
       ;;
     relayorb.com)
-      printf 'a2abench\nragmap\nrootfetch\nagentability\n'
+      printf 'a2abench\nragmap\nrootfetch\nagentability\naistatusdashboard\n'
+      ;;
+    aistatusdashboard.com)
+      printf 'a2abench\nragmap\nrootfetch\nagentability\nrelayorb\n'
       ;;
     *)
       ;;
@@ -189,7 +196,7 @@ check_related_names() {
     jq -r '.related[]?.name // empty' "$json_file" \
       | tr '[:upper:]' '[:lower:]' \
       | sed 's/[^a-z0-9]//g' \
-      | sed -e 's/^ragmap$/ragmap/' -e 's/^rootfetch$/rootfetch/' -e 's/^a2abench$/a2abench/' -e 's/^agentability$/agentability/' -e 's/^relayorb$/relayorb/' \
+      | sed -e 's/^ragmap$/ragmap/' -e 's/^rootfetch$/rootfetch/' -e 's/^a2abench$/a2abench/' -e 's/^agentability$/agentability/' -e 's/^relayorb$/relayorb/' -e 's/^aistatusdashboard$/aistatusdashboard/' \
       | sort -u | tr '\n' ',' | sed 's/,$//'
   )"
   [[ "$expected" == "$actual" ]]
@@ -316,6 +323,7 @@ check_required_strings() {
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
       rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
+      rg -Fq 'https://aistatusdashboard.com/stats' "$home_body" || return 1
       ;;
     ragmap-api.web.app)
       rg -Fq 'href="/.well-known/agent.json"' "$home_body" || return 1
@@ -327,6 +335,7 @@ check_required_strings() {
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
       rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
+      rg -Fq 'https://aistatusdashboard.com/stats' "$home_body" || return 1
       ;;
     rootfetch.com)
       rg -Fq 'Unique callers (7d / 30d)' "$home_body" || return 1
@@ -343,6 +352,7 @@ check_required_strings() {
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
+      rg -Fq 'https://aistatusdashboard.com/stats' "$home_body" || return 1
       ;;
     agentability.org)
       rg -Fq '/stats' "$home_body" || return 1
@@ -352,6 +362,7 @@ check_required_strings() {
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
       rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
+      rg -Fq 'https://aistatusdashboard.com/stats' "$home_body" || return 1
       ;;
     relayorb.com)
       rg -Fq '/stats' "$home_body" || return 1
@@ -361,6 +372,17 @@ check_required_strings() {
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
       rg -Fq 'https://agentability.org/stats' "$home_body" || return 1
+      rg -Fq 'https://aistatusdashboard.com/stats' "$home_body" || return 1
+      ;;
+    aistatusdashboard.com)
+      rg -Fq '/stats' "$home_body" || return 1
+      rg -Fq '/stats.json' "$home_body" || return 1
+      rg -Fq '/.well-known/agent.json' "$home_body" || return 1
+      rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
+      rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
+      rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
+      rg -Fq 'https://agentability.org/stats' "$home_body" || return 1
+      rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
       ;;
   esac
   return 0
@@ -399,11 +421,11 @@ check_siblings_object() {
   local missing="" extras=""
   local siblings_len
   siblings_len="$(jq -r '.siblings | keys | length // 0' "$json_file" 2>/dev/null || echo 0)"
-  if [[ "$siblings_len" != "4" ]]; then
+  if [[ "$siblings_len" != "5" ]]; then
     missing+="len:${siblings_len},"
   fi
   local key
-  for key in a2abench ragmap rootfetch agentability relayorb; do
+  for key in a2abench ragmap rootfetch agentability relayorb aistatusdashboard; do
     [[ "$key" == "$self_key" ]] && continue
     if ! jq -e --arg k "$key" '.siblings and (.siblings | has($k))' "$json_file" >/dev/null 2>&1; then
       missing+="${key},"
@@ -411,7 +433,7 @@ check_siblings_object() {
   done
   while IFS= read -r key; do
     [[ -z "$key" ]] && continue
-    if [[ "$key" != "$self_key" && "$key" != "a2abench" && "$key" != "ragmap" && "$key" != "rootfetch" && "$key" != "agentability" && "$key" != "relayorb" ]]; then
+    if [[ "$key" != "$self_key" && "$key" != "a2abench" && "$key" != "ragmap" && "$key" != "rootfetch" && "$key" != "agentability" && "$key" != "relayorb" && "$key" != "aistatusdashboard" ]]; then
       extras+="${key},"
     fi
   done < <(jq -r '.siblings | keys[]?' "$json_file")
@@ -423,7 +445,7 @@ check_siblings_urls() {
   local self_key="$2"
   local fail=0
   local key
-  for key in a2abench ragmap rootfetch agentability relayorb; do
+  for key in a2abench ragmap rootfetch agentability relayorb aistatusdashboard; do
     [[ "$key" == "$self_key" ]] && continue
     local url stats_url stats_json_url agent_card_url
     url="$(jq -r --arg k "$key" '.siblings[$k].url // empty' "$json_file")"
@@ -453,8 +475,8 @@ check_agent_related() {
   fi
   local related_len
   related_len="$(jq -r '.related | length // 0' "$body")"
-  if [[ "$related_len" != "4" ]]; then
-    echo "  ${base}/.well-known/agent.json => related_count=${related_len} (expected 4)"
+  if [[ "$related_len" != "5" ]]; then
+    echo "  ${base}/.well-known/agent.json => related_count=${related_len} (expected 5)"
     fail=1
   fi
   local idx=0
@@ -554,30 +576,42 @@ check_llms_related() {
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
       rg -Fq 'https://agentability.org' "$llms" || pass=false
       rg -Fq 'https://relayorb.com' "$llms" || pass=false
+      rg -Fq 'https://aistatusdashboard.com' "$llms" || pass=false
       ;;
     ragmap-api.web.app)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
       rg -Fq 'https://agentability.org' "$llms" || pass=false
       rg -Fq 'https://relayorb.com' "$llms" || pass=false
+      rg -Fq 'https://aistatusdashboard.com' "$llms" || pass=false
       ;;
     rootfetch.com)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
       rg -Fq 'https://agentability.org' "$llms" || pass=false
       rg -Fq 'https://relayorb.com' "$llms" || pass=false
+      rg -Fq 'https://aistatusdashboard.com' "$llms" || pass=false
       ;;
     agentability.org)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
       rg -Fq 'https://relayorb.com' "$llms" || pass=false
+      rg -Fq 'https://aistatusdashboard.com' "$llms" || pass=false
       ;;
     relayorb.com)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
       rg -Fq 'https://agentability.org' "$llms" || pass=false
+      rg -Fq 'https://aistatusdashboard.com' "$llms" || pass=false
+      ;;
+    aistatusdashboard.com)
+      rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://rootfetch.com' "$llms" || pass=false
+      rg -Fq 'https://agentability.org' "$llms" || pass=false
+      rg -Fq 'https://relayorb.com' "$llms" || pass=false
       ;;
   esac
   echo "  ${base}/llms.txt => HTTP ${code}, related_section_ok=${pass}"
@@ -660,7 +694,7 @@ link_walk_report() {
     if is_project_host "$link_host"; then
       case "$path" in
         /stats.json)
-          if [[ "$json_ok" == "true" ]] && jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 4)' "$body" >/dev/null 2>&1; then
+          if [[ "$json_ok" == "true" ]] && jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 5)' "$body" >/dev/null 2>&1; then
             content_assert_ok="true"
           else
             content_assert_ok="false"
@@ -668,7 +702,7 @@ link_walk_report() {
           fi
           ;;
         /.well-known/agent.json|/.well-known/agent-card.json)
-          if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 4)' "$body" >/dev/null 2>&1; then
+          if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 5)' "$body" >/dev/null 2>&1; then
             content_assert_ok="true"
           else
             content_assert_ok="false"
@@ -747,7 +781,7 @@ check_relayorb_required_surfaces() {
   IFS='|' read -r air_code air_effective air_json_ok air_pass air_ctype air_body <<<"$(check_target "$(append_cb "https://relayorb.com/.well-known/air.json")")"
   if [[ "$air_code" != "200" || "$air_json_ok" != "true" ]]; then
     fail=1
-  elif ! jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 4)' "$air_body" >/dev/null 2>&1; then
+  elif ! jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 5)' "$air_body" >/dev/null 2>&1; then
     fail=1
   fi
   echo "relayorb_air_siblings_check: https://relayorb.com/.well-known/air.json => HTTP ${air_code}, json_valid=${air_json_ok}"
@@ -776,6 +810,155 @@ check_relayorb_required_surfaces() {
     fail=1
   fi
   echo "relayorb_404_check: ${probe} => HTTP ${pcode}, pass=${p404pass}"
+  return "$fail"
+}
+
+check_aistatus_required_surfaces() {
+  local fail=0
+  local url
+  for url in \
+    "https://aistatusdashboard.com/.well-known/agent.json" \
+    "https://aistatusdashboard.com/.well-known/air.json" \
+    "https://aistatusdashboard.com/.well-known/openapi.json" \
+    "https://aistatusdashboard.com/openapi.json" \
+    "https://aistatusdashboard.com/.well-known/openapi.yaml" \
+    "https://aistatusdashboard.com/openapi.yaml" \
+    "https://aistatusdashboard.com/.well-known/ai-plugin.json" \
+    "https://aistatusdashboard.com/ai-plugin.json" \
+    "https://aistatusdashboard.com/llms.txt" \
+    "https://aistatusdashboard.com/llms-full.txt" \
+    "https://aistatusdashboard.com/robots.txt" \
+    "https://aistatusdashboard.com/sitemap.xml" \
+    "https://aistatusdashboard.com/rss.xml" \
+    "https://aistatusdashboard.com/discovery/audit/latest.json" \
+    "https://aistatusdashboard.com/discovery/audit/latest.pretty.json" \
+    "https://aistatusdashboard.com/stats" \
+    "https://aistatusdashboard.com/stats.json" \
+    "https://aistatusdashboard.com/datasets/incidents.ndjson" \
+    "https://aistatusdashboard.com/datasets/metrics.csv" \
+    "https://aistatusdashboard.com/terms.md" \
+    "https://aistatusdashboard.com/privacy.md" \
+    "https://aistatusdashboard.com/cookies.md" \
+    "https://aistatusdashboard.com/mcp"; do
+    local code effective json_ok pass ctype body
+    IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "$url")")"
+    echo "aistatus_surface_check: ${url} => HTTP ${code}, pass=${pass}, content_type=${ctype}"
+    [[ "$pass" == "true" ]] || fail=1
+  done
+
+  local openapi_a openapi_b
+  openapi_a="$(mktemp)"
+  openapi_b="$(mktemp)"
+  fetch_with_meta "$(append_cb "https://aistatusdashboard.com/.well-known/openapi.json")" "$openapi_a" >/dev/null
+  fetch_with_meta "$(append_cb "https://aistatusdashboard.com/openapi.json")" "$openapi_b" >/dev/null
+  local hash_a hash_b
+  hash_a="$(sha256sum "$openapi_a" | awk '{print $1}')"
+  hash_b="$(sha256sum "$openapi_b" | awk '{print $1}')"
+  echo "aistatus_openapi_hash_check: well_known=${hash_a}, apex=${hash_b}, pass=$([[ "$hash_a" == "$hash_b" ]] && echo true || echo false)"
+  [[ "$hash_a" == "$hash_b" ]] || fail=1
+
+  local discovery
+  discovery="$(mktemp)"
+  fetch_with_meta "$(append_cb "https://aistatusdashboard.com/discovery/audit/latest.json")" "$discovery" >/dev/null
+  local generated now epoch age
+  generated="$(jq -r '.generated_at // empty' "$discovery")"
+  now="$(date -u +%s)"
+  epoch="$(timestamp_to_epoch "$generated")"
+  age=999999
+  if [[ "$epoch" -gt 0 ]]; then
+    age=$(( now - epoch ))
+  fi
+  echo "aistatus_discovery_freshness: generated_at=${generated}, age_seconds=${age}, pass=$([[ "$age" -le 86400 ]] && echo true || echo false)"
+  [[ "$age" -le 86400 ]] || fail=1
+
+  local rss
+  rss="$(mktemp)"
+  fetch_with_meta "$(append_cb "https://aistatusdashboard.com/rss.xml")" "$rss" >/dev/null
+  local last_build
+  last_build="$(rg -o '<lastBuildDate>[^<]+' "$rss" | head -n1 | sed 's#<lastBuildDate>##')"
+  local last_epoch rss_age
+  last_epoch="$(date -u -d "$last_build" +%s 2>/dev/null || echo 0)"
+  rss_age=999999
+  if [[ "$last_epoch" -gt 0 ]]; then
+    rss_age=$(( now - last_epoch ))
+  fi
+  echo "aistatus_rss_freshness: lastBuildDate=${last_build}, age_seconds=${rss_age}, pass=$([[ "$rss_age" -le 604800 ]] && echo true || echo false)"
+  [[ "$rss_age" -le 604800 ]] || fail=1
+
+  local probe="https://aistatusdashboard.com/__qa_known_404_probe__?cb=${TS}"
+  local pcode peffective pjson_ok ppass pctype pbody p404pass
+  IFS='|' read -r pcode peffective pjson_ok ppass pctype pbody <<<"$(check_target "$probe")"
+  if [[ "$pcode" == "404" ]]; then
+    p404pass="true"
+  else
+    p404pass="false"
+    fail=1
+  fi
+  echo "aistatus_404_check: ${probe} => HTTP ${pcode}, pass=${p404pass}"
+
+  return "$fail"
+}
+
+check_aistatus_api_endpoints() {
+  local fail=0
+  local base="https://aistatusdashboard.com"
+  local url body code effective json_ok pass ctype
+  local incident_id=""
+
+  for url in \
+    "${base}/api/public/v1/providers" \
+    "${base}/api/public/v1/providers/openai/surfaces" \
+    "${base}/api/public/v1/providers/anthropic/surfaces" \
+    "${base}/api/public/v1/providers/openai/regions" \
+    "${base}/api/public/v1/providers/anthropic/regions" \
+    "${base}/api/public/v1/providers/openai/models" \
+    "${base}/api/public/v1/providers/anthropic/models" \
+    "${base}/api/public/v1/status/summary" \
+    "${base}/api/public/v1/status/summary?provider=openai&lens=observed" \
+    "${base}/api/public/v1/status/health-matrix?provider=openai&lens=observed" \
+    "${base}/api/public/v1/incidents" \
+    "${base}/api/public/v1/incidents?provider=openai&active_only=true" \
+    "${base}/api/public/v1/metrics?metric=latency_p50_ms&provider=openai" \
+    "${base}/api/public/v1/casual/status?app=chatgpt"; do
+    IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "$url")")"
+    echo "aistatus_api_check: ${url} => HTTP ${code}, json=${json_ok}, pass=${pass}"
+    if [[ "$code" != "200" || "$json_ok" != "true" ]]; then
+      fail=1
+    fi
+    if [[ "$url" == "${base}/api/public/v1/incidents" ]]; then
+      incident_id="$(jq -r '.data.incidents[0].id // .incidents[0].id // empty' "$body")"
+    fi
+  done
+
+  local post_payload='{"model":"gpt-4o","endpoint":"chat","region":"global"}'
+  local fallback_out policy_out
+  fallback_out="$(mktemp)"
+  policy_out="$(mktemp)"
+  local fallback_code policy_code
+  fallback_code="$(curl -sS -L -X POST -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -d "${post_payload}" -o "$fallback_out" -w '%{http_code}' "${base}/api/public/v1/recommendations/fallback_plan?cb=${TS}")"
+  policy_code="$(curl -sS -L -X POST -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -d "${post_payload}" -o "$policy_out" -w '%{http_code}' "${base}/api/public/v1/policy/generate?cb=${TS}")"
+  echo "aistatus_api_check: ${base}/api/public/v1/recommendations/fallback_plan => HTTP ${fallback_code}, json=$([[ $(jq -e . "$fallback_out" >/dev/null 2>&1; echo $?) -eq 0 ]] && echo true || echo false)"
+  echo "aistatus_api_check: ${base}/api/public/v1/policy/generate => HTTP ${policy_code}, json=$([[ $(jq -e . "$policy_out" >/dev/null 2>&1; echo $?) -eq 0 ]] && echo true || echo false)"
+  [[ "$fallback_code" == "200" ]] || fail=1
+  [[ "$policy_code" == "200" ]] || fail=1
+
+  local casual_payload='{"app":"chatgpt","surface":"text","issue":true}'
+  local casual_out casual_code
+  casual_out="$(mktemp)"
+  casual_code="$(curl -sS -L -X POST -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -d "${casual_payload}" -o "$casual_out" -w '%{http_code}' "${base}/api/public/v1/casual/reports?cb=${TS}")"
+  echo "aistatus_api_check: ${base}/api/public/v1/casual/reports => HTTP ${casual_code}, json=$([[ $(jq -e . "$casual_out" >/dev/null 2>&1; echo $?) -eq 0 ]] && echo true || echo false)"
+  [[ "$casual_code" == "200" ]] || fail=1
+
+  if [[ -n "$incident_id" ]]; then
+    local detail_url="${base}/api/public/v1/incidents/${incident_id}"
+    IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "$detail_url")")"
+    echo "aistatus_api_check: ${detail_url} => HTTP ${code}, json=${json_ok}, pass=${pass}"
+    [[ "$code" == "200" && "$json_ok" == "true" ]] || fail=1
+  else
+    echo "aistatus_api_check: no_incident_id_from_list => FAIL"
+    fail=1
+  fi
+
   return "$fail"
 }
 
@@ -979,6 +1162,10 @@ report_project "agentability" "agentability.org" "agentability" \
   audits_run_total distinct_domains_audited audits_run_7d audits_run_30d median_audit_duration_seconds p95_audit_duration_seconds last_run_id last_run_ts score_distribution_30d generated_at siblings
 report_project "relayorb" "relayorb.com" "relayorb" \
   invokes_total invokes_7d invokes_30d unique_callers_7d unique_callers_30d median_invoke_latency_ms p95_invoke_latency_ms idempotency_replays_total jobs_queued_current capabilities_registered workers_healthy policy_denials_7d tool_call_success_pct last_invoke_ts generated_at terraform_downloads siblings
+report_project "aistatusdashboard" "aistatusdashboard.com" "aistatusdashboard" \
+  providers_tracked incidents_24h incidents_7d_total incidents_30d_total active_incidents_now avg_latency_ms_current community_reports_10m community_reports_7d fallback_plans_generated_7d policies_generated_7d casual_status_calls_7d casual_status_calls_30d datasets_published last_check_ts generated_at siblings
 
 check_rag_search
 check_relayorb_required_surfaces
+check_aistatus_required_surfaces
+check_aistatus_api_endpoints
