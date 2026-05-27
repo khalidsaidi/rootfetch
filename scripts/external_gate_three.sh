@@ -11,6 +11,7 @@ require_cmd curl
 require_cmd jq
 require_cmd rg
 require_cmd perl
+require_cmd gh
 
 PROJECT_HOSTS=(
   "a2abench-api.web.app"
@@ -156,6 +157,44 @@ check_footer_body() {
   return 0
 }
 
+expected_related_names_for_host() {
+  local host="$1"
+  case "$host" in
+    a2abench-api.web.app)
+      printf 'ragmap\nrootfetch\nagentability\nrelayorb\n'
+      ;;
+    ragmap-api.web.app)
+      printf 'a2abench\nrootfetch\nagentability\nrelayorb\n'
+      ;;
+    rootfetch.com)
+      printf 'a2abench\nragmap\nagentability\nrelayorb\n'
+      ;;
+    agentability.org)
+      printf 'a2abench\nragmap\nrootfetch\nrelayorb\n'
+      ;;
+    relayorb.com)
+      printf 'a2abench\nragmap\nrootfetch\nagentability\n'
+      ;;
+    *)
+      ;;
+  esac
+}
+
+check_related_names() {
+  local host="$1"
+  local json_file="$2"
+  local expected actual
+  expected="$(expected_related_names_for_host "$host" | sort | tr '\n' ',' | sed 's/,$//')"
+  actual="$(
+    jq -r '.related[]?.name // empty' "$json_file" \
+      | tr '[:upper:]' '[:lower:]' \
+      | sed 's/[^a-z0-9]//g' \
+      | sed -e 's/^ragmap$/ragmap/' -e 's/^rootfetch$/rootfetch/' -e 's/^a2abench$/a2abench/' -e 's/^agentability$/agentability/' -e 's/^relayorb$/relayorb/' \
+      | sort -u | tr '\n' ',' | sed 's/,$//'
+  )"
+  [[ "$expected" == "$actual" ]]
+}
+
 check_target() {
   local target="$1"
   local body meta code effective ctype pass json_ok
@@ -194,6 +233,21 @@ run_self_test_404() {
   echo "gate_self_test_404: PASS ${probe} => HTTP ${code}, pass=${pass}"
 }
 
+run_self_test_relayorb_404_semantics() {
+  local code pass
+  code="404"
+  if [[ "$code" == "404" ]]; then
+    pass="true"
+  else
+    pass="false"
+  fi
+  if [[ "$pass" != "true" ]]; then
+    echo "gate_self_test_relayorb_404_semantics: FAIL expected pass=true for HTTP 404"
+    exit 1
+  fi
+  echo "gate_self_test_relayorb_404_semantics: PASS HTTP 404 maps to pass=true"
+}
+
 run_self_test_footer_logic() {
   local tmp
   tmp="$(mktemp)"
@@ -205,6 +259,43 @@ HTML
     exit 1
   fi
   echo "gate_self_test_footer: PASS missing footer rejected"
+}
+
+run_self_test_footer_wrong_url() {
+  local tmp
+  tmp="$(mktemp)"
+  cat >"$tmp" <<'HTML'
+<!doctype html><html><body>
+<footer>Cross-project:
+<a href="https://ragmap-api.web.app/stats">Ragmap</a>
+<a href="https://rootfetch.com/stats">Rootfetch</a>
+<a href="https://agentability.org/stats">Agentability</a>
+<a href="https://relayorb.com/WRONG">RelayOrb</a>
+</footer>
+</body></html>
+HTML
+  if check_footer_body "a2abench-api.web.app" "$tmp"; then
+    echo "gate_self_test_footer_wrong_url: FAIL wrong sibling URL accepted"
+    exit 1
+  fi
+  echo "gate_self_test_footer_wrong_url: PASS wrong sibling URL rejected"
+}
+
+run_self_test_related_three_entry() {
+  local tmp
+  tmp="$(mktemp)"
+  cat >"$tmp" <<'JSON'
+{"related":[
+  {"name":"Ragmap","url":"https://ragmap-api.web.app","agent_card_url":"https://ragmap-api.web.app/.well-known/agent.json"},
+  {"name":"Rootfetch","url":"https://rootfetch.com","agent_card_url":"https://rootfetch.com/.well-known/agent.json"},
+  {"name":"Agentability","url":"https://agentability.org","agent_card_url":"https://agentability.org/.well-known/agent.json"}
+]}
+JSON
+  if check_related_names "a2abench-api.web.app" "$tmp"; then
+    echo "gate_self_test_related_three_entry: FAIL three-entry related accepted"
+    exit 1
+  fi
+  echo "gate_self_test_related_three_entry: PASS three-entry related rejected"
 }
 
 check_required_strings() {
@@ -305,7 +396,12 @@ check_stats_json_fields() {
 check_siblings_object() {
   local json_file="$1"
   local self_key="$2"
-  local missing=""
+  local missing="" extras=""
+  local siblings_len
+  siblings_len="$(jq -r '.siblings | keys | length // 0' "$json_file" 2>/dev/null || echo 0)"
+  if [[ "$siblings_len" != "4" ]]; then
+    missing+="len:${siblings_len},"
+  fi
   local key
   for key in a2abench ragmap rootfetch agentability relayorb; do
     [[ "$key" == "$self_key" ]] && continue
@@ -313,7 +409,13 @@ check_siblings_object() {
       missing+="${key},"
     fi
   done
-  printf '%s' "${missing%,}"
+  while IFS= read -r key; do
+    [[ -z "$key" ]] && continue
+    if [[ "$key" != "$self_key" && "$key" != "a2abench" && "$key" != "ragmap" && "$key" != "rootfetch" && "$key" != "agentability" && "$key" != "relayorb" ]]; then
+      extras+="${key},"
+    fi
+  done < <(jq -r '.siblings | keys[]?' "$json_file")
+  printf '%s' "${missing}${extras}"
 }
 
 check_siblings_urls() {
@@ -341,6 +443,7 @@ check_siblings_urls() {
 
 check_agent_related() {
   local base="$1"
+  local host="$2"
   local fail=0
   local meta code effective ctype json_ok pass body
   IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "${base}/.well-known/agent.json")")"
@@ -368,7 +471,69 @@ check_agent_related() {
     done
     idx=$((idx + 1))
   done
+  if ! check_related_names "$host" "$body"; then
+    echo "  ${base}/.well-known/agent.json => related_names_mismatch=true"
+    fail=1
+  fi
   [[ "$fail" -eq 0 ]]
+}
+
+check_agentability_report_relayorb() {
+  local report_url
+  report_url="$(append_cb "https://agentability.org/reports/relayorb.com")"
+  local body
+  body="$(mktemp)"
+  local meta code
+  meta="$(fetch_with_meta "$report_url" "$body")"
+  code="${meta%%|*}"
+  local date_published
+  date_published="$(rg -o 'datePublished\" content=\"[^\"]+' "$body" | head -n1 | sed 's/.*content=\"//')"
+  [[ -z "$date_published" ]] && date_published="$(rg -o 'datePublished\":\"[^\"]+' "$body" | head -n1 | sed 's/.*:\"//')"
+  local now_epoch date_epoch age_days pass
+  now_epoch="$(date -u +%s)"
+  date_epoch="$(timestamp_to_epoch "$date_published")"
+  pass="false"
+  age_days="unknown"
+  if [[ "$code" == "200" && "$date_epoch" -gt 0 ]]; then
+    age_days=$(( (now_epoch - date_epoch) / 86400 ))
+    if [[ "$age_days" -le 30 ]]; then
+      pass="true"
+    fi
+  fi
+  echo "relayorb_agentability_report_check: ${report_url} => HTTP ${code}, datePublished=${date_published}, age_days=${age_days}, pass=${pass}"
+
+  local lb
+  lb="$(mktemp)"
+  local lb_code lb_pass
+  lb_code="$(
+    curl -sS -L -X GET \
+      --connect-timeout 10 \
+      --max-time 60 \
+      -H 'Cache-Control: no-cache' \
+      -H 'Pragma: no-cache' \
+      -o "$lb" \
+      -w '%{http_code}' \
+      "$(append_cb "https://agentability.org/leaderboard.json")" || echo "000"
+  )"
+  lb_pass="false"
+  if [[ "$lb_code" == "200" ]] && jq -e '.entries[]? | select((.domain // "") == "relayorb.com")' "$lb" >/dev/null 2>&1; then
+    lb_pass="true"
+  fi
+  echo "relayorb_leaderboard_check: https://agentability.org/leaderboard.json => HTTP ${lb_code}, relayorb_present=${lb_pass}"
+
+  [[ "$pass" == "true" && "$lb_pass" == "true" ]]
+}
+
+check_conformance_live_status() {
+  local run_json
+  run_json="$(gh run list -R khalidsaidi/relayorb --workflow 'Conformance Live (Prod Gateway)' --limit 1 --json databaseId,createdAt,conclusion,status,url,event,headSha)"
+  local status conclusion url run_id
+  status="$(printf '%s' "$run_json" | jq -r '.[0].status // "unknown"')"
+  conclusion="$(printf '%s' "$run_json" | jq -r '.[0].conclusion // "unknown"')"
+  url="$(printf '%s' "$run_json" | jq -r '.[0].url // ""')"
+  run_id="$(printf '%s' "$run_json" | jq -r '.[0].databaseId // ""')"
+  echo "relayorb_conformance_latest: run_id=${run_id}, status=${status}, conclusion=${conclusion}, url=${url}"
+  [[ "$status" == "completed" && "$conclusion" == "success" ]]
 }
 
 check_llms_related() {
@@ -554,12 +719,16 @@ check_relayorb_required_surfaces() {
   for url in \
     "https://relayorb.com/.well-known/agent.json" \
     "https://relayorb.com/.well-known/air.json" \
+    "https://relayorb.com/.well-known/openapi.json" \
     "https://relayorb.com/agent.json" \
     "https://relayorb.com/air.json" \
     "https://relayorb.com/.well-known/openapi.yaml" \
     "https://relayorb.com/openapi.yaml" \
+    "https://relayorb.com/.well-known/ai-plugin.json" \
     "https://relayorb.com/robots.txt" \
     "https://relayorb.com/sitemap.xml" \
+    "https://relayorb.com/llms.txt" \
+    "https://relayorb.com/llms-full.txt" \
     "https://relayorb.com/stats" \
     "https://relayorb.com/stats.json" \
     "https://relayorb.com/docs.md" \
@@ -582,11 +751,31 @@ check_relayorb_required_surfaces() {
     fail=1
   fi
   echo "relayorb_air_siblings_check: https://relayorb.com/.well-known/air.json => HTTP ${air_code}, json_valid=${air_json_ok}"
+  local openapi_json openapi_yaml
+  openapi_json="$(mktemp)"
+  openapi_yaml="$(mktemp)"
+  fetch_with_meta "$(append_cb "https://relayorb.com/.well-known/openapi.json")" "$openapi_json" >/dev/null
+  fetch_with_meta "$(append_cb "https://relayorb.com/.well-known/openapi.yaml")" "$openapi_yaml" >/dev/null
+  local paths_json paths_yaml methods_json methods_yaml
+  paths_json="$(jq -r '.paths | keys[]' "$openapi_json" | sort | tr '\n' ',' | sed 's/,$//')"
+  paths_yaml="$(rg -o '^[[:space:]]{2}/[^:]+:' "$openapi_yaml" | sed -E 's/^[[:space:]]{2}([^:]+):/\1/' | sort | tr '\n' ',' | sed 's/,$//')"
+  methods_json="$(jq -r '.paths | to_entries[] | .value | keys[]' "$openapi_json" | tr '[:upper:]' '[:lower:]' | sort -u | tr '\n' ',' | sed 's/,$//')"
+  methods_yaml="$(rg -o '^[[:space:]]{4}(get|post|put|patch|delete|options|head):' "$openapi_yaml" | sed -E 's/^[[:space:]]{4}([^:]+):/\1/' | sort -u | tr '\n' ',' | sed 's/,$//')"
+  local op_pass="true"
+  [[ "$paths_json" == "$paths_yaml" ]] || op_pass="false"
+  [[ "$methods_json" == "$methods_yaml" ]] || op_pass="false"
+  echo "relayorb_openapi_semantics_check: paths_match=$([[ \"$paths_json\" == \"$paths_yaml\" ]] && echo true || echo false), methods_match=$([[ \"$methods_json\" == \"$methods_yaml\" ]] && echo true || echo false), pass=${op_pass}"
+  [[ "$op_pass" == "true" ]] || fail=1
   local probe="https://relayorb.com/__qa_known_404_probe__?cb=${TS}"
-  local pcode peffective pjson_ok ppass pctype pbody
+  local pcode peffective pjson_ok ppass pctype pbody p404pass
   IFS='|' read -r pcode peffective pjson_ok ppass pctype pbody <<<"$(check_target "$probe")"
-  echo "relayorb_404_check: ${probe} => HTTP ${pcode}, pass=${ppass}"
-  [[ "$pcode" == "404" ]] || fail=1
+  if [[ "$pcode" == "404" ]]; then
+    p404pass="true"
+  else
+    p404pass="false"
+    fail=1
+  fi
+  echo "relayorb_404_check: ${probe} => HTTP ${pcode}, pass=${p404pass}"
   return "$fail"
 }
 
@@ -732,7 +921,7 @@ report_project() {
   fi
 
   echo "  agent_related_checks:"
-  if ! check_agent_related "$base"; then
+  if ! check_agent_related "$base" "$host"; then
     fail_reason="${fail_reason:-agent_related}"
   fi
 
@@ -742,6 +931,15 @@ report_project() {
 
   if ! check_required_urls "$host" "$home_body"; then
     fail_reason="${fail_reason:-required_routes}"
+  fi
+
+  if [[ "$host" == "relayorb.com" ]]; then
+    if ! check_agentability_report_relayorb; then
+      fail_reason="${fail_reason:-relayorb_agentability_report}"
+    fi
+    if ! check_conformance_live_status; then
+      fail_reason="${fail_reason:-conformance_live}"
+    fi
   fi
 
   [[ "$home_code" == "200" ]] || fail_reason="${fail_reason:-home_http}"
@@ -766,7 +964,10 @@ report_project() {
 }
 
 run_self_test_404
+run_self_test_relayorb_404_semantics
 run_self_test_footer_logic
+run_self_test_footer_wrong_url
+run_self_test_related_three_entry
 
 report_project "a2abench" "a2abench-api.web.app" "a2abench" \
   submissions entrants_external keys_issued feedback_count baseline_runs last_submission_ts generated_at siblings
