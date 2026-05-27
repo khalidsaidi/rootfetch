@@ -34,6 +34,13 @@ export async function GET(): Promise<Response> {
       stats_json_url: "https://relayorb.com/stats.json",
       agent_card_url: "https://relayorb.com/.well-known/agent.json",
     },
+    aistatusdashboard: {
+      name: "AIStatusDashboard",
+      url: "https://aistatusdashboard.com",
+      stats_url: "https://aistatusdashboard.com/stats",
+      stats_json_url: "https://aistatusdashboard.com/stats.json",
+      agent_card_url: "https://aistatusdashboard.com/.well-known/agent.json",
+    },
   };
   return new Response(JSON.stringify({ ...payload, siblings }), {
     status: 200,

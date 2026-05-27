@@ -20,7 +20,11 @@ export const crossProjectSiblings: readonly CrossProjectSibling[] = [
     name: "RelayOrb",
     statsUrl: "https://relayorb.com/stats",
   },
+  {
+    name: "AIStatusDashboard",
+    statsUrl: "https://aistatusdashboard.com/stats",
+  },
 ] as const;
 
 export const crossProjectFooterDescriptor =
-  "benchmark · MCP search · agent-readiness audit · tool control plane";
+  "benchmark · MCP search · agent-readiness audit · tool control plane · status monitoring";
