@@ -99,7 +99,7 @@ emit_raw_text() {
 expects_json() {
   local url="$1"
   case "$url" in
-    */stats.json*|*/api/stats*|*/rag/stats*|*/v1/eval/leaderboard*|*/.well-known/agent.json*|*/.well-known/agent-card.json*) return 0 ;;
+    */stats.json*|*/api/stats*|*/rag/stats*|*/v1/eval/leaderboard*|*/.well-known/agent.json*|*/.well-known/agent-card.json*|*/.well-known/air.json*|*/air.json*) return 0 ;;
     *) return 1 ;;
   esac
 }
