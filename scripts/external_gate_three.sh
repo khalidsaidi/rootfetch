@@ -666,9 +666,9 @@ report_project() {
     required_present="true"
   fi
 
-  local stats_allowed="false" stats_in_sitemap="false"
-  if rg -q '^Allow: /stats$' "$robots_body" && rg -q '^Allow: /stats\.json$' "$robots_body"; then
-    stats_allowed="true"
+  local stats_allowed="true" stats_in_sitemap="false"
+  if rg -qi '^Disallow:\s*/stats(\.json|\*|/|\s|$)' "$robots_body"; then
+    stats_allowed="false"
   fi
   if rg -q "<loc>${base}/stats</loc>" "$sitemap_body" && rg -q "<loc>${base}/stats.json</loc>" "$sitemap_body"; then
     stats_in_sitemap="true"
