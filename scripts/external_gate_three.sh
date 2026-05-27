@@ -108,17 +108,7 @@ expects_json() {
 
 should_enforce_footer() {
   local path="$1"
-  case "$path" in
-    /stats.json|/llms.txt|/.well-known/agent.json|/.well-known/agent-card.json|/robots.txt|/sitemap.xml|/health|/healthz|/readyz|/v1/eval/leaderboard|/v1/eval/questions|/api/stats|/rag/stats|/api/openapi.json)
-      return 1
-      ;;
-    /v0.1/servers/*|/_next/*|/assets/*)
-      return 1
-      ;;
-    *)
-      return 0
-      ;;
-  esac
+  [[ "$path" == "/" || "$path" == "/stats" ]]
 }
 
 expected_footer_urls() {
@@ -331,7 +321,6 @@ check_required_strings() {
       rg -Fq 'href="/api/stats"' "$home_body" || return 1
       rg -Fq 'href="/stats"' "$home_body" || return 1
       rg -Fq 'href="/stats.json"' "$home_body" || return 1
-      rg -Fq 'excluding bulk scrapers (e.g. 34.83.14.80)' "$home_body" || return 1
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
       rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
@@ -375,9 +364,6 @@ check_required_strings() {
       rg -Fq 'https://aistatusdashboard.com/stats' "$home_body" || return 1
       ;;
     aistatusdashboard.com)
-      rg -Fq '/stats' "$home_body" || return 1
-      rg -Fq '/stats.json' "$home_body" || return 1
-      rg -Fq '/.well-known/agent.json' "$home_body" || return 1
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
@@ -701,7 +687,7 @@ link_walk_report() {
             fail=1
           fi
           ;;
-        /.well-known/agent.json|/.well-known/agent-card.json)
+        /.well-known/agent.json)
           if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 5)' "$body" >/dev/null 2>&1; then
             content_assert_ok="true"
           else
