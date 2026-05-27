@@ -17,6 +17,7 @@ PROJECT_HOSTS=(
   "ragmap-api.web.app"
   "rootfetch.com"
   "agentability.org"
+  "relayorb.com"
 )
 
 is_project_host() {
@@ -122,16 +123,19 @@ expected_footer_urls() {
   local host="$1"
   case "$host" in
     a2abench-api.web.app)
-      printf 'https://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\n'
+      printf 'https://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\n'
       ;;
     ragmap-api.web.app)
-      printf 'https://a2abench-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\n'
       ;;
     rootfetch.com)
-      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://agentability.org/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://agentability.org/stats\nhttps://relayorb.com/stats\n'
       ;;
     agentability.org)
-      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\n'
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://relayorb.com/stats\n'
+      ;;
+    relayorb.com)
+      printf 'https://a2abench-api.web.app/stats\nhttps://ragmap-api.web.app/stats\nhttps://rootfetch.com/stats\nhttps://agentability.org/stats\n'
       ;;
     *)
       ;;
@@ -220,6 +224,7 @@ check_required_strings() {
       rg -Fq 'href="/feedback"' "$home_body" || return 1
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
+      rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
       ;;
     ragmap-api.web.app)
       rg -Fq 'href="/.well-known/agent.json"' "$home_body" || return 1
@@ -230,6 +235,7 @@ check_required_strings() {
       rg -Fq 'excluding bulk scrapers (e.g. 34.83.14.80)' "$home_body" || return 1
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
+      rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
       ;;
     rootfetch.com)
       rg -Fq 'Unique callers (7d / 30d)' "$home_body" || return 1
@@ -245,6 +251,7 @@ check_required_strings() {
       rg -Fq 'DVI (replay window)' "$home_body" || return 1
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
+      rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
       ;;
     agentability.org)
       rg -Fq '/stats' "$home_body" || return 1
@@ -253,6 +260,16 @@ check_required_strings() {
       rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
       rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
+      rg -Fq 'https://relayorb.com/stats' "$home_body" || return 1
+      ;;
+    relayorb.com)
+      rg -Fq '/stats' "$home_body" || return 1
+      rg -Fq '/stats.json' "$home_body" || return 1
+      rg -Fq '/.well-known/agent.json' "$home_body" || return 1
+      rg -Fq 'https://a2abench-api.web.app/stats' "$home_body" || return 1
+      rg -Fq 'https://ragmap-api.web.app/stats' "$home_body" || return 1
+      rg -Fq 'https://rootfetch.com/stats' "$home_body" || return 1
+      rg -Fq 'https://agentability.org/stats' "$home_body" || return 1
       ;;
   esac
   return 0
@@ -290,7 +307,7 @@ check_siblings_object() {
   local self_key="$2"
   local missing=""
   local key
-  for key in a2abench ragmap rootfetch agentability; do
+  for key in a2abench ragmap rootfetch agentability relayorb; do
     [[ "$key" == "$self_key" ]] && continue
     if ! jq -e --arg k "$key" '.siblings and (.siblings | has($k))' "$json_file" >/dev/null 2>&1; then
       missing+="${key},"
@@ -304,7 +321,7 @@ check_siblings_urls() {
   local self_key="$2"
   local fail=0
   local key
-  for key in a2abench ragmap rootfetch agentability; do
+  for key in a2abench ragmap rootfetch agentability relayorb; do
     [[ "$key" == "$self_key" ]] && continue
     local url stats_url stats_json_url agent_card_url
     url="$(jq -r --arg k "$key" '.siblings[$k].url // empty' "$json_file")"
@@ -333,8 +350,8 @@ check_agent_related() {
   fi
   local related_len
   related_len="$(jq -r '.related | length // 0' "$body")"
-  if [[ "$related_len" != "3" ]]; then
-    echo "  ${base}/.well-known/agent.json => related_count=${related_len} (expected 3)"
+  if [[ "$related_len" != "4" ]]; then
+    echo "  ${base}/.well-known/agent.json => related_count=${related_len} (expected 4)"
     fail=1
   fi
   local idx=0
@@ -371,21 +388,31 @@ check_llms_related() {
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
       rg -Fq 'https://agentability.org' "$llms" || pass=false
+      rg -Fq 'https://relayorb.com' "$llms" || pass=false
       ;;
     ragmap-api.web.app)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
       rg -Fq 'https://agentability.org' "$llms" || pass=false
+      rg -Fq 'https://relayorb.com' "$llms" || pass=false
       ;;
     rootfetch.com)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
       rg -Fq 'https://agentability.org' "$llms" || pass=false
+      rg -Fq 'https://relayorb.com' "$llms" || pass=false
       ;;
     agentability.org)
       rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
       rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
       rg -Fq 'https://rootfetch.com' "$llms" || pass=false
+      rg -Fq 'https://relayorb.com' "$llms" || pass=false
+      ;;
+    relayorb.com)
+      rg -Fq 'https://a2abench-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://ragmap-api.web.app' "$llms" || pass=false
+      rg -Fq 'https://rootfetch.com' "$llms" || pass=false
+      rg -Fq 'https://agentability.org' "$llms" || pass=false
       ;;
   esac
   echo "  ${base}/llms.txt => HTTP ${code}, related_section_ok=${pass}"
@@ -468,7 +495,7 @@ link_walk_report() {
     if is_project_host "$link_host"; then
       case "$path" in
         /stats.json)
-          if [[ "$json_ok" == "true" ]] && jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 3)' "$body" >/dev/null 2>&1; then
+          if [[ "$json_ok" == "true" ]] && jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 4)' "$body" >/dev/null 2>&1; then
             content_assert_ok="true"
           else
             content_assert_ok="false"
@@ -476,7 +503,7 @@ link_walk_report() {
           fi
           ;;
         /.well-known/agent.json|/.well-known/agent-card.json)
-          if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 3)' "$body" >/dev/null 2>&1; then
+          if [[ "$json_ok" == "true" ]] && jq -e '.related and (.related | type == "array") and ((.related | length) >= 4)' "$body" >/dev/null 2>&1; then
             content_assert_ok="true"
           else
             content_assert_ok="false"
@@ -506,7 +533,7 @@ link_walk_report() {
 
 check_required_urls() {
   local host="$1"
-  local home_body="$2"
+  local _home_body="$2"
   local fail=0
   if [[ "$host" == "a2abench-api.web.app" ]]; then
     local url
@@ -518,6 +545,48 @@ check_required_urls() {
       [[ "$pass" == "true" ]] || fail=1
     done
   fi
+  return "$fail"
+}
+
+check_relayorb_required_surfaces() {
+  local fail=0
+  local url
+  for url in \
+    "https://relayorb.com/.well-known/agent.json" \
+    "https://relayorb.com/.well-known/air.json" \
+    "https://relayorb.com/agent.json" \
+    "https://relayorb.com/air.json" \
+    "https://relayorb.com/.well-known/openapi.yaml" \
+    "https://relayorb.com/openapi.yaml" \
+    "https://relayorb.com/robots.txt" \
+    "https://relayorb.com/sitemap.xml" \
+    "https://relayorb.com/stats" \
+    "https://relayorb.com/stats.json" \
+    "https://relayorb.com/docs.md" \
+    "https://relayorb.com/api.md" \
+    "https://relayorb.com/spec.md" \
+    "https://relayorb.com/status.md" \
+    "https://relayorb.com/terms.md" \
+    "https://relayorb.com/privacy.md" \
+    "https://relayorb.com/cookies.md"; do
+    local code effective json_ok pass ctype body
+    IFS='|' read -r code effective json_ok pass ctype body <<<"$(check_target "$(append_cb "$url")")"
+    echo "relayorb_surface_check: ${url} => HTTP ${code}, pass=${pass}, content_type=${ctype}"
+    [[ "$pass" == "true" ]] || fail=1
+  done
+  local air_code air_effective air_json_ok air_pass air_ctype air_body
+  IFS='|' read -r air_code air_effective air_json_ok air_pass air_ctype air_body <<<"$(check_target "$(append_cb "https://relayorb.com/.well-known/air.json")")"
+  if [[ "$air_code" != "200" || "$air_json_ok" != "true" ]]; then
+    fail=1
+  elif ! jq -e '.siblings and (.siblings | type == "object") and ((.siblings | keys | length) >= 4)' "$air_body" >/dev/null 2>&1; then
+    fail=1
+  fi
+  echo "relayorb_air_siblings_check: https://relayorb.com/.well-known/air.json => HTTP ${air_code}, json_valid=${air_json_ok}"
+  local probe="https://relayorb.com/__qa_known_404_probe__?cb=${TS}"
+  local pcode peffective pjson_ok ppass pctype pbody
+  IFS='|' read -r pcode peffective pjson_ok ppass pctype pbody <<<"$(check_target "$probe")"
+  echo "relayorb_404_check: ${probe} => HTTP ${pcode}, pass=${ppass}"
+  [[ "$pcode" == "404" ]] || fail=1
   return "$fail"
 }
 
@@ -707,5 +776,8 @@ report_project "rootfetch" "rootfetch.com" "rootfetch" \
   unique_callers_7d unique_callers_30d mcp_calls_7d mcp_calls_30d tool_call_success_pct last_run_id last_run_ts snapshot_freshness_hours generated_at siblings
 report_project "agentability" "agentability.org" "agentability" \
   audits_run_total distinct_domains_audited audits_run_7d audits_run_30d median_audit_duration_seconds p95_audit_duration_seconds last_run_id last_run_ts score_distribution_30d generated_at siblings
+report_project "relayorb" "relayorb.com" "relayorb" \
+  invokes_total invokes_7d invokes_30d unique_callers_7d unique_callers_30d median_invoke_latency_ms p95_invoke_latency_ms idempotency_replays_total jobs_queued_current capabilities_registered workers_healthy policy_denials_7d tool_call_success_pct last_invoke_ts generated_at terraform_downloads siblings
 
 check_rag_search
+check_relayorb_required_surfaces
