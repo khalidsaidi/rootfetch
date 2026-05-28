@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { crossProjectSiblings } from "@/lib/cross-project";
 import { loadRootfetchPublicStats } from "@/lib/public-stats";
 
 export const dynamic = "force-dynamic";
@@ -71,21 +72,14 @@ export default async function StatsPage() {
           </Link>{" "}
           ·{" "}
           Cross-project stats:{" "}
-          <a href="https://a2abench-api.web.app/stats" className="text-primary hover:text-primary/80">
-            A2ABench
-          </a>{" "}
-          ·{" "}
-          <a href="https://ragmap-api.web.app/stats" className="text-primary hover:text-primary/80">
-            Ragmap
-          </a>
-          {" · "}
-          <a href="https://agentability.org/stats" className="text-primary hover:text-primary/80">
-            Agentability
-          </a>
-          {" · "}
-          <a href="https://relayorb.com/stats" className="text-primary hover:text-primary/80">
-            RelayOrb
-          </a>
+          {crossProjectSiblings.map((sibling, index) => (
+            <span key={sibling.name}>
+              <a href={sibling.statsUrl} className="text-primary hover:text-primary/80">
+                {sibling.name}
+              </a>
+              {index < crossProjectSiblings.length - 1 ? " · " : ""}
+            </span>
+          ))}
         </p>
       </section>
     </main>
