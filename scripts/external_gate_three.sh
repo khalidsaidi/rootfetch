@@ -940,7 +940,7 @@ check_aistatus_api_endpoints() {
   local casual_payload='{"app":"chatgpt","surface":"text","issue":true}'
   local casual_out casual_code
   casual_out="$(mktemp)"
-  casual_code="$(curl -sS -L -X POST -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -d "${casual_payload}" -o "$casual_out" -w '%{http_code}' "${base}/api/public/v1/casual/reports?cb=${TS}")"
+  casual_code="$(curl -sS -L -X POST -H 'Content-Type: application/json' -H 'Cache-Control: no-cache' -H 'X-AIStatus-SelfTest: 1' -d "${casual_payload}" -o "$casual_out" -w '%{http_code}' "${base}/api/public/v1/casual/reports?cb=${TS}")"
   echo "aistatus_api_check: ${base}/api/public/v1/casual/reports => HTTP ${casual_code}, json=$([[ $(jq -e . "$casual_out" >/dev/null 2>&1; echo $?) -eq 0 ]] && echo true || echo false)"
   [[ "$casual_code" == "200" ]] || fail=1
 
