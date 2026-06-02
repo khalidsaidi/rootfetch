@@ -41,6 +41,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install web deps
+        run: npm --prefix apps/web ci
+
+      - name: Run web unit tests
+        run: npm --prefix apps/web run test:unit
+
       - name: Validate required deploy config
         run: |
           set -euo pipefail
@@ -131,3 +144,21 @@ jobs:
           echo "telemetry_url=${TELEMETRY_URL}"
           echo "api_hosting_url=https://rootfetch-api.web.app"
           echo "mcp_hosting_url=https://rootfetch-mcp.web.app"
+
+      - name: Assert live tool call success floor
+        run: |
+          set -euo pipefail
+          FLOOR=90
+          for attempt in $(seq 1 18); do
+            body="$(mktemp)"
+            code="$(curl -sS -o "$body" -w '%{http_code}' "https://rootfetch.com/stats.json?cb=$(date +%s)")"
+            pct="$(jq -r '.tool_call_success_pct // 0' "$body")"
+            echo "attempt=${attempt} http=${code} tool_call_success_pct=${pct}"
+            cat "$body"
+            if [[ "$code" == "200" ]] && awk -v pct="$pct" -v floor="$FLOOR" 'BEGIN { exit !(pct + 0 >= floor + 0) }'; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::tool_call_success_pct stayed below ${FLOOR} after deploy"
+          exit 1

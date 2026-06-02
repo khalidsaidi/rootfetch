@@ -1,5 +1,6 @@
 import { getMcpUsageStats } from "@/lib/mcp-telemetry";
 import { loadCoverage, loadLatest, loadOpsScoreboard } from "@/lib/rootfetch-data";
+import { selectToolCallSuccessPct } from "@/lib/tool-call-success.mjs";
 
 export type RootfetchPublicStats = {
   generated_at: string;
@@ -66,7 +67,7 @@ export async function loadRootfetchPublicStats(): Promise<RootfetchPublicStats> 
     unique_callers_30d: Number(stats30.adoption_kpi?.unique_clients || 0),
     mcp_calls_7d: Number(stats7.totals.requests || 0),
     mcp_calls_30d: Number(stats30.totals.requests || 0),
-    tool_call_success_pct: Number(stats7.adoption_kpi?.tool_call_success_rate_pct || 0),
+    tool_call_success_pct: selectToolCallSuccessPct(stats7, stats30),
     last_run_id: typeof latest.run_id === "string" && latest.run_id.trim().length > 0 ? latest.run_id : null,
     last_run_ts: lastSuccessfulRun ? lastSuccessfulRun.toISOString() : null,
     snapshot_freshness_hours:

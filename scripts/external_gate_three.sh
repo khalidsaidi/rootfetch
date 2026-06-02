@@ -101,7 +101,7 @@ emit_raw_text() {
 expects_json() {
   local url="$1"
   case "$url" in
-    */stats.json*|*/api/stats*|*/rag/stats*|*/v1/eval/leaderboard*|*/.well-known/agent.json*|*/.well-known/agent-card.json*|*/.well-known/air.json*|*/air.json*) return 0 ;;
+    */stats.json*|*/api/stats*|*/rag/stats*|*/v1/eval/leaderboard*|*/api/public/v1/*|*/.well-known/agent.json*|*/.well-known/agent-card.json*|*/.well-known/air.json*|*/air.json*|*/openapi.json*|*/.well-known/openapi.json*|*/ai-plugin.json*|*/.well-known/ai-plugin.json*|*/discovery/audit/latest.json*|*/discovery/audit/latest.pretty.json*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -399,6 +399,15 @@ check_stats_json_fields() {
     fi
   fi
   printf '%s|%s|%s|%s\n' "$code" "$json_valid" "$json_missing" "$tmp"
+}
+
+check_rootfetch_tool_call_success_floor() {
+  local json_file="$1"
+  local floor="${2:-90}"
+  local pct
+  pct="$(jq -r '.tool_call_success_pct // 0' "$json_file" 2>/dev/null || echo 0)"
+  echo "  rootfetch_tool_call_success_floor: pct=${pct}, floor=${floor}"
+  awk -v pct="$pct" -v floor="$floor" 'BEGIN { exit !(pct + 0 >= floor + 0) }'
 }
 
 check_siblings_object() {
@@ -1108,6 +1117,12 @@ report_project() {
     fi
     if ! check_conformance_live_status; then
       fail_reason="${fail_reason:-conformance_live}"
+    fi
+  fi
+
+  if [[ "$host" == "rootfetch.com" ]]; then
+    if ! check_rootfetch_tool_call_success_floor "$json_file" "90"; then
+      fail_reason="${fail_reason:-tool_call_success_floor}"
     fi
   fi
 

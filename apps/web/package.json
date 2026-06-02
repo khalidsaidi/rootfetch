@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:unit": "node --test tests/tool-call-success.test.mjs",
     "test:playwright": "playwright test",
     "test:playwright:live": "playwright test -c playwright.live.config.ts"
   },
