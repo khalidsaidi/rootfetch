@@ -1610,6 +1610,42 @@
       "title": "Sector Snapshot",
       "text": "or | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2030464 | 8621.0 | 0.0042639314724239 | 2 |\n| commerce | 8881 | -4821.0 | -0.3518464457743395 | 1 |\n| finance | 2357 | -30995.0 | -0.9293295754377549 | 1 |\n| other | 9354790 | -1391230.0 | -0.1294646762243137 | 79 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-06-04"
+    },
+    {
+      "id": "ed371d6a255f1301b11cf3f49985e5518cd15d40",
+      "source_path": "data/digests/2026-06-05.md",
+      "source_type": "digest",
+      "date_utc": "2026-06-05",
+      "title": "RootFetch Daily Digest \u2014 2026-06-05",
+      "text": "# RootFetch Daily Digest \u2014 2026-06-05\n\n- Run ID: 97d4c193-be5d-48cc-a6fe-8416a324797e\n- Mode: hybrid\n- Approved TLDs observed: 1070\n- Observed today: 91 (core=3, rolling=88)\n- Snapshot rows today: 91\n\n## Cross-sectional highlights\n- Total delegated counted today: 10,622,215\n- Distribution (p50 / p90 / p99 / max): 146 / 27,247 / 2,003,943 / 7,852,660\n- Concentration (Top1 / Top10 share): 73.93% / 97.55% (HHI=0.5672)\n- New approvals vs 2026-06-04: +0 / -0\n- Added approvals (first 10): none\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 97.55% of delegations; median TLD has 146 names; 44 TLDs have <100.\n- [movers/positive] Core movers: .dev +684, .xyz +316, .app 0 (day-over-day).\n- [approvals/info] New approvals today: +0.\n- [coverage/neutral] Observed today: 91 (core+rolling) out of 1,070 approved TLDs; snapshot rows today: 91. Missing ever: 1.\n\n## Security Status\n- Safe aggregates checks date: 2026-06-05\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_read_only: True\n- runtime_platform: gcp-cloud-run\n\n## Top TLDs by Count (Today)\n| tld | co",
+      "resource_uri": "rootfetch://digest/2026-06-05"
+    },
+    {
+      "id": "f22b024cd485548666fd101b403081c4c071817f",
+      "source_path": "data/digests/2026-06-05.md",
+      "source_type": "digest",
+      "date_utc": "2026-06-05",
+      "title": "Security Status",
+      "text": "cked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_read_only: True\n- runtime_platform: gcp-cloud-run\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| xyz | 7852660 | 73.92676574518592 | other | core |\n| app | 1354086 | 12.74768021547295 | ai_tech | core |\n| dev | 677062 | 6.374018978150979 | ai_tech | core |\n| garden | 118474 | 1.1153417625231647 | other | rolling |\n| makeup | 112105 | 1.0553825167349749 | other | rolling |\n| academy | 62876 | 0.5919292727552586 | other | rolling |\n| fyi | 62710 | 0.5903665101864347 | other | rolling |\n| bio | 59031 | 0.555731549399066 | other | rolling |\n| london | 35678 | 0.3358809815090355 | geo_local | rolling |\n| travel | 27247 | 0.2565095886309964 | other | rolling |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 677062 | 684.0 | 0.0010112688467099 | ok |\n| xyz | 7852660 | 316.0 | 4.024276063300335e-05 | ok |\n| app | 1354086 | 0.0 | 0.0 | ok |\n\n## Core Daily Movers (Percentage)\n| tld |",
+      "resource_uri": "rootfetch://digest/2026-06-05"
+    },
+    {
+      "id": "65987d4c57680cd3d63588f3232f8b9c6f85ac16",
+      "source_path": "data/digests/2026-06-05.md",
+      "source_type": "digest",
+      "date_utc": "2026-06-05",
+      "title": "Core Daily Movers (Absolute)",
+      "text": "| 0.0010112688467099 | ok |\n| xyz | 7852660 | 316.0 | 4.024276063300335e-05 | ok |\n| app | 1354086 | 0.0 | 0.0 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 677062 | 684.0 | 0.0010112688467099 | ok |\n| xyz | 7852660 | 316.0 | 4.024276063300335e-05 | ok |\n| app | 1354086 | 0.0 | 0.0 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| app | 1354086 | 0.0 | 0.0 | ok |\n| xyz | 7852660 | 316.0 | 4.024276063300335e-05 | ok |\n| dev | 677062 | 684.0 | 0.0010112688467099 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| garden | 118474 | 2026-03-03 | 94 | 109363.0 | 12.003402480518057 |\n| academy | 62876 | 2026-03-03 | 94 | -6738.0 | -0.0967908753986267 |\n| music | 12142 | 2026-03-03 | 94 | 5092.0 | 0.7222695035460993 |\n| fyi | 62710 | 2026-03-03 | 94 | -5078.0 | -0.0749100135717236 |\n| bio | 59031 | 2026-03-03 | 94 | 4974.0 | 0",
+      "resource_uri": "rootfetch://digest/2026-06-05"
+    },
+    {
+      "id": "e1959b5a41446d69229e353088af32f411470078",
+      "source_path": "data/digests/2026-06-05.md",
+      "source_type": "digest",
+      "date_utc": "2026-06-05",
+      "title": "Rolling Updates (Since Last Seen)",
+      "text": "| 2026-03-03 | 94 | 5092.0 | 0.7222695035460993 |\n| fyi | 62710 | 2026-03-03 | 94 | -5078.0 | -0.0749100135717236 |\n| bio | 59031 | 2026-03-03 | 94 | 4974.0 | 0.0920139852378045 |\n| makeup | 112105 | 2026-03-03 | 94 | 4751.0 | 0.0442554539188106 |\n| claims | 3892 | 2026-03-03 | 94 | -1772.0 | -0.3128531073446328 |\n| codes | 18572 | 2026-03-03 | 94 | 1656.0 | 0.0978954835658548 |\n| cards | 13195 | 2026-03-03 | 94 | 1123.0 | 0.0930251822398939 |\n| coach | 26081 | 2026-03-03 | 94 | 844.0 | 0.0334429607322581 |\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2031148 | 684.0 | 0.0003368688142217 | 2 |\n| finance | 20901 | 18544.0 | 7.867628341111582 | 1 |\n| geo_local | 35678 | -23058.0 | -0.3925701443748297 | 1 |\n| other | 8534488 | -820302.0 | -0.0876879117542991 | 87 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "resource_uri": "rootfetch://digest/2026-06-05"
     }
   ]
 }
