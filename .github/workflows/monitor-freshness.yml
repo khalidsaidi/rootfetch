@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   freshness:
-    runs-on: [self-hosted, linux, x64, rootfetch-local]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   run-manual:
-    runs-on: [self-hosted, linux, x64, rootfetch-local]
+    runs-on: ubuntu-latest
     timeout-minutes: 360
     permissions:
       contents: write
