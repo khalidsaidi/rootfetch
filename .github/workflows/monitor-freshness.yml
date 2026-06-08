@@ -1,6 +1,9 @@
 name: monitor-freshness
 
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron: "35 3 * * *"
   workflow_dispatch:
@@ -37,29 +40,29 @@ jobs:
             exit 0
           fi
 
-          latest_file="data/approved_tlds/latest.json"
-          if [[ ! -f "$latest_file" ]]; then
+          stats_file="$(mktemp)"
+          http_code="$(curl -sS -o "$stats_file" -w '%{http_code}' 'https://rootfetch.com/stats.json?cb='"$(date +%s)")"
+          if [[ "$http_code" != "200" ]]; then
             echo "stale=true" >> "$GITHUB_OUTPUT"
-            echo "reason=missing_latest_json" >> "$GITHUB_OUTPUT"
+            echo "reason=stats_fetch_failed" >> "$GITHUB_OUTPUT"
             echo "latest_date_utc=none" >> "$GITHUB_OUTPUT"
             echo "age_hours=99999" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          latest_date_utc="$(jq -r '.date_utc // ""' "$latest_file")"
-          if [[ -z "$latest_date_utc" || "$latest_date_utc" == "null" ]]; then
+          latest_run_ts="$(jq -r '.last_run_ts // ""' "$stats_file")"
+          age_hours_raw="$(jq -r '.snapshot_freshness_hours // empty' "$stats_file")"
+          if [[ -z "$latest_run_ts" || "$latest_run_ts" == "null" || -z "$age_hours_raw" ]]; then
             echo "stale=true" >> "$GITHUB_OUTPUT"
-            echo "reason=missing_date_utc" >> "$GITHUB_OUTPUT"
+            echo "reason=missing_live_freshness_fields" >> "$GITHUB_OUTPUT"
             echo "latest_date_utc=none" >> "$GITHUB_OUTPUT"
             echo "age_hours=99999" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          latest_epoch="$(date -u -d "$latest_date_utc 00:00:00" +%s)"
-          now_epoch="$(date -u +%s)"
-          age_hours="$(( (now_epoch - latest_epoch) / 3600 ))"
+          age_hours="$(awk -v raw="$age_hours_raw" 'BEGIN { printf "%.0f", raw + 0 }')"
 
-          echo "latest_date_utc=$latest_date_utc" >> "$GITHUB_OUTPUT"
+          echo "latest_date_utc=$latest_run_ts" >> "$GITHUB_OUTPUT"
           echo "age_hours=$age_hours" >> "$GITHUB_OUTPUT"
 
           if (( age_hours > 48 )); then
