@@ -5,7 +5,7 @@ on:
 
 jobs:
   probe:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, rootfetch-local]
     env:
       CZDS_USERNAME: ${{ secrets.CZDS_USERNAME }}
       CZDS_PASSWORD: ${{ secrets.CZDS_PASSWORD }}
