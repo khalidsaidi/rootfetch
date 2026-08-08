@@ -2114,6 +2114,51 @@
       "title": "Notable Anomalies",
       "text": "| 0.1705783212720755 | 6.082409418861048 | ok |\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2818477 | 557021.0 | 0.2463107838489893 | 3 |\n| other | 17748985 | 7365271.0 | 0.7093098866166768 | 82 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-08-07"
+    },
+    {
+      "id": "f365378f8d7b55047ffea1a43cc3e222d0af61d5",
+      "source_path": "data/digests/2026-08-08.md",
+      "source_type": "digest",
+      "date_utc": "2026-08-08",
+      "title": "RootFetch Daily Digest \u2014 2026-08-08",
+      "text": "# RootFetch Daily Digest \u2014 2026-08-08\n\n- Run ID: 615ab834-2bfd-4818-8b7e-4919bcaf4f01\n- Mode: hybrid\n- Approved TLDs observed: 1068\n- Observed today: 78 (core=3, rolling=75)\n- Snapshot rows today: 78\n\n## Cross-sectional highlights\n- Total delegated counted today: 15,532,987\n- Distribution (p50 / p90 / p99 / max): 2,465 / 110,274 / 3,523,330 / 9,042,677\n- Concentration (Top1 / Top10 share): 58.22% / 96.88% (HHI=0.3709)\n- New approvals vs 2026-08-07: +0 / -0\n- Added approvals (first 10): none\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 96.88% of delegations; median TLD has 2,465 names; 32 TLDs have <100.\n- [movers/positive] Core movers: .xyz +33,634, .app +2,975, .dev +567 (day-over-day).\n- [approvals/info] New approvals today: +0.\n- [coverage/neutral] Observed today: 78 (core+rolling) out of 1,068 approved TLDs; snapshot rows today: 78. Missing ever: 1.\n\n## Security Status\n- Safe aggregates checks date: 2026-08-08\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_read_only: True\n- runtime_platform: gcp-cloud-run\n\n## Top TLDs by Count (Toda",
+      "resource_uri": "rootfetch://digest/2026-08-08"
+    },
+    {
+      "id": "e05d8f659bba83361bffedcca9dd15ba3fae5359",
+      "source_path": "data/digests/2026-08-08.md",
+      "source_type": "digest",
+      "date_utc": "2026-08-08",
+      "title": "Security Status",
+      "text": "raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_read_only: True\n- runtime_platform: gcp-cloud-run\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| xyz | 9042677 | 58.21595678925115 | other | core |\n| vip | 1874694 | 12.069114588198651 | other | rolling |\n| app | 1541479 | 9.923905814123197 | ai_tech | core |\n| lol | 1056195 | 6.799690233436751 | other | rolling |\n| dev | 728555 | 4.690372817539859 | ai_tech | core |\n| work | 339103 | 2.183115198641446 | other | rolling |\n| win | 150851 | 0.971165430061842 | other | rolling |\n| run | 134274 | 0.8644441664697202 | other | rolling |\n| media | 99989 | 0.6437203610612692 | other | rolling |\n| ovh | 80071 | 0.5154900342091319 | other | rolling |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 9042677 | 33634.0 | 0.003733359914033 | ok |\n| app | 1541479 | 2975.0 | 0.001933696629973 | ok |\n| dev | 728555 | 567.0 | 0.0007788589921811 | ok |\n\n## Core Daily Movers (Perce",
+      "resource_uri": "rootfetch://digest/2026-08-08"
+    },
+    {
+      "id": "029b528bcb317a0be4f9e34bd1db1c5b698584cc",
+      "source_path": "data/digests/2026-08-08.md",
+      "source_type": "digest",
+      "date_utc": "2026-08-08",
+      "title": "Core Daily Movers (Absolute)",
+      "text": "0 | 0.003733359914033 | ok |\n| app | 1541479 | 2975.0 | 0.001933696629973 | ok |\n| dev | 728555 | 567.0 | 0.0007788589921811 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 9042677 | 33634.0 | 0.003733359914033 | ok |\n| app | 1541479 | 2975.0 | 0.001933696629973 | ok |\n| dev | 728555 | 567.0 | 0.0007788589921811 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 728555 | 567.0 | 0.0007788589921811 | ok |\n| app | 1541479 | 2975.0 | 0.001933696629973 | ok |\n| xyz | 9042677 | 33634.0 | 0.003733359914033 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| lol | 1056195 | 2026-05-30 | 70 | 180204.0 | 0.2057144422716671 |\n| vip | 1874694 | 2026-05-30 | 70 | 129395.0 | 0.074139158963593 |\n| win | 150851 | 2026-05-30 | 70 | 23085.0 | 0.1806818715464208 |\n| media | 99989 | 2026-05-30 | 70 | 6821.0 | 0.073211832388803 |\n| zone",
+      "resource_uri": "rootfetch://digest/2026-08-08"
+    },
+    {
+      "id": "4952af49e81775d2bd2709038445ff5c0b476cc8",
+      "source_path": "data/digests/2026-08-08.md",
+      "source_type": "digest",
+      "date_utc": "2026-08-08",
+      "title": "Rolling Updates (Since Last Seen)",
+      "text": "| 0.074139158963593 |\n| win | 150851 | 2026-05-30 | 70 | 23085.0 | 0.1806818715464208 |\n| media | 99989 | 2026-05-30 | 70 | 6821.0 | 0.073211832388803 |\n| zone | 40135 | 2026-05-30 | 70 | -6243.0 | -0.134611238087024 |\n| games | 71019 | 2026-05-30 | 70 | 4950.0 | 0.0749216727966217 |\n| courses | 18676 | 2026-05-30 | 70 | 4547.0 | 0.3218203694528982 |\n| wine | 22121 | 2026-05-30 | 70 | 4181.0 | 0.2330546265328874 |\n| run | 134274 | 2026-05-30 | 70 | 3045.0 | 0.023203712594015 |\n| ovh | 80071 | 2026-05-30 | 70 | -2236.0 | -0.0271665836441614 |\n\n## Notable Anomalies\n| tld | reason | delta_pct | z | robust_z | data_quality |\n| --- | --- | --- | --- | --- | --- |\n| courses | suspicious_jump | 0.3218203694528982 |  |  | suspicious |\n| lol | suspicious_jump | 0.2057144422716671 |  |  | suspicious |\n| wine | suspicious_jump | 0.2330546265328874 |  |  | suspicious |\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2270034 | -548443.0 | -0.1945884248833678 | 2 |\n| other | 13262953 | -4486032.0 |",
+      "resource_uri": "rootfetch://digest/2026-08-08"
+    },
+    {
+      "id": "558587550eb3fbc572319a2ce2372e0de9a28aeb",
+      "source_path": "data/digests/2026-08-08.md",
+      "source_type": "digest",
+      "date_utc": "2026-08-08",
+      "title": "Sector Snapshot",
+      "text": "or_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2270034 | -548443.0 | -0.1945884248833678 | 2 |\n| other | 13262953 | -4486032.0 | -0.2527486501340781 | 76 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "resource_uri": "rootfetch://digest/2026-08-08"
     }
   ]
 }
