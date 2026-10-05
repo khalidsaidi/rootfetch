@@ -11,7 +11,9 @@ import csv
 import html
 import json
 import math
+import re
 import shutil
+import sys
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from email.utils import format_datetime
@@ -21,6 +23,24 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 COUNTS_DIR = REPO_ROOT / "data" / "daily_counts"
 SITE_URL = "https://rootfetch.com"
 REPO_URL = "https://github.com/khalidsaidi/rootfetch"
+DATA_LICENSE = "https://creativecommons.org/licenses/by/4.0/"
+INDEXNOW_KEY = "dd02934e864e3daa533425b5d6e4ad28"
+# Pages for TLDs smaller than this are kept out of search indexes (mostly single-company TLDs).
+NOINDEX_BELOW = 20
+ORG = {"@type": "Organization", "@id": f"{SITE_URL}/#org", "name": "RootFetch", "url": f"{SITE_URL}/",
+       "logo": f"{SITE_URL}/og/logo.png", "sameAs": [REPO_URL]}
+WEBSITE = {"@type": "WebSite", "@id": f"{SITE_URL}/#website", "name": "RootFetch", "url": f"{SITE_URL}/",
+           "description": "Daily domain registration counts and trends for every top-level domain, from ICANN zone files.",
+           "publisher": {"@id": f"{SITE_URL}/#org"}, "inLanguage": "en"}
+# Old URLs from the previous version of the site, sent to their closest page now.
+LEGACY = {
+    "stats": "index.html", "stats.json": "data/latest.json", "methodology": "data.html", "coverage": "data.html",
+    "approved": "tlds.html", "compare": "tlds.html", "compare/tlds": "tlds.html", "sectors": "index.html",
+    "security": "spikes.html", "runs": "data.html", "ask": "index.html", "agents": "data.html",
+    "agents/playground": "data.html", "agents/recipes": "data.html", "recipes": "data.html", "for-teams": "about.html",
+    "for-teams/workflows": "about.html", "docs/mcp": "data.html", "docs/integrations": "data.html",
+    "docs/public-endpoints": "data.html", "mcp/live": "data.html", "mcp/usage": "data.html", "ops": "data.html",
+}
 
 # A spike is a jump of at least SPIKE_MIN_ADDED domains and SPIKE_MIN_PCT growth
 # since the previous check, where that check was at most SPIKE_MAX_GAP_DAYS earlier.
@@ -171,6 +191,10 @@ def fmt_compact(n: float) -> str:
             v = n / div
             return f"{v:.1f}{suf}".replace(".0", "") if v < 10 else f"{v:.0f}{suf}"
     return f"{n:.0f}"
+
+
+def days(n: int) -> str:
+    return f"{n} day{'s' if n != 1 else ''}"
 
 
 def trend_class(n: float) -> str:
@@ -367,6 +391,15 @@ td.spark svg{display:block}
 .smn{font-size:18px}
 .smv{font:600 14px var(--mono)}.smv.down{color:var(--fall)}
 
+/* tld page seo blocks */
+.crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px;font-size:14px;color:var(--muted)}
+.summary{margin-top:8px}.summary p{font-size:17px;line-height:1.6;color:var(--ink-2)}.summary b{color:var(--ink)}
+.faq details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:10px}
+.faq summary{cursor:pointer;font-weight:600}
+.faq p{margin:10px 0 0;color:var(--ink-2)}
+.related{list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.related a{display:flex;justify-content:space-between;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-decoration:none;color:var(--ink)}
+.related a:hover{border-color:var(--ink-2)}
 /* prose & data */
 .prose{max-width:66ch}.prose p,.prose li{color:var(--ink-2)}.prose h2{margin-top:36px}
 .dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
@@ -432,9 +465,14 @@ FAVICON = (
 )
 
 
-def page(title: str, body: str, *, active: str = "", depth: int = 0, description: str = "", trust: str = "") -> str:
+def page(title: str, body: str, *, active: str = "", depth: int = 0, description: str = "", trust: str = "",
+         path: str = "", image: str = "og/site.png", jsonld: list[dict] | None = None, noindex: bool = False) -> str:
     root = "../" * depth
-    desc = description or "Daily domain counts and registration spikes for top-level domains, from ICANN zone files."
+    desc = description or "Daily domain registration counts and trends for every top-level domain, from ICANN zone files."
+    url = f"{SITE_URL}/{path}"
+    graph = {"@context": "https://schema.org", "@graph": [ORG, WEBSITE] + (jsonld or [])}
+    ld = json.dumps(graph, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    robots = "noindex,follow" if noindex else "index,follow,max-image-preview:large,max-snippet:-1"
 
     def link(href: str, label: str, key: str) -> str:
         cur = ' class="on" aria-current="page"' if key == active else ""
@@ -447,11 +485,28 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
+<meta name="robots" content="{robots}">
+<link rel="canonical" href="{esc(url)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RootFetch">
+<meta property="og:url" content="{esc(url)}">
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
+<meta property="og:image" content="{SITE_URL}/{image}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{esc(title)}">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(title)}">
+<meta name="twitter:description" content="{esc(desc)}">
+<meta name="twitter:image" content="{SITE_URL}/{image}">
 <meta name="theme-color" content="#0f1a2a">
+<script type="application/ld+json">{ld}</script>
 <link rel="alternate" type="application/rss+xml" title="RootFetch spikes" href="{SITE_URL}/feed.xml">
 <link rel="icon" href="{FAVICON}">
+<link rel="apple-touch-icon" href="{SITE_URL}/og/logo.png">
+<link rel="sitemap" type="application/xml" href="{SITE_URL}/sitemap.xml">
 {FONTS}
 <style>{CSS}</style>
 </head>
@@ -562,7 +617,7 @@ def radar_chart(entries: list[tuple[Change, str]], recent_cut: str, depth: int =
             fill, stroke, r = "var(--dot)", "var(--panel)", 3.6
         tip = (
             f".{unicode_name(c.tld)}  {fmt_int(c.count)} domains\n"
-            f"{fmt_signed(c.added)} ({fmt_pct(c.pct)}) in {c.gap_days} days\n"
+            f"{fmt_signed(c.added)} ({fmt_pct(c.pct)}) in {days(c.gap_days)}\n"
             f"≈ {fmt_pct(c.weekly)} per week · checked {fmt_day(c.date, False)}"
             + (f"\n{sev[1]} spike" if sev else "")
         )
@@ -743,6 +798,21 @@ def pulse_panel(tld: str, pts: list[tuple[str, int]]) -> str:
     )
 
 
+def _og_available() -> bool:
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        print("Pillow not installed: skipping share images", file=sys.stderr)
+        return False
+    return True
+
+
+def _og():
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import og_images
+    return og_images
+
+
 # ---------- build ----------
 
 def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
@@ -763,6 +833,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     checked_latest = sum(1 for pts in series.values() if last_update in pts)
     total_domains = sum(pts[max(pts)] for pts in series.values())
     recent_cut = (last_day - timedelta(days=RECENT_DAYS)).isoformat()
+    first_seen = min(d for pts in series.values() for d in pts)
     recent = [s for s in spikes if s.date > recent_cut]
 
     if out_dir.exists():
@@ -920,7 +991,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         cards.append(
             f'<a class="card {sev[0]}" href="tld/{esc(s.tld)}.html">'
             f'<div class="row"><span class="name">.{esc(unicode_name(s.tld))}</span>{sev_chip(s)}</div>'
-            f'<div><span class="big">{fmt_pct(s.pct)}</span> <span class="meta">in {s.gap_days} days</span></div>'
+            f'<div><span class="big">{fmt_pct(s.pct)}</span> <span class="meta">in {days(s.gap_days)}</span></div>'
             f"{sparkline(pts, 240, 44, 'var(--ink-2)', f'var(--{sev[0]})')}"
             f'<div class="meta">{fmt_signed(s.added)} domains → {fmt_int(s.count)} · {fmt_day(s.date)}</div>'
             f'<div class="chips">{abuse_chip(s.tld)}</div></a>'
@@ -974,8 +1045,28 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 {watch_block}
 </section>
 """
+    if _og_available():
+        (out_dir / "og").mkdir(exist_ok=True)
+        og = _og()
+        og.site_image(out_dir / "og" / "home.png", re.sub("<[^>]+>", "", headline).replace("&amp;", "&"),
+                      f"Daily domain trends for {len(series):,} top-level domains · {fmt_day(last_update)}",
+                      sorted(series["xyz"].items()) if "xyz" in series else None)
+        og.site_image(out_dir / "og" / "site.png", "Domain registration trends for every TLD",
+                      f"{len(series):,} top-level domains · updated daily from ICANN zone files")
+        og.logo_image(out_dir / "og" / "logo.png")
     (out_dir / "index.html").write_text(
-        page("RootFetch: domain registration trends by TLD", index_body, active="home", trust=trust)
+        page("Domain registration trends for every TLD · RootFetch", index_body, active="home", trust=trust,
+             path="", image="og/home.png",
+             description=(f"Daily domain counts for {len(series):,} TLDs from ICANN zone files: "
+                          "fastest growing and shrinking TLDs, rankings, daily trends and unusual registration jumps."),
+             jsonld=[{"@type": "Dataset", "@id": f"{SITE_URL}/#dataset", "name": "RootFetch TLD domain counts",
+                      "description": f"Registered domain counts for {len(series):,} top-level domains, checked on a rolling daily schedule from ICANN CZDS zone files.",
+                      "url": f"{SITE_URL}/", "creator": {"@id": f"{SITE_URL}/#org"}, "license": DATA_LICENSE,
+                      "isAccessibleForFree": True, "temporalCoverage": f"{first_seen}/{last_update}", "dateModified": last_update,
+                      "keywords": ["domain registrations", "TLD statistics", "gTLD", "zone files", "domain trends"],
+                      "distribution": [
+                          {"@type": "DataDownload", "encodingFormat": "text/csv", "contentUrl": f"{SITE_URL}/data/history.csv"},
+                          {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": f"{SITE_URL}/data/latest.json"}]}])
     )
 
     # ---------- all TLDs ----------
@@ -1038,7 +1129,12 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <tbody>{"".join(rows)}</tbody></table></div>
 </section>
 """
-    (out_dir / "tlds.html").write_text(page("All TLDs · RootFetch", tlds_body, active="tlds", trust=trust))
+    (out_dir / "tlds.html").write_text(page(f"All {len(series):,} TLDs ranked by domain count · RootFetch", tlds_body, active="tlds", trust=trust,
+                                               path="tlds.html",
+                                               description=f"Every top-level domain RootFetch tracks, ranked by registered domains, with weekly growth, trend lines and unusual-jump flags. Updated {fmt_day(last_update)}.",
+                                               jsonld=[{"@type": "ItemList", "name": "Largest TLDs by registered domains", "numberOfItems": 25,
+                                                        "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f"{SITE_URL}/tld/{t}.html", "name": f".{unicode_name(t)}"}
+                                                                            for i, t in enumerate(sorted(series, key=lambda t: -series[t][max(series[t])])[:25])]}]))
 
     # ---------- spikes ----------
     first_day = min(d for pts in series.values() for d in pts)
@@ -1066,7 +1162,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
             f'<td data-v="{esc(s.tld)}"><a class="tld" href="tld/{esc(s.tld)}.html">{tld_label(s.tld)}</a></td>'
             f'<td data-v="{s.pct:.6f}">{sev_chip(s)}</td>'
             f'<td class="n up" data-v="{s.added}">{fmt_signed(s.added)}</td><td class="n" data-v="{s.pct:.6f}">{fmt_pct(s.pct)}</td>'
-            f'<td class="n" data-v="{s.count}">{fmt_int(s.count)}</td><td class="n muted" data-v="{s.gap_days}">{s.gap_days} days</td>'
+            f'<td class="n" data-v="{s.count}">{fmt_int(s.count)}</td><td class="n muted" data-v="{s.gap_days}">{s.gap_days} day{"s" if s.gap_days != 1 else ""}</td>'
             f'<td data-v="{1 if s.tld in KNOWN_ABUSE else 0}">{abuse_chip(s.tld)}</td></tr>'
         )
     spikes_body = f"""
@@ -1082,11 +1178,18 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <tbody>{"".join(spike_rows) or '<tr><td colspan="8" class="muted">No spikes yet.</td></tr>'}</tbody></table></div></section>
 """
     (out_dir / "spikes.html").write_text(
-        page("Spikes · RootFetch", spikes_body, active="spikes", trust=trust,
-             description="Sudden jumps in domain registrations by top-level domain.")
+        page("Unusual domain registration jumps by TLD · RootFetch", spikes_body, active="spikes", trust=trust, path="spikes.html",
+             description=f"{len(spikes)} sudden jumps in domain registrations by TLD, ranked by severity, with an RSS feed. Often promotions, sometimes bulk spam or phishing.")
     )
 
     # ---------- per-TLD ----------
+    by_size = sorted(series, key=lambda t: -series[t][max(series[t])])
+    size_rank = {t: i + 1 for i, t in enumerate(by_size)}
+    growth_rank = {c.tld: i + 1 for i, c in enumerate(sorted(big, key=lambda c: -c.weekly))}
+    (out_dir / "data" / "tld").mkdir()
+    og_ok = _og_available()
+    (out_dir / "og").mkdir(exist_ok=True)
+    sitemap: list[tuple[str, str]] = []
     for tld, pts in series.items():
         ordered = sorted(pts.items())
         cs = all_changes[tld]
@@ -1098,7 +1201,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
             if c:
                 cells = (
                     f'<td class="n {trend_class(c.added)}">{fmt_signed(c.added)}</td>'
-                    f'<td class="n {trend_class(c.added)}">{fmt_pct(c.pct)}</td><td class="n muted">{c.gap_days} days</td>'
+                    f'<td class="n {trend_class(c.added)}">{fmt_pct(c.pct)}</td><td class="n muted">{c.gap_days} day{"s" if c.gap_days != 1 else ""}</td>'
                 )
             else:
                 cells = '<td class="n muted">–</td><td class="n muted">–</td><td class="n muted">first check</td>'
@@ -1108,36 +1211,137 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         first_d, first_v = ordered[0]
         last_d, last_v = ordered[-1]
         overall = last_v - first_v
+        overall_pct = overall / first_v if first_v else 0
         u = unicode_name(tld)
+        latest = cs[-1] if cs else None
+        noindex = last_v < NOINDEX_BELOW
+        rank = size_rank[tld]
         sub = f'<p class="count">{esc(tld)}</p>' if u != tld else ""
+
+        # plain-language summary, written from this TLD's own numbers
+        facts = [f".{esc(u)} has <b>{fmt_int(last_v)}</b> registered domains as of {fmt_day(last_d)}, "
+                 f"making it the <b>#{rank:,}</b> largest of the {len(series):,} TLDs RootFetch tracks."]
+        if len(ordered) > 1:
+            direction = "grown" if overall > 0 else "shrunk" if overall < 0 else "held steady"
+            facts.append(
+                f"Since its first check on {fmt_day(first_d)} it has {direction}"
+                + (f" by <b>{fmt_pct(abs(overall_pct) if overall < 0 else overall_pct, 1).lstrip('+').replace(chr(8722), '')}</b> "
+                   f"({fmt_signed(overall)} domains)." if overall else ".")
+            )
+        if latest and latest.gap_days <= 60:
+            facts.append(
+                f"At its latest check it changed by {fmt_signed(latest.added)} domains over {latest.gap_days} days, "
+                f"about <b>{fmt_pct(latest.weekly)}</b> a week"
+                + (f", the #{growth_rank[tld]} fastest growth among {len(big)} large TLDs." if tld in growth_rank and latest.weekly > 0 else ".")
+            )
+        if tspikes:
+            t0 = max(tspikes, key=lambda c: c.pct)
+            facts.append(
+                f"It has had {len(tspikes)} unusual jump{'s' if len(tspikes) != 1 else ''}; the largest was "
+                f"{fmt_pct(t0.pct)} in {days(t0.gap_days)} on {fmt_day(t0.date)}."
+            )
+        summary = " ".join(facts)
         context = ""
         if tld in KNOWN_ABUSE:
             context = (
-                f'<p class="lede" style="margin-top:12px">.{esc(u)} is named in '
-                f'<a href="{KNOWN_ABUSE[tld]}">Interisle Consulting Group\'s abuse reports</a>, '
-                "so its spikes deserve a closer look.</p>"
+                f'<p>.{esc(u)} is also named in <a href="{KNOWN_ABUSE[tld]}">Interisle Consulting Group\'s abuse reports</a>, '
+                "so its jumps deserve a closer look.</p>"
             )
+
+        # neighbours by size, for internal links
+        i = rank - 1
+        near = [t for t in by_size[max(0, i - 4): i + 5] if t != tld][:8]
+        related = "".join(
+            f'<li><a href="{esc(t)}.html"><span class="tld">.{esc(unicode_name(t))}</span>'
+            f'<span class="count">{fmt_compact(series[t][max(series[t])])}</span></a></li>'
+            for t in near
+        )
+
+        faq = [(f"How many .{u} domains are there?",
+                f"As of {fmt_day(last_d)}, there are {fmt_int(last_v)} registered .{u} domains, counted from the .{u} zone file published through ICANN's Centralized Zone Data Service.")]
+        if len(ordered) > 1:
+            faq.append((f"Is .{u} growing?",
+                        f".{u} went from {fmt_int(first_v)} domains on {fmt_day(first_d)} to {fmt_int(last_v)} on {fmt_day(last_d)}, "
+                        f"a change of {fmt_pct(overall_pct)}."
+                        + (f" Its latest rate is about {fmt_pct(latest.weekly)} a week." if latest and latest.gap_days <= 60 else "")))
+        faq.append((f"How big is .{u} compared to other TLDs?",
+                    f".{u} is the #{rank:,} largest of {len(series):,} tracked top-level domains."
+                    + (f" Similar-sized TLDs include {', '.join('.' + unicode_name(t) for t in near[:3])}." if near else "")))
+        if tspikes:
+            faq.append((f"Has .{u} had sudden registration spikes?",
+                        f"Yes. RootFetch recorded {len(tspikes)} unusual jump{'s' if len(tspikes) != 1 else ''} in .{u}, "
+                        f"where it gained at least {fmt_int(SPIKE_MIN_ADDED)} domains and {SPIKE_MIN_PCT:.0%} or more within {SPIKE_MAX_GAP_DAYS} days."))
+        faq_html = "".join(f"<details{' open' if i == 0 else ''}><summary>{esc(q)}</summary><p>{esc(a)}</p></details>" for i, (q, a) in enumerate(faq))
+
+        # per-TLD CSV
+        with (out_dir / "data" / "tld" / f"{tld}.csv").open("w", newline="") as handle:
+            w = csv.writer(handle)
+            w.writerow(["date", "tld", "count"])
+            for d, v in ordered:
+                w.writerow([d, tld, v])
+
+        image = "og/site.png"
+        if og_ok and not noindex:
+            up = overall >= 0
+            change_line = f"{fmt_pct(overall_pct, 0 if abs(overall_pct) >= .1 else 1)} since {fmt_day(first_d)}" if len(ordered) > 1 else "First check"
+            _og().tld_image(out_dir / "og" / f"{tld}.png", u, last_v, change_line.replace(chr(8722), "-"), ordered, up,
+                            f"Domain count from ICANN zone files · {fmt_day(last_d)}")
+            image = f"og/{tld}.png"
+
+        path = f"tld/{tld}.html"
+        page_url = f"{SITE_URL}/{path}"
+        ld = [
+            {"@type": "BreadcrumbList", "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "Trends", "item": f"{SITE_URL}/"},
+                {"@type": "ListItem", "position": 2, "name": "All TLDs", "item": f"{SITE_URL}/tlds.html"},
+                {"@type": "ListItem", "position": 3, "name": f".{u}", "item": page_url}]},
+            {"@type": "Dataset", "@id": f"{page_url}#dataset", "name": f".{u} domain count history",
+             "description": f"Number of registered .{u} domains at each check from {first_d} to {last_d}, counted from the .{u} zone file via ICANN CZDS.",
+             "url": page_url, "creator": {"@id": f"{SITE_URL}/#org"}, "license": DATA_LICENSE, "isAccessibleForFree": True,
+             "temporalCoverage": f"{first_d}/{last_d}", "dateModified": last_d,
+             "keywords": [f".{u}", f"{u} domains", "domain registrations", "TLD statistics", "zone file"],
+             "variableMeasured": "Registered second-level domains with NS records",
+             "distribution": [{"@type": "DataDownload", "encodingFormat": "text/csv", "contentUrl": f"{SITE_URL}/data/tld/{tld}.csv"}]},
+            {"@type": "FAQPage", "mainEntity": [
+                {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq]},
+        ]
+
         body = f"""
-<a class="back" href="../tlds.html">← All TLDs</a>
-<h1 style="margin-top:16px">.{esc(u)}</h1>{sub}
-<div class="chips">{(sev_chip(tspikes[-1]) + f'<span class="count">last spike {fmt_day(tspikes[-1].date)}</span>') if tspikes else ""}{abuse_chip(tld, 1)}</div>
-{context}
+<nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Trends</a><span>/</span><a href="../tlds.html">All TLDs</a><span>/</span><span aria-current="page">.{esc(u)}</span></nav>
+<h1 style="margin-top:12px">.{esc(u)} domains</h1>{sub}
+<div class="chips">{(sev_chip(tspikes[-1]) + f'<span class="count">last jump {fmt_day(tspikes[-1].date)}</span>') if tspikes else ""}{abuse_chip(tld, 1)}</div>
 <div class="facts">
 <div><b>{fmt_int(last_v)}</b><small>domains on {fmt_day(last_d)}</small></div>
-<div><b>{fmt_signed(overall)}</b><small>since {fmt_day(first_d)} ({fmt_pct(overall / first_v if first_v else 0)})</small></div>
-<div><b>{len(tspikes)}</b><small>spike{"s" if len(tspikes) != 1 else ""} recorded</small></div>
-<div><b>{len(ordered)}</b><small>checks</small></div>
+<div><b>{fmt_signed(overall)}</b><small>since {fmt_day(first_d)} ({fmt_pct(overall_pct)})</small></div>
+<div><b>#{rank:,}</b><small>largest of {len(series):,} TLDs</small></div>
+<div><b>{len(tspikes)}</b><small>unusual jump{"s" if len(tspikes) != 1 else ""}</small></div>
 </div>
-<div class="chart">{history_chart(ordered, by_date)}</div>
-<p class="count" style="margin-top:8px">Dashed lines mark gaps longer than {SPIKE_MAX_GAP_DAYS} days with no checks.</p>
+<div class="prose summary"><p>{summary}</p>{context}</div>
+<div class="chart" style="margin-top:20px">{history_chart(ordered, by_date)}</div>
+<p class="count" style="margin-top:8px">Dashed lines mark gaps longer than {SPIKE_MAX_GAP_DAYS} days with no checks. <a href="../data/tld/{esc(tld)}.csv">Download .{esc(u)} history (CSV)</a></p>
 <section class="section"><h2>Every check</h2>
 <div class="tablebox" style="margin-top:12px"><table><thead><tr><th>Date</th><th class="n">Domains</th><th class="n">Change</th><th class="n">Growth</th><th class="n">Window</th><th>Severity</th></tr></thead>
 <tbody>{"".join(hist_rows)}</tbody></table></div></section>
+<section class="section faq"><h2>Questions about .{esc(u)}</h2>{faq_html}</section>
+<section class="section"><h2>TLDs of similar size</h2><ul class="related">{related}</ul></section>
 """
-        (out_dir / "tld" / f"{tld}.html").write_text(
-            page(f".{u} domain count · RootFetch", body, depth=1, trust=trust,
-                 description=f"Domain count history and registration spikes for .{u}.")
+        title = f".{u} domains: {fmt_int(last_v)} registered ({date.fromisoformat(last_d).strftime('%b %Y')}) | RootFetch"
+        if len(title) > 60:
+            title = f".{u} domains: {fmt_int(last_v)} registered | RootFetch"
+        if len(title) > 60:
+            title = f".{u} domain count | RootFetch"
+        desc = (
+            f"How many .{u} domains are there? {fmt_int(last_v)} as of {fmt_day(last_d)}"
+            + (f", {fmt_pct(overall_pct, 0 if abs(overall_pct) >= .1 else 1)} since {fmt_day(first_d, False)}" if len(ordered) > 1 else "")
+            + f". Growth, rank and history from ICANN zone files."
         )
+        if len(desc) > 158:
+            desc = f"How many .{u} domains are there? {fmt_int(last_v)} as of {fmt_day(last_d)}. Growth and history from ICANN zone files."
+        (out_dir / "tld" / f"{tld}.html").write_text(
+            page(title, body, depth=1, trust=trust, description=desc, path=path, image=image, jsonld=ld, noindex=noindex)
+        )
+        if not noindex:
+            sitemap.append((path, last_d))
 
     # ---------- data files ----------
     with (out_dir / "data" / "history.csv").open("w", newline="") as handle:
@@ -1192,7 +1396,8 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <p>A count is the number of distinct second-level names with NS records in a TLD's zone file. About {checked_latest} TLDs are checked per run on a rolling schedule, so each is re-checked roughly every two weeks; .xyz, .app and .dev are checked daily. Only TLDs RootFetch has CZDS access to are included, which is why .com isn't here yet.</p>
 <p>Spikes: {fmt_int(SPIKE_MIN_ADDED)}+ new domains and {SPIKE_MIN_PCT:.0%}+ growth over a window of {SPIKE_MAX_GAP_DAYS} days or less. Severity: Elevated 5–10%, High 10–20%, Critical 20%+.</p></section>
 """
-    (out_dir / "data.html").write_text(page("Data · RootFetch", data_body, active="data", trust=trust))
+    (out_dir / "data.html").write_text(page("Download TLD domain count data (CSV, JSON) · RootFetch", data_body, active="data", trust=trust, path="data.html",
+                                               description="Free downloads of daily domain counts for every tracked top-level domain: full history CSV, latest JSON, unusual jumps and an RSS feed. CC BY 4.0."))
 
     abuse_items = "".join(
         f'<li><b>.{esc(t)}</b>: <a href="{src}">{"Interisle Phishing Landscape 2025" if src == INTERISLE_2025 else "Interisle report, June 2026"}</a></li>'
@@ -1217,10 +1422,11 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <p>The code and the full data history are on <a href="{REPO_URL}">GitHub</a>.</p>
 </div>
 """
-    (out_dir / "about.html").write_text(page("About · RootFetch", about_body, active="about", trust=trust))
+    (out_dir / "about.html").write_text(page("About RootFetch: how domain counts are made", about_body, active="about", trust=trust, path="about.html",
+                                                description="How RootFetch counts registered domains from ICANN CZDS zone files, how growth and unusual jumps are calculated, and where the data comes from."))
 
     (out_dir / "404.html").write_text(
-        page("Not found · RootFetch", '<h1>No page here</h1><p class="lede"><a href="/">Go to trends</a> or <a href="/tlds.html">find a TLD</a>.</p>')
+        page("Not found · RootFetch", '<h1>No page here</h1><p class="lede"><a href="/">Go to trends</a> or <a href="/tlds.html">find a TLD</a>.</p>', path="404.html", noindex=True)
     )
 
     # ---------- RSS ----------
@@ -1246,13 +1452,59 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 
     (out_dir / "CNAME").write_text("rootfetch.com\n")
     (out_dir / ".nojekyll").write_text("")
-    (out_dir / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
-    urls = ["", "spikes.html", "tlds.html", "data.html", "about.html"] + [f"tld/{t}.html" for t in sorted(series)]
+    (out_dir / f"{INDEXNOW_KEY}.txt").write_text(INDEXNOW_KEY)
+    (out_dir / "robots.txt").write_text(
+        "User-agent: *\nAllow: /\n\n"
+        "# AI search and assistants are welcome to read and cite this data.\n"
+        + "".join(f"User-agent: {bot}\nAllow: /\n\n" for bot in
+                  ("GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "PerplexityBot", "Google-Extended", "Applebot-Extended", "CCBot"))
+        + f"Sitemap: {SITE_URL}/sitemap.xml\n"
+    )
+    pages = [("", last_update), ("tlds.html", last_update), ("spikes.html", last_update), ("data.html", last_update), ("about.html", last_update)]
     (out_dir / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-        + "".join(f"<url><loc>{SITE_URL}/{u}</loc></url>" for u in urls)
+        + "".join(f"<url><loc>{SITE_URL}/{u}</loc><lastmod>{d}</lastmod></url>" for u, d in pages + sorted(sitemap))
         + "</urlset>\n"
     )
+    (out_dir / "indexnow-urls.txt").write_text("\n".join(f"{SITE_URL}/{u}" for u, _ in pages + sorted(sitemap)) + "\n")
+
+    top_lines = "\n".join(
+        f"- [.{unicode_name(t)}]({SITE_URL}/tld/{t}.html): {fmt_int(series[t][max(series[t])])} domains"
+        for t in by_size[:25]
+    )
+    (out_dir / "llms.txt").write_text(f"""# RootFetch
+
+> Free daily counts of registered domains for {len(series):,} top-level domains (TLDs), computed from ICANN CZDS zone files, with growth trends and unusual registration jumps. Last update: {last_update}.
+
+Counts are distinct second-level names with NS records in each TLD's zone file. Most TLDs are re-checked about every two weeks on a rolling schedule; .xyz, .app and .dev are checked daily. Data license: CC BY 4.0 ({DATA_LICENSE}).
+
+## Pages
+- [Trends]({SITE_URL}/): headline trends, fastest growing and shrinking TLDs, daily pulse
+- [All TLDs]({SITE_URL}/tlds.html): every tracked TLD with latest count and weekly growth
+- [Unusual jumps]({SITE_URL}/spikes.html): sudden registration spikes with severity
+- [Data]({SITE_URL}/data.html): downloads and method
+- [About]({SITE_URL}/about.html)
+
+## Data
+- [latest.json]({SITE_URL}/data/latest.json): latest count, change and flags per TLD
+- [history.csv]({SITE_URL}/data/history.csv): every check for every TLD
+- [spikes.json]({SITE_URL}/data/spikes.json): unusual jumps and the rule used
+- Per-TLD history: {SITE_URL}/data/tld/<tld>.csv
+
+## Largest TLDs tracked
+{top_lines}
+""")
+
+    for old, new in LEGACY.items():
+        target = f"{SITE_URL}/{new}" if new != "index.html" else f"{SITE_URL}/"
+        stub = out_dir / f"{old}.html"
+        stub.parent.mkdir(parents=True, exist_ok=True)
+        stub.write_text(
+            f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Moved · RootFetch</title>'
+            f'<meta name="robots" content="noindex"><link rel="canonical" href="{target}">'
+            f'<meta http-equiv="refresh" content="0;url={target}"></head>'
+            f'<body><p>This page moved to <a href="{target}">{target}</a>.</p></body></html>'
+        )
 
     return {"tlds": len(series), "spikes": len(spikes), "last_update": last_update, "age_days": age_days,
             "radar": len(radar_entries), "total_domains": total_domains}
