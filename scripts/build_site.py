@@ -206,16 +206,16 @@ CSS = """
 :root{
 --bg:#eef2f6;--panel:#ffffff;--ink:#0f1a2a;--ink-2:#465263;--muted:#6b7686;--line:#d9e0e8;--line-2:#e8edf2;
 --signal:#2a78d6;--signal-soft:#dbe8f8;--dot:#9aa6b5;
---critical:#d03b3b;--high:#ec835a;--elevated:#fab219;--good:#0ca30c;
+--critical:#d03b3b;--fall:#4a3aa7;--high:#ec835a;--elevated:#fab219;--good:#0ca30c;
 --crit-bg:#fbe6e6;--high-bg:#fdece5;--elev-bg:#fef4dc;
 --display:"Archivo",system-ui,sans-serif;--sans:"Public Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;
 color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
 --bg:#0d1218;--panel:#151c25;--ink:#e7ecf2;--ink-2:#b4beca;--muted:#8792a1;--line:#273241;--line-2:#1d2631;
---signal:#3987e5;--signal-soft:#16263b;--dot:#5b6878;
+--signal:#3987e5;--signal-soft:#16263b;--fall:#9085e9;--dot:#5b6878;
 --crit-bg:#3a1a1c;--high-bg:#3a2419;--elev-bg:#382b10;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#0d1218;--panel:#151c25;--ink:#e7ecf2;--ink-2:#b4beca;--muted:#8792a1;--line:#273241;--line-2:#1d2631;
---signal:#3987e5;--signal-soft:#16263b;--dot:#5b6878;--crit-bg:#3a1a1c;--high-bg:#3a2419;--elev-bg:#382b10;color-scheme:dark}
+--signal:#3987e5;--signal-soft:#16263b;--fall:#9085e9;--dot:#5b6878;--crit-bg:#3a1a1c;--high-bg:#3a2419;--elev-bg:#382b10;color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans)}
@@ -243,8 +243,8 @@ nav a.on{color:var(--ink);background:var(--line-2)}
 
 /* headings */
 .eyebrow{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-h1{font:800 clamp(30px,5.2vw,54px)/1.02 var(--display);font-stretch:118%;letter-spacing:-.025em;margin:40px 0 16px;max-width:15ch}
-h1 .hl{color:var(--critical)}
+h1{font:800 clamp(30px,5.2vw,54px)/1.02 var(--display);font-stretch:118%;letter-spacing:-.025em;margin:40px 0 16px;max-width:24ch}
+h1 .hl{color:var(--signal)}h1 .hl.alarm{color:var(--critical)}
 h2{font:700 22px/1.2 var(--display);font-stretch:112%;letter-spacing:-.01em;margin:0 0 6px}
 .section{margin:56px 0 0}
 .section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
@@ -330,6 +330,42 @@ td.spark svg{display:block}
 .weeks .w{flex:1 0 10px;min-width:10px;background:var(--line-2);border-radius:3px 3px 0 0;position:relative}
 .weeks .w.has{background:var(--critical)}
 .weeks .w span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font:10px var(--mono);color:var(--muted);white-space:nowrap}
+
+
+/* trends home */
+.takeaways{list-style:none;padding:0;margin:0;display:grid;gap:8px;max-width:70ch}
+.takeaways li{font-size:17px;color:var(--ink-2);padding-left:22px;position:relative}
+.takeaways li::before{content:"";position:absolute;left:4px;top:.6em;width:8px;height:8px;border-radius:2px;background:var(--signal)}
+.takeaways b{color:var(--ink);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:28px 0 0}
+.kpi{background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font:600 30px/1.1 var(--mono);letter-spacing:-.03em}
+.kpi span{font-size:14px;color:var(--ink)}
+.kpi small{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.pulses{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.pulse,.sm{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:6px;transition:border-color .15s}
+.pulse:hover,.sm:hover{border-color:var(--ink-2)}
+.pulse .row,.sm .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pn,.smn{font:800 22px/1 var(--display);letter-spacing:-.02em}
+.pv{font:600 18px var(--mono)}
+.pulse p{margin:0}
+.pl svg{width:100%;height:90px;display:block}
+.pb svg{width:100%;height:46px;display:block}
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px}
+.board{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 16px 10px}
+.board h3{font:700 16px/1.2 var(--display);margin:0}
+.board .count{margin:2px 0 10px}
+.board ol{list-style:none;margin:0;padding:0}
+.board li a{display:grid;grid-template-columns:96px 1fr 76px;align-items:center;gap:10px;padding:5px 0;text-decoration:none;color:var(--ink)}
+.board li a:hover .bn{color:var(--signal)}
+.bn{font:600 13px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bt{height:10px;background:var(--line-2);border-radius:3px;overflow:hidden}
+.bb{display:block;height:100%;border-radius:3px}
+.bv{font:600 13px var(--mono);text-align:right}
+.smgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
+.sm svg{width:100%;height:80px;display:block}
+.smn{font-size:18px}
+.smv{font:600 14px var(--mono)}.smv.down{color:var(--fall)}
 
 /* prose & data */
 .prose{max-width:66ch}.prose p,.prose li{color:var(--ink-2)}.prose h2{margin-top:36px}
@@ -423,7 +459,7 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 <a class="skip" href="#main">Skip to content</a>
 <header class="top"><div class="wrap">
 <a class="brand" href="{root}index.html">{LOGO}RootFetch</a>
-<nav aria-label="Main">{link("index.html", "Radar", "home")}{link("spikes.html", "Spikes", "spikes")}{link("tlds.html", "All TLDs", "tlds")}{link("data.html", "Data", "data")}{link("about.html", "About", "about")}</nav>
+<nav aria-label="Main">{link("index.html", "Trends", "home")}{link("tlds.html", "All TLDs", "tlds")}{link("spikes.html", "Unusual jumps", "spikes")}{link("data.html", "Data", "data")}{link("about.html", "About", "about")}</nav>
 </div></header>
 <div class="wrap">{trust}</div>
 <main id="main" class="wrap">
@@ -626,6 +662,87 @@ def history_chart(points: list[tuple[str, int]], changes: dict[str, Change]) -> 
     return f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="Domain count over time">{"".join(parts)}</svg>'
 
 
+
+def bar_board(title: str, note: str, rows: list[tuple[str, float, str]], color: str, depth: int = 0) -> str:
+    """Ranked horizontal bars: (tld, value, value label). Length encodes magnitude."""
+    if not rows:
+        return f'<div class="board"><h3>{esc(title)}</h3><p class="count">Not enough recent checks yet.</p></div>'
+    mx = max(abs(v) for _, v, _ in rows) or 1
+    root = "../" * depth
+    items = "".join(
+        f'<li><a href="{root}tld/{esc(t)}.html"><span class="bn">.{esc(unicode_name(t))}</span>'
+        f'<span class="bt"><span class="bb" style="width:{max(2, abs(v) / mx * 100):.1f}%;background:{color}"></span></span>'
+        f'<span class="bv">{esc(lab)}</span></a></li>'
+        for t, v, lab in rows
+    )
+    return f'<div class="board"><h3>{esc(title)}</h3><p class="count">{esc(note)}</p><ol>{items}</ol></div>'
+
+
+def mini_line(points: list[tuple[str, float]], w: int, h: int, lo: float, hi: float, d0: int, d1: int,
+              color: str = "var(--signal)", base: float | None = None) -> str:
+    """Small line chart on a shared scale; gaps over SPIKE_MAX_GAP_DAYS are dashed."""
+    def x(iso: str) -> float:
+        return 2 + (date.fromisoformat(iso).toordinal() - d0) / max(1, d1 - d0) * (w - 4)
+
+    def y(v: float) -> float:
+        v = min(max(v, lo), hi)
+        return h - 2 - (v - lo) / ((hi - lo) or 1) * (h - 4)
+
+    parts = []
+    if base is not None:
+        parts.append(f'<line x1="0" x2="{w}" y1="{y(base):.1f}" y2="{y(base):.1f}" stroke="var(--line)" stroke-dasharray="2 3"/>')
+    for (da, va), (db, vb) in zip(points, points[1:]):
+        gap = (date.fromisoformat(db) - date.fromisoformat(da)).days
+        dash = ' stroke-dasharray="3 4" opacity=".55"' if gap > SPIKE_MAX_GAP_DAYS else ""
+        parts.append(f'<line x1="{x(da):.1f}" y1="{y(va):.1f}" x2="{x(db):.1f}" y2="{y(vb):.1f}" stroke="{color}" stroke-width="2" stroke-linecap="round"{dash}/>')
+    if points:
+        d, v = points[-1]
+        parts.append(f'<circle cx="{x(d):.1f}" cy="{y(v):.1f}" r="3" fill="{color}"/>')
+    return f'<svg viewBox="0 0 {w} {h}" preserveAspectRatio="none" aria-hidden="true">{"".join(parts)}</svg>'
+
+
+def pulse_panel(tld: str, pts: list[tuple[str, int]]) -> str:
+    """Daily-checked TLD: count line plus the daily net change as bars underneath."""
+    w, h, bh = 340, 90, 46
+    d0 = date.fromisoformat(pts[0][0]).toordinal()
+    d1 = date.fromisoformat(pts[-1][0]).toordinal()
+    vals = [v for _, v in pts]
+    lo, hi = min(vals), max(vals)
+    line = mini_line(pts, w, h, lo - (hi - lo) * 0.05, hi + (hi - lo) * 0.05, d0, d1)
+    diffs = []
+    for (da, va), (db, vb) in zip(pts, pts[1:]):
+        if (date.fromisoformat(db) - date.fromisoformat(da)).days == 1:
+            diffs.append((db, vb - va))
+    bars = ""
+    if diffs:
+        mx = max(abs(v) for _, v in diffs) or 1
+        bw = max(2.0, (w - 4) / max(1, d1 - d0) * 0.8)
+        mid = bh / 2
+        rects = []
+        for d, v in diffs:
+            bx = 2 + (date.fromisoformat(d).toordinal() - d0) / max(1, d1 - d0) * (w - 4) - bw / 2
+            hh = abs(v) / mx * (mid - 2)
+            by = mid - hh if v >= 0 else mid
+            fill = "var(--signal)" if v >= 0 else "var(--fall)"
+            tip = f"{fmt_day(d)}: {fmt_signed(v)} domains"
+            rects.append(f'<rect x="{bx:.1f}" y="{by:.1f}" width="{bw:.1f}" height="{max(1, hh):.1f}" rx="1" fill="{fill}" data-tip="{esc(tip)}"/>')
+        bars = (
+            f'<svg viewBox="0 0 {w} {bh}" preserveAspectRatio="none" aria-label="Daily net change">'
+            f'<line x1="0" x2="{w}" y1="{mid}" y2="{mid}" stroke="var(--line)"/>{"".join(rects)}</svg>'
+        )
+    first_v, last_v = pts[0][1], pts[-1][1]
+    recent = [v for _, v in diffs[-7:]]
+    avg = sum(recent) / len(recent) if recent else 0
+    return (
+        f'<a class="pulse" href="tld/{esc(tld)}.html"><div class="row"><span class="pn">.{esc(tld)}</span>'
+        f'<span class="pv">{fmt_int(last_v)}</span></div>'
+        f'<p class="count">{fmt_pct((last_v - first_v) / first_v if first_v else 0)} since {fmt_day(pts[0][0], False)} · '
+        f'avg {fmt_signed(round(avg))}/day over its last {len(recent)} daily checks</p>'
+        f'<div class="pl">{line}</div><div class="pb">{bars}</div>'
+        f'<div class="row count"><span>{fmt_day(pts[0][0], False)}</span><span>daily net change</span><span>{fmt_day(pts[-1][0], False)}</span></div></a>'
+    )
+
+
 # ---------- build ----------
 
 def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
@@ -676,34 +793,128 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         radar_entries.append((c, tld))
     flagged_now = [c for c, _ in radar_entries if c.severity and c.date > recent_cut]
 
+    # ---------- trend metrics ----------
+    # "Active" = latest check within RADAR_MAX_AGE_DAYS, previous check within 60 days of it.
+    active = []
+    for tld, cs in all_changes.items():
+        if not cs:
+            continue
+        c = cs[-1]
+        if (last_day - date.fromisoformat(c.date)).days > RADAR_MAX_AGE_DAYS or c.gap_days > 60:
+            continue
+        active.append(c)
+    big = [c for c in active if c.prev_count >= 10000]
+    per_week = {c.tld: c.added * 7 / c.gap_days for c in active}
+    growing = [c for c in big if c.weekly > 0]
+    shrinking = [c for c in big if c.weekly < 0]
+    fastest = sorted(big, key=lambda c: -c.weekly)[:8]
+    slowest = sorted(shrinking, key=lambda c: c.weekly)[:8]
+    gains = sorted(big, key=lambda c: -per_week[c.tld])[:8]
+    largest = sorted(
+        (t for t, pts in series.items() if (last_day - date.fromisoformat(max(pts))).days <= RADAR_MAX_AGE_DAYS),
+        key=lambda t: -series[t][max(series[t])],
+    )
+
+    # long-term: first check by mid-March, latest check within the active window
+    long_term = []
+    for tld, pts in series.items():
+        ds = sorted(pts)
+        if ds[0] <= "2026-03-15" and (last_day - date.fromisoformat(ds[-1])).days <= RADAR_MAX_AGE_DAYS and pts[ds[0]] >= 10000:
+            long_term.append((pts[ds[-1]] / pts[ds[0]] - 1, tld, ds[0], ds[-1]))
+    risers = sorted(long_term, reverse=True)[:8]
+    fallers = sorted(long_term)[:8]
+
     # ---------- headline ----------
-    if recent:
-        top = max(recent, key=lambda s: s.pct)
-        n = len({s.tld for s in recent})
-        headline = f'<span class="hl">{n} {"TLD" if n == 1 else "TLDs"}</span> spiked in the last {RECENT_DAYS} days'
-        lede = (
-            f"The biggest jump: <b>.{esc(unicode_name(top.tld))}</b> gained <b>{fmt_int(top.added)}</b> domains "
-            f"(<b>{fmt_pct(top.pct)}</b>) in {top.gap_days} days, to {fmt_int(top.count)}. "
-            "Sudden bulk registrations in a TLD often come before spam and phishing campaigns."
+    lead_gain = gains[0] if gains else None
+    if big and lead_gain:
+        share = len(growing) / len(big)
+        headline = (
+            f'<span class="hl">{len(growing)} of {len(big)}</span> large TLDs are growing. '
+            f".{esc(unicode_name(lead_gain.tld))} leads, adding {fmt_compact(per_week[lead_gain.tld])} domains a week."
         )
     else:
-        headline = f"No spikes in the last {RECENT_DAYS} days"
-        last = spikes[0] if spikes else None
-        lede = (
-            "None of the TLDs checked recently grew unusually fast. "
-            + (
-                f"The last spike was <b>.{esc(unicode_name(last.tld))}</b> on {fmt_day(last.date)}: "
-                f"<b>{fmt_signed(last.added)}</b> domains (<b>{fmt_pct(last.pct)}</b>) in {last.gap_days} days."
-                if last
-                else ""
-            )
+        headline = "Domain counts for every top-level domain, day by day"
+        share = 0
+    takeaways = []
+    if fastest:
+        f0 = fastest[0]
+        takeaways.append(f"<b>.{esc(unicode_name(f0.tld))}</b> is growing fastest at <b>{fmt_pct(f0.weekly)}</b> a week.")
+    if risers:
+        r0 = risers[0]
+        takeaways.append(
+            f"Since {fmt_day(r0[2], False)}, <b>.{esc(unicode_name(r0[1]))}</b> grew <b>{fmt_pct(r0[0], 0)}</b>, "
+            f"from {fmt_compact(series[r0[1]][r0[2]])} to {fmt_compact(series[r0[1]][r0[3]])} domains."
         )
+    if slowest:
+        s0 = slowest[0]
+        takeaways.append(f"<b>.{esc(unicode_name(s0.tld))}</b> is shrinking fastest at <b>{fmt_pct(s0.weekly)}</b> a week.")
+    if recent:
+        top = max(recent, key=lambda s: s.pct)
+        takeaways.append(
+            f"<b>{len({s.tld for s in recent})}</b> TLDs had unusual jumps in the last {RECENT_DAYS} days, "
+            f"led by <b>.{esc(unicode_name(top.tld))}</b> ({fmt_pct(top.pct)})."
+        )
+    else:
+        takeaways.append(f"No unusual registration jumps in the last {RECENT_DAYS} days.")
 
-    # ---------- watch list ----------
-    watch_src = recent if recent else spikes[:6]
-    watch_title = "Watch list" if recent else "Most recent spikes"
+    # ---------- KPI tiles ----------
+    kpis = [
+        (fmt_compact(total_domains), "domains counted", f"across {len(series):,} TLDs"),
+        (f"{share:.0%}" if big else "–", "of large TLDs growing", f"{len(growing)} up · {len(shrinking)} down"),
+        (f"{fmt_compact(per_week[lead_gain.tld])}/wk" if lead_gain else "–", "biggest weekly gain",
+         f".{unicode_name(lead_gain.tld)}" if lead_gain else ""),
+        (str(len({s.tld for s in recent})), f"unusual jumps, last {RECENT_DAYS} days", f"{len(spikes)} since tracking began"),
+    ]
+    kpi_html = "".join(
+        f'<div class="kpi"><b>{esc(v)}</b><span>{esc(lab)}</span><small>{esc(sub)}</small></div>' for v, lab, sub in kpis
+    )
+
+    # ---------- daily pulse ----------
+    daily = [t for t in ("xyz", "app", "dev") if t in series and len(series[t]) > 5]
+    pulse_html = "".join(pulse_panel(t, sorted(series[t].items())) for t in daily)
+
+    # ---------- leaderboards ----------
+    boards = "".join([
+        bar_board("Fastest growing", "growth per week, TLDs with 10k+ domains",
+                  [(c.tld, c.weekly, fmt_pct(c.weekly)) for c in fastest], "var(--signal)"),
+        bar_board("Biggest gains", "new domains per week",
+                  [(c.tld, per_week[c.tld], fmt_signed(round(per_week[c.tld]))) for c in gains], "var(--signal)"),
+        bar_board("Shrinking fastest", "decline per week, TLDs with 10k+ domains",
+                  [(c.tld, c.weekly, fmt_pct(c.weekly)) for c in slowest], "var(--fall)"),
+        bar_board(f"Biggest risers since {fmt_day(risers[0][2], False) if risers else 'February'}", "total growth since first check",
+                  [(t, g, fmt_pct(g, 0)) for g, t, _, _ in risers], "var(--signal)"),
+        bar_board("Biggest fallers", "total decline since first check",
+                  [(t, g, fmt_pct(g, 0)) for g, t, _, _ in fallers if g < 0], "var(--fall)"),
+        bar_board("Largest TLDs", f"domains, checked in the last {RADAR_MAX_AGE_DAYS} days",
+                  [(t, series[t][max(series[t])], fmt_compact(series[t][max(series[t])])) for t in largest[:8]], "var(--ink-2)"),
+    ])
+
+    # ---------- small multiples: the 12 largest, indexed ----------
+    sm_tlds = [t for t in largest if sorted(series[t])[0] <= "2026-03-15" and len(series[t]) >= 3][:12]
+    sm_html = ""
+    if sm_tlds:
+        d0 = min(date.fromisoformat(sorted(series[t])[0]).toordinal() for t in sm_tlds)
+        d1 = last_day.toordinal()
+        idx = {t: [(d, v / series[t][sorted(series[t])[0]] * 100) for d, v in sorted(series[t].items())] for t in sm_tlds}
+        allv = [v for pts in idx.values() for _, v in pts]
+        lo, hi = min(min(allv), 95), max(max(allv), 105)
+        cells = []
+        for t in sm_tlds:
+            pts = idx[t]
+            chg = pts[-1][1] - 100
+            cls = "up" if chg > 0 else "down"
+            cells.append(
+                f'<a class="sm" href="tld/{esc(t)}.html"><div class="row"><span class="smn">.{esc(unicode_name(t))}</span>'
+                f'<span class="smv {cls}">{fmt_pct(chg / 100, 1)}</span></div>'
+                f'{mini_line(pts, 220, 70, lo, hi, d0, d1, "var(--signal)" if chg >= 0 else "var(--fall)", 100)}'
+                f'<span class="count">{fmt_compact(series[t][max(series[t])])} domains</span></a>'
+            )
+        sm_html = "".join(cells)
+
+    # ---------- unusual jumps ----------
+    watch_src = recent if recent else spikes[:4]
     cards = []
-    for s in sorted(watch_src, key=lambda s: (-s.pct))[:9]:
+    for s in sorted(watch_src, key=lambda s: (-s.pct))[:4]:
         sev = s.severity
         pts = sorted(series[s.tld].items())
         cards.append(
@@ -714,37 +925,57 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
             f'<div class="meta">{fmt_signed(s.added)} domains → {fmt_int(s.count)} · {fmt_day(s.date)}</div>'
             f'<div class="chips">{abuse_chip(s.tld)}</div></a>'
         )
-    watch_block = f'<div class="watch">{"".join(cards)}</div>' if cards else '<div class="empty">No spikes detected yet.</div>'
+    watch_block = f'<div class="watch">{"".join(cards)}</div>' if cards else '<div class="empty">No unusual jumps yet.</div>'
 
     legend = (
         '<div class="legend">'
-        '<span><i style="background:var(--critical)"></i>Critical: grew 20%+</span>'
+        '<span><i style="background:var(--critical)"></i>Critical jump: 20%+</span>'
         '<span><i style="background:var(--high)"></i>High: 10–20%</span>'
         '<span><i style="background:var(--elevated)"></i>Elevated: 5–10%</span>'
-        '<span><i style="background:var(--panel);box-shadow:inset 0 0 0 2px var(--high)"></i>Spiked more than 30 days ago</span>'
+        f'<span><i style="background:var(--panel);box-shadow:inset 0 0 0 2px var(--high)"></i>Jumped more than {RECENT_DAYS} days ago</span>'
         '<span><i style="background:var(--dot)"></i>Normal</span></div>'
     )
     index_body = f"""
-<p class="eyebrow" style="margin-top:40px">Domain registration radar</p>
+<p class="eyebrow" style="margin-top:36px">Domain trends · {fmt_day(last_update)}</p>
 <h1>{headline}</h1>
-<p class="lede">{lede}</p>
+<ul class="takeaways">{"".join(f"<li>{t}</li>" for t in takeaways)}</ul>
+<div class="kpis">{kpi_html}</div>
+
+<section class="section" aria-labelledby="pulse-h">
+<div class="section-head"><div><h2 id="pulse-h">Daily pulse</h2>
+<p>The TLDs checked every day. The line is the total; the bars underneath are each day's net change in domains.</p></div></div>
+<div class="pulses">{pulse_html}</div>
+</section>
+
+<section class="section" aria-labelledby="boards-h">
+<div class="section-head"><div><h2 id="boards-h">Who's growing, who's shrinking</h2>
+<p>Rankings from each TLD's latest check. Growth per week is scaled so TLDs checked days or weeks apart compare fairly.</p></div>
+<span class="count"><a href="tlds.html">All TLDs →</a></span></div>
+<div class="boards">{boards}</div>
+</section>
+
+<section class="section" aria-labelledby="sm-h">
+<div class="section-head"><div><h2 id="sm-h">The biggest TLDs since they were first checked</h2>
+<p>Each panel starts at 100 on its first check, and all share one scale, so the lines can be compared. Dashed stretches are gaps with no checks.</p></div></div>
+<div class="smgrid">{sm_html}</div>
+</section>
 
 <section class="section" aria-labelledby="radar-h">
-<div class="section-head"><div><h2 id="radar-h">Where every TLD stands</h2>
-<p>Each dot is a top-level domain with at least {fmt_int(RADAR_MIN_DOMAINS)} domains, placed by size and by how fast it grew at its latest check. Dots high in the shaded band grew unusually fast. Hover for numbers, click to open.</p></div>
-<span class="count">{len(radar_entries)} TLDs checked in the last {RADAR_MAX_AGE_DAYS} days · {len(flagged_now)} spiking now</span></div>
+<div class="section-head"><div><h2 id="radar-h">Size vs. growth</h2>
+<p>Every TLD with at least {fmt_int(RADAR_MIN_DOMAINS)} domains, placed by size and by growth per week at its latest check. Hover for numbers, click to open.</p></div>
+<span class="count">{len(radar_entries)} TLDs checked in the last {RADAR_MAX_AGE_DAYS} days</span></div>
 <div class="radar">{radar_chart(radar_entries, recent_cut)}{legend}</div>
 </section>
 
 <section class="section" aria-labelledby="watch-h">
-<div class="section-head"><div><h2 id="watch-h">{watch_title}</h2>
-<p>A spike is at least {fmt_int(SPIKE_MIN_ADDED)} new domains and {SPIKE_MIN_PCT:.0%}+ growth within {SPIKE_MAX_GAP_DAYS} days. A spike isn't proof of abuse: promotions and price cuts cause them too.</p></div>
-<span class="count"><a href="spikes.html">All {len(spikes)} spikes →</a> · <a href="feed.xml">RSS</a></span></div>
+<div class="section-head"><div><h2 id="watch-h">Unusual jumps</h2>
+<p>At least {fmt_int(SPIKE_MIN_ADDED)} new domains and {SPIKE_MIN_PCT:.0%}+ growth within {SPIKE_MAX_GAP_DAYS} days. Sometimes a price promotion, sometimes bulk registrations for spam or phishing.</p></div>
+<span class="count"><a href="spikes.html">All {len(spikes)} jumps →</a> · <a href="feed.xml">RSS</a></span></div>
 {watch_block}
 </section>
 """
     (out_dir / "index.html").write_text(
-        page("RootFetch: domain registration radar", index_body, active="home", trust=trust)
+        page("RootFetch: domain registration trends by TLD", index_body, active="home", trust=trust)
     )
 
     # ---------- all TLDs ----------
@@ -969,10 +1200,12 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     )
     about_body = f"""
 <p class="eyebrow" style="margin-top:40px">About</p>
-<h1>A free radar for bulk domain registrations</h1>
+<h1>Free daily trends for every top-level domain</h1>
 <div class="prose">
-<p class="lede">RootFetch counts how many domains are registered under each top-level domain every day, and flags the ones that suddenly grow.</p>
-<h2>Why it matters</h2>
+<p class="lede">RootFetch counts how many domains are registered under each top-level domain, tracks which are growing or shrinking, and flags sudden jumps.</p>
+<h2>What you can use it for</h2>
+<p>Spot which TLDs are gaining or losing ground, compare growth across TLDs of any size, watch the daily pulse of the biggest ones, and download the full history.</p>
+<h2>Unusual jumps</h2>
 <p>Scammers register domains by the thousand in cheap TLDs, use them for a few days of phishing or spam, and move on. Those bursts show up as sudden jumps in a TLD's zone file, often before the domains land on blocklists. A spike can also be a harmless price promotion, so treat it as a lead, not a verdict.</p>
 <h2>Where the numbers come from</h2>
 <p>ICANN's <a href="https://czds.icann.org/">Centralized Zone Data Service</a> gives approved users daily copies of TLD zone files. Every day an automated job downloads a rolling set of them, counts the domains and throws the raw files away. Only the counts are published.</p>
@@ -987,7 +1220,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     (out_dir / "about.html").write_text(page("About · RootFetch", about_body, active="about", trust=trust))
 
     (out_dir / "404.html").write_text(
-        page("Not found · RootFetch", '<h1>No page here</h1><p class="lede"><a href="/">Go to the radar</a> or <a href="/tlds.html">find a TLD</a>.</p>')
+        page("Not found · RootFetch", '<h1>No page here</h1><p class="lede"><a href="/">Go to trends</a> or <a href="/tlds.html">find a TLD</a>.</p>')
     )
 
     # ---------- RSS ----------
