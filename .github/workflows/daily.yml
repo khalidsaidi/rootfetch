@@ -1,0 +1,109 @@
+name: daily
+
+# Daily: fetch zone counts from CZDS, commit them, rebuild rootfetch.com, deploy to GitHub Pages.
+# Pushes that only touch the site builder rebuild and redeploy without fetching.
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+    inputs:
+      skip_fetch:
+        description: "Only rebuild and deploy the site"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_site.py"
+      - ".github/workflows/daily.yml"
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    if: github.event_name != 'push' && !inputs.skip_fetch
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    env:
+      CZDS_USERNAME: ${{ secrets.CZDS_USERNAME }}
+      CZDS_PASSWORD: ${{ secrets.CZDS_PASSWORD }}
+      CZDS_TOTP_SECRET: ${{ secrets.CZDS_TOTP_SECRET }}
+      ROOTFETCH_TLD_ALLOWLIST: ${{ vars.ROOTFETCH_TLD_ALLOWLIST }}
+      ROOTFETCH_TLD_BLOCKLIST: ${{ vars.ROOTFETCH_TLD_BLOCKLIST }}
+      ROOTFETCH_MAX_WORKERS: ${{ vars.ROOTFETCH_MAX_WORKERS }}
+      ROOTFETCH_HTTP_TIMEOUT: ${{ vars.ROOTFETCH_HTTP_TIMEOUT }}
+      ROOTFETCH_RETRY_MAX: ${{ vars.ROOTFETCH_RETRY_MAX }}
+      ROOTFETCH_FETCH_MAX_SECONDS: ${{ vars.ROOTFETCH_FETCH_MAX_SECONDS || '300' }}
+      ROOTFETCH_BASELINE_TAIL_RETRY_MAX: ${{ vars.ROOTFETCH_BASELINE_TAIL_RETRY_MAX || '2' }}
+      ROOTFETCH_BASELINE_TAIL_FETCH_MAX_SECONDS: ${{ vars.ROOTFETCH_BASELINE_TAIL_FETCH_MAX_SECONDS || '120' }}
+      ROOTFETCH_COUNT_MODE: ${{ vars.ROOTFETCH_COUNT_MODE }}
+      ROOTFETCH_MIN_BASE_FOR_PCT: ${{ vars.ROOTFETCH_MIN_BASE_FOR_PCT }}
+      ROOTFETCH_BASELINE_PASS_TIMEOUT_SECONDS: ${{ vars.ROOTFETCH_BASELINE_PASS_TIMEOUT_SECONDS || '420' }}
+      ROOTFETCH_BASELINE_MAX_SECONDS: ${{ vars.ROOTFETCH_BASELINE_MAX_SECONDS || '2400' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Configure git identity
+        run: |
+          git config --global user.name "rootfetch-bot"
+          git config --global user.email "rootfetch-bot@users.noreply.github.com"
+
+      - name: Fetch counts and commit
+        run: ./scripts/local_run_hybrid.sh
+
+  site:
+    needs: fetch
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build site
+        run: python scripts/build_site.py --out _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+      # Fails the run (GitHub emails the repo owner) when the newest data is more than 3 days old.
+      - name: Check data freshness
+        run: |
+          python - <<'PY'
+          import json, sys
+          s = json.load(open("_site/status.json"))
+          print(f"last update {s['last_update']} ({s['age_days']} days ago)")
+          sys.exit(1 if s["stale"] else 0)
+          PY
