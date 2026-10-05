@@ -514,7 +514,7 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 <a class="skip" href="#main">Skip to content</a>
 <header class="top"><div class="wrap">
 <a class="brand" href="{root}index.html">{LOGO}RootFetch</a>
-<nav aria-label="Main">{link("index.html", "Trends", "home")}{link("tlds.html", "All TLDs", "tlds")}{link("spikes.html", "Unusual jumps", "spikes")}{link("data.html", "Data", "data")}{link("about.html", "About", "about")}</nav>
+<nav aria-label="Main">{link("index.html", "Trends", "home")}{link("tlds.html", "Extensions list", "tlds")}{link("spikes.html", "Unusual jumps", "spikes")}{link("data.html", "Data", "data")}{link("about.html", "About", "about")}</nav>
 </div></header>
 <div class="wrap">{trust}</div>
 <main id="main" class="wrap">
@@ -900,7 +900,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     if big and lead_gain:
         share = len(growing) / len(big)
         headline = (
-            f'<span class="hl">{len(growing)} of {len(big)}</span> large TLDs are growing. '
+            f'<span class="hl">{len(growing)} of {len(big)}</span> large domain extensions are growing. '
             f".{esc(unicode_name(lead_gain.tld))} leads, adding {fmt_compact(per_week[lead_gain.tld])} domains a week."
         )
     else:
@@ -1007,7 +1007,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         '<span><i style="background:var(--dot)"></i>Normal</span></div>'
     )
     index_body = f"""
-<p class="eyebrow" style="margin-top:36px">Domain trends · {fmt_day(last_update)}</p>
+<p class="eyebrow" style="margin-top:36px">Domain statistics · {fmt_day(last_update)}</p>
 <h1>{headline}</h1>
 <ul class="takeaways">{"".join(f"<li>{t}</li>" for t in takeaways)}</ul>
 <div class="kpis">{kpi_html}</div>
@@ -1051,14 +1051,14 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         og.site_image(out_dir / "og" / "home.png", re.sub("<[^>]+>", "", headline).replace("&amp;", "&"),
                       f"Daily domain trends for {len(series):,} top-level domains · {fmt_day(last_update)}",
                       sorted(series["xyz"].items()) if "xyz" in series else None)
-        og.site_image(out_dir / "og" / "site.png", "Domain registration trends for every TLD",
+        og.site_image(out_dir / "og" / "site.png", "Domain statistics & trends for every domain extension",
                       f"{len(series):,} top-level domains · updated daily from ICANN zone files")
         og.logo_image(out_dir / "og" / "logo.png")
     (out_dir / "index.html").write_text(
-        page("Domain registration trends for every TLD · RootFetch", index_body, active="home", trust=trust,
+        page("Domain statistics & trends by extension (TLD) | RootFetch", index_body, active="home", trust=trust,
              path="", image="og/home.png",
-             description=(f"Daily domain counts for {len(series):,} TLDs from ICANN zone files: "
-                          "fastest growing and shrinking TLDs, rankings, daily trends and unusual registration jumps."),
+             description=(f"Domain statistics for {len(series):,} domain extensions (TLDs): daily counts, fastest growing "
+                          "and shrinking extensions, rankings and unusual registration jumps."),
              jsonld=[{"@type": "Dataset", "@id": f"{SITE_URL}/#dataset", "name": "RootFetch TLD domain counts",
                       "description": f"Registered domain counts for {len(series):,} top-level domains, checked on a rolling daily schedule from ICANN CZDS zone files.",
                       "url": f"{SITE_URL}/", "creator": {"@id": f"{SITE_URL}/#org"}, "license": DATA_LICENSE,
@@ -1112,10 +1112,25 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
             f'<td class="spark" data-v="{ch.weekly if ch else 0:.6f}">{sparkline(ordered)}</td>'
             f'<td data-v="{last}">{fmt_day(last, False)}</td><td data-v="{(2 if sev else 0) + (1 if tld in KNOWN_ABUSE else 0)}"><span class="chips">{flags}</span></td></tr>'
         )
+    top3 = sorted(series, key=lambda t: -series[t][max(series[t])])[:3]
+    ext_faq = [
+        ("What is a domain extension (TLD)?",
+         "A domain extension, or top-level domain (TLD), is the last part of a domain name, like .com, .xyz or .app. "
+         "Each one is run by a registry that publishes a zone file listing every registered domain under it."),
+        ("How many domain extensions are there?",
+         f"About 1,500 TLDs exist in the DNS root. RootFetch tracks {len(series):,} of them, the ones whose zone files it can access through ICANN's Centralized Zone Data Service."),
+        ("What is the most popular domain extension?",
+         ".com is the largest overall. Among the extensions RootFetch tracks, the largest are "
+         + ", ".join(f".{unicode_name(t)} ({fmt_compact(series[t][max(series[t])])} domains)" for t in top3) + "."),
+    ]
+    if fastest:
+        ext_faq.append(("Which domain extensions are growing fastest?",
+                        "At their latest checks, the fastest growing large extensions are "
+                        + ", ".join(f".{unicode_name(c.tld)} ({fmt_pct(c.weekly)} a week)" for c in fastest[:3]) + "."))
     tlds_body = f"""
-<p class="eyebrow" style="margin-top:40px">Every tracked TLD</p>
-<h1>All {len(series):,} TLDs</h1>
-<p class="lede">Latest domain count for each TLD, and how it changed since its previous check. Growth is scaled to one week so TLDs checked at different intervals can be compared.</p>
+<p class="eyebrow" style="margin-top:40px">TLD list · {fmt_day(last_update)}</p>
+<h1>Domain extensions list: all {len(series):,} TLDs ranked by size</h1>
+<p class="lede">Every domain extension (TLD) RootFetch tracks, with its number of registered domains and how it changed since its previous check. Growth is scaled to one week so extensions checked at different intervals compare fairly.</p>
 <section class="section">
 <div class="tools"><input id="q" type="search" placeholder="Find a TLD, e.g. xyz" aria-label="Find a TLD">
 <div class="seg" role="group" aria-label="Show">
@@ -1128,11 +1143,13 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <thead><tr><th data-sort>TLD</th><th class="n" data-sort data-dir="desc">Domains</th><th class="n" data-sort>Change</th><th class="n" data-sort>Per week</th><th data-sort>Trend</th><th data-sort>Checked</th><th data-sort>Flags</th></tr></thead>
 <tbody>{"".join(rows)}</tbody></table></div>
 </section>
+<section class="section faq"><h2>About domain extensions</h2>{"".join(f"<details{' open' if i == 0 else ''}><summary>{esc(q)}</summary><p>{esc(a)}</p></details>" for i, (q, a) in enumerate(ext_faq))}</section>
 """
-    (out_dir / "tlds.html").write_text(page(f"All {len(series):,} TLDs ranked by domain count · RootFetch", tlds_body, active="tlds", trust=trust,
+    (out_dir / "tlds.html").write_text(page(f"Domain extensions list: {len(series):,} TLDs ranked | RootFetch", tlds_body, active="tlds", trust=trust,
                                                path="tlds.html",
-                                               description=f"Every top-level domain RootFetch tracks, ranked by registered domains, with weekly growth, trend lines and unusual-jump flags. Updated {fmt_day(last_update)}.",
-                                               jsonld=[{"@type": "ItemList", "name": "Largest TLDs by registered domains", "numberOfItems": 25,
+                                               description=f"Full TLD list: {len(series):,} domain extensions ranked by number of registered domains, with weekly growth, trend lines and unusual-jump flags. Updated {fmt_day(last_update)}.",
+                                               jsonld=[{"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in ext_faq]},
+                                                       {"@type": "ItemList", "name": "Largest domain extensions by registered domains", "numberOfItems": 25,
                                                         "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f"{SITE_URL}/tld/{t}.html", "name": f".{unicode_name(t)}"}
                                                                             for i, t in enumerate(sorted(series, key=lambda t: -series[t][max(series[t])])[:25])]}]))
 
@@ -1220,7 +1237,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 
         # plain-language summary, written from this TLD's own numbers
         facts = [f".{esc(u)} has <b>{fmt_int(last_v)}</b> registered domains as of {fmt_day(last_d)}, "
-                 f"making it the <b>#{rank:,}</b> largest of the {len(series):,} TLDs RootFetch tracks."]
+                 f"making it the <b>#{rank:,}</b> largest of the {len(series):,} domain extensions RootFetch tracks."]
         if len(ordered) > 1:
             direction = "grown" if overall > 0 else "shrunk" if overall < 0 else "held steady"
             facts.append(
@@ -1264,8 +1281,8 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
                         f".{u} went from {fmt_int(first_v)} domains on {fmt_day(first_d)} to {fmt_int(last_v)} on {fmt_day(last_d)}, "
                         f"a change of {fmt_pct(overall_pct)}."
                         + (f" Its latest rate is about {fmt_pct(latest.weekly)} a week." if latest and latest.gap_days <= 60 else "")))
-        faq.append((f"How big is .{u} compared to other TLDs?",
-                    f".{u} is the #{rank:,} largest of {len(series):,} tracked top-level domains."
+        faq.append((f"How big is the .{u} domain extension compared to others?",
+                    f".{u} is the #{rank:,} largest of {len(series):,} tracked domain extensions (TLDs)."
                     + (f" Similar-sized TLDs include {', '.join('.' + unicode_name(t) for t in near[:3])}." if near else "")))
         if tspikes:
             faq.append((f"Has .{u} had sudden registration spikes?",
@@ -1293,13 +1310,13 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         ld = [
             {"@type": "BreadcrumbList", "itemListElement": [
                 {"@type": "ListItem", "position": 1, "name": "Trends", "item": f"{SITE_URL}/"},
-                {"@type": "ListItem", "position": 2, "name": "All TLDs", "item": f"{SITE_URL}/tlds.html"},
+                {"@type": "ListItem", "position": 2, "name": "Domain extensions", "item": f"{SITE_URL}/tlds.html"},
                 {"@type": "ListItem", "position": 3, "name": f".{u}", "item": page_url}]},
             {"@type": "Dataset", "@id": f"{page_url}#dataset", "name": f".{u} domain count history",
              "description": f"Number of registered .{u} domains at each check from {first_d} to {last_d}, counted from the .{u} zone file via ICANN CZDS.",
              "url": page_url, "creator": {"@id": f"{SITE_URL}/#org"}, "license": DATA_LICENSE, "isAccessibleForFree": True,
              "temporalCoverage": f"{first_d}/{last_d}", "dateModified": last_d,
-             "keywords": [f".{u}", f"{u} domains", "domain registrations", "TLD statistics", "zone file"],
+             "keywords": [f".{u}", f"{u} domain", f".{u} domain statistics", "domain extension", "domain statistics", "TLD"],
              "variableMeasured": "Registered second-level domains with NS records",
              "distribution": [{"@type": "DataDownload", "encodingFormat": "text/csv", "contentUrl": f"{SITE_URL}/data/tld/{tld}.csv"}]},
             {"@type": "FAQPage", "mainEntity": [
@@ -1307,8 +1324,8 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         ]
 
         body = f"""
-<nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Trends</a><span>/</span><a href="../tlds.html">All TLDs</a><span>/</span><span aria-current="page">.{esc(u)}</span></nav>
-<h1 style="margin-top:12px">.{esc(u)} domains</h1>{sub}
+<nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Trends</a><span>/</span><a href="../tlds.html">Domain extensions</a><span>/</span><span aria-current="page">.{esc(u)}</span></nav>
+<h1 style="margin-top:12px">.{esc(u)} domain statistics</h1>{sub}
 <div class="chips">{(sev_chip(tspikes[-1]) + f'<span class="count">last jump {fmt_day(tspikes[-1].date)}</span>') if tspikes else ""}{abuse_chip(tld, 1)}</div>
 <div class="facts">
 <div><b>{fmt_int(last_v)}</b><small>domains on {fmt_day(last_d)}</small></div>
@@ -1323,20 +1340,20 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <div class="tablebox" style="margin-top:12px"><table><thead><tr><th>Date</th><th class="n">Domains</th><th class="n">Change</th><th class="n">Growth</th><th class="n">Window</th><th>Severity</th></tr></thead>
 <tbody>{"".join(hist_rows)}</tbody></table></div></section>
 <section class="section faq"><h2>Questions about .{esc(u)}</h2>{faq_html}</section>
-<section class="section"><h2>TLDs of similar size</h2><ul class="related">{related}</ul></section>
+<section class="section"><h2>Domain extensions of similar size</h2><ul class="related">{related}</ul></section>
 """
-        title = f".{u} domains: {fmt_int(last_v)} registered ({date.fromisoformat(last_d).strftime('%b %Y')}) | RootFetch"
+        title = f".{u} domain statistics: {fmt_int(last_v)} domains | RootFetch"
         if len(title) > 60:
-            title = f".{u} domains: {fmt_int(last_v)} registered | RootFetch"
+            title = f".{u} domains: {fmt_int(last_v)} | RootFetch"
         if len(title) > 60:
-            title = f".{u} domain count | RootFetch"
+            title = f".{u} domain statistics | RootFetch"
         desc = (
             f"How many .{u} domains are there? {fmt_int(last_v)} as of {fmt_day(last_d)}"
             + (f", {fmt_pct(overall_pct, 0 if abs(overall_pct) >= .1 else 1)} since {fmt_day(first_d, False)}" if len(ordered) > 1 else "")
-            + f". Growth, rank and history from ICANN zone files."
+            + f". .{u} domain statistics, growth and trends from ICANN zone files."
         )
         if len(desc) > 158:
-            desc = f"How many .{u} domains are there? {fmt_int(last_v)} as of {fmt_day(last_d)}. Growth and history from ICANN zone files."
+            desc = f"How many .{u} domains are there? {fmt_int(last_v)} as of {fmt_day(last_d)}. Domain statistics and trends from ICANN zone files."
         (out_dir / "tld" / f"{tld}.html").write_text(
             page(title, body, depth=1, trust=trust, description=desc, path=path, image=image, jsonld=ld, noindex=noindex)
         )
@@ -1414,6 +1431,8 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <p>Scammers register domains by the thousand in cheap TLDs, use them for a few days of phishing or spam, and move on. Those bursts show up as sudden jumps in a TLD's zone file, often before the domains land on blocklists. A spike can also be a harmless price promotion, so treat it as a lead, not a verdict.</p>
 <h2>Where the numbers come from</h2>
 <p>ICANN's <a href="https://czds.icann.org/">Centralized Zone Data Service</a> gives approved users daily copies of TLD zone files. Every day an automated job downloads a rolling set of them, counts the domains and throws the raw files away. Only the counts are published.</p>
+<h2 id="what-is-a-tld">What is a TLD?</h2>
+<p>A top-level domain (TLD), also called a domain extension, is the last part of a domain name: the <b>.com</b> in example.com or the <b>.xyz</b> in example.xyz. Each TLD's registry publishes a zone file listing every registered domain, which is what RootFetch counts.</p>
 <h2 id="abuse-lists">"On abuse lists"</h2>
 <p>These TLDs are named among the most abused in recent reports by Interisle Consulting Group:</p>
 <ul>{abuse_items}</ul>
