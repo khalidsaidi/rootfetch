@@ -105,15 +105,22 @@ jobs:
         continue-on-error: true
         run: |
           python - <<'PY'
-          import json, urllib.request
+          import json, urllib.error, urllib.request
           urls = open("_site/indexnow-urls.txt").read().split()
           body = json.dumps({"host": "rootfetch.com", "key": "dd02934e864e3daa533425b5d6e4ad28",
                              "keyLocation": "https://rootfetch.com/dd02934e864e3daa533425b5d6e4ad28.txt",
                              "urlList": urls[:10000]}).encode()
           req = urllib.request.Request("https://api.indexnow.org/indexnow", data=body,
                                        headers={"Content-Type": "application/json; charset=utf-8"})
-          with urllib.request.urlopen(req, timeout=30) as r:
-              print("IndexNow", r.status, len(urls), "urls")
+          import time
+          for attempt in range(4):  # the key file can take a minute to appear after deploy
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      print("IndexNow", r.status, len(urls), "urls")
+                      break
+              except urllib.error.HTTPError as e:
+                  print("IndexNow", e.code, "retrying")
+                  time.sleep(60)
           PY
 
       # Fails the run (GitHub emails the repo owner) when the newest data is more than 3 days old.
