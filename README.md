@@ -23,12 +23,13 @@ RootFetch is the verifiable structural layer, not a full threat-intelligence sui
 - Immutable run artifacts (cacheable for 1 year)
 - Atomic `latest.json` pointer (no mixed reads)
 - Auditable alert delivery (at-least-once + durable dedup + dead-letter)
-- Read-only serving on GCP Cloud Run
+- Static site on GitHub Pages: no servers, no hosting bill
 
 ## Operating Model
 
-- Ingestion runs on your machine (local runner), not on the hosted runtime.
-- Cloud Run serves read-only precomputed artifacts from the repo.
+- `.github/workflows/daily.yml` runs every day at 03:30 UTC on GitHub Actions (free for public repos): it fetches counts from CZDS, commits them under `data/`, rebuilds the site with `scripts/build_site.py`, and deploys it to rootfetch.com on GitHub Pages.
+- The run fails, and GitHub emails the repo owner, when the newest data is more than 3 days old.
+- Build the site locally with `python scripts/build_site.py` (output in `_site/`).
 - Two ingestion modes:
   - Day-1 baseline: ingest all approved CZDS TLDs in one resumable run.
   - Daily hybrid (after baseline completion): core set daily + deterministic rolling long tail.
