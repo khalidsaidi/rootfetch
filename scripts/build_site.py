@@ -11,6 +11,7 @@ import csv
 import html
 import json
 import math
+import os
 import re
 import shutil
 import sys
@@ -215,6 +216,141 @@ def abuse_chip(tld: str, depth: int = 0) -> str:
         f'<a class="abuse" href="{"../" * depth}about.html#abuse-lists" '
         f'title="Named in Interisle Consulting Group abuse reports">On abuse lists</a>'
     )
+
+
+GA_ID = "G-6W6C3JRX1Z"
+# Raw string on purpose: the regexes below must reach the browser with their backslashes intact.
+GA_HEAD = r"""<script async src="https://www.googletagmanager.com/gtag/js?id=G-6W6C3JRX1Z"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+// Only the real site reports; local previews and forks stay out of the data.
+if (location.hostname !== 'rootfetch.com') window['ga-disable-G-6W6C3JRX1Z'] = true;
+(function () {
+  var p = location.pathname.replace(/\/index\.html$/, '/');
+  var kind = p === '/' ? 'home'
+    : /^\/tld\//.test(p) ? 'tld'
+    : /^\/tlds(\.html)?$/.test(p) ? 'tld_list'
+    : /^\/spikes(\.html)?$/.test(p) ? 'jumps'
+    : /^\/data(\.html)?$/.test(p) ? 'data'
+    : /^\/about(\.html)?$/.test(p) ? 'about'
+    : 'other';
+  var tld = (p.match(/^\/tld\/([^\/.]+)/) || [])[1] || '';
+  window.__pageType = kind;
+  window.__tld = tld;
+  var cfg = { content_group: kind, page_type: kind };
+  if (tld) cfg.tld = tld;
+  gtag('config', 'G-6W6C3JRX1Z', cfg);
+})();
+</script>"""
+
+GA_EVENTS = r"""<script>
+(function () {
+  var TYPE = window.__pageType || 'other';
+  var TLD = window.__tld || '';
+
+  function send(name, params) {
+    try {
+      if (!window.gtag) return;
+      var p = params || {};
+      p.page_type = TYPE;
+      if (TLD && !p.tld) p.tld = TLD;
+      gtag('event', name, p);
+    } catch (e) {}
+  }
+  function label(el) { return (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 100); }
+
+  // Where on the page a link sits, so we know which chart or list sends people to a TLD.
+  var SOURCES = [['.radar', 'radar'], ['.board', 'ranking'], ['.card', 'jump_card'], ['#all', 'table'],
+    ['.related', 'related'], ['.sm', 'small_multiple'], ['.pulse', 'pulse'], ['.crumbs', 'breadcrumb'],
+    ['nav', 'nav'], ['table', 'table'], ['footer', 'footer']];
+  function source(a) {
+    for (var i = 0; i < SOURCES.length; i++) if (a.closest(SOURCES[i][0])) return SOURCES[i][1];
+    return 'body';
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var a = t.closest('a[href]'); if (!a) return;
+    var src = source(a);
+    if (a.closest('nav')) send('nav_click', { cta: label(a) });
+    if (a.classList.contains('cta')) send('cta_click', { cta: label(a), method: src });
+    var raw = a.getAttribute('href') || (a.href && a.href.baseVal) || '';
+    var url; try { url = new URL(raw, location.href); } catch (err) { return; }
+    var path = url.pathname;
+    if (url.host !== location.host) { send('outbound_click', { link_domain: url.host }); return; }
+    var m = path.match(/^\/tld\/([^\/.]+)(?:\.html)?$/);
+    if (m) send('tld_open', { tld: m[1], method: src });
+    var f = path.match(/([^\/]+\.(csv|json))$/);
+    if (f) send('data_download', { file_name: f[1], method: src });
+    if (/feed\.xml$/.test(path)) send('rss_subscribe', { method: src });
+  });
+
+  document.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (d && d.tagName === 'DETAILS' && d.open) {
+      var s = d.querySelector('summary');
+      send('disclosure_open', { faq_question: s ? label(s) : '' });
+    }
+  }, true);
+
+  // Extension list: filter box, segment buttons, column sort.
+  var q = document.getElementById('q'), qTimer;
+  if (q) {
+    var pre = new URLSearchParams(location.search).get('q');
+    if (pre) { q.value = pre; q.dispatchEvent(new Event('input')); }
+    q.addEventListener('input', function () {
+      clearTimeout(qTimer);
+      qTimer = setTimeout(function () {
+        var v = q.value.trim();
+        if (v.length >= 2) send('search', { search_term: v.slice(0, 100) });
+      }, 1200);
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var b = t.closest('.seg button');
+    if (b) send('filter_change', { filter: b.getAttribute('data-mode') || label(b) });
+    var th = t.closest('th[data-sort]');
+    if (th) send('table_sort', { sort_column: label(th).replace(/[↑↓]/g, '').trim() });
+  });
+
+  // First tooltip per chart type per page.
+  var hovered = {};
+  document.addEventListener('mouseover', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var el = t.closest('[data-tip]'); if (!el) return;
+    var kind = el.closest('.radar') ? 'radar' : el.closest('.chart') ? 'history' : el.closest('.weeks') ? 'jumps_timeline' : el.closest('.pulse') ? 'pulse' : 'other';
+    if (hovered[kind]) return;
+    hovered[kind] = 1;
+    send('chart_hover', { chart: kind });
+  });
+
+  var marks = [25, 50, 75, 100], hit = {};
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight; if (max <= 0) return;
+    var pct = Math.min(100, Math.round(((window.scrollY || h.scrollTop) / max) * 100));
+    for (var i = 0; i < marks.length; i++) {
+      if (pct >= marks[i] && !hit[marks[i]]) { hit[marks[i]] = 1; send('scroll_depth', { scroll_depth: String(marks[i]) }); }
+    }
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  var t0 = Date.now(), done = 0;
+  addEventListener('scroll', function () {
+    if (!done && hit[75] && Date.now() - t0 > 30000) { done = 1; send('read_complete', {}); }
+  }, { passive: true });
+
+  addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'hidden' || window.__left) return;
+    window.__left = 1;
+    send('page_exit', { seconds_on_page: String(Math.round((Date.now() - t0) / 1000)) });
+  });
+})();
+</script>"""
 
 
 # ---------- design ----------
@@ -503,6 +639,7 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 <meta name="twitter:image" content="{SITE_URL}/{image}">
 <meta name="theme-color" content="#0f1a2a">
 <script type="application/ld+json">{ld}</script>
+{GA_HEAD}
 <link rel="alternate" type="application/rss+xml" title="RootFetch spikes" href="{SITE_URL}/feed.xml">
 <link rel="icon" href="{FAVICON}">
 <link rel="apple-touch-icon" href="{SITE_URL}/og/logo.png">
@@ -524,6 +661,7 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 <a href="{root}feed.xml">RSS feed</a><a href="{REPO_URL}">Source on GitHub</a></div></footer>
 <div id="tip" role="tooltip"></div>
 <script>{JS}</script>
+{GA_EVENTS}
 </body>
 </html>
 """
@@ -1021,7 +1159,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <section class="section" aria-labelledby="boards-h">
 <div class="section-head"><div><h2 id="boards-h">Who's growing, who's shrinking</h2>
 <p>Rankings from each TLD's latest check. Growth per week is scaled so TLDs checked days or weeks apart compare fairly.</p></div>
-<span class="count"><a href="tlds.html">All TLDs →</a></span></div>
+<span class="count"><a class="cta" href="tlds.html">All extensions →</a></span></div>
 <div class="boards">{boards}</div>
 </section>
 
@@ -1041,7 +1179,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <section class="section" aria-labelledby="watch-h">
 <div class="section-head"><div><h2 id="watch-h">Unusual jumps</h2>
 <p>At least {fmt_int(SPIKE_MIN_ADDED)} new domains and {SPIKE_MIN_PCT:.0%}+ growth within {SPIKE_MAX_GAP_DAYS} days. Sometimes a price promotion, sometimes bulk registrations for spam or phishing.</p></div>
-<span class="count"><a href="spikes.html">All {len(spikes)} jumps →</a> · <a href="feed.xml">RSS</a></span></div>
+<span class="count"><a class="cta" href="spikes.html">All {len(spikes)} jumps →</a> · <a class="cta" href="feed.xml">RSS</a></span></div>
 {watch_block}
 </section>
 """
@@ -1186,7 +1324,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <p class="eyebrow" style="margin-top:40px">Alerts</p>
 <h1>{len(spikes)} spikes so far</h1>
 <p class="lede">A spike is when a TLD gains at least {fmt_int(SPIKE_MIN_ADDED)} domains and grows {SPIKE_MIN_PCT:.0%} or more since its previous check, and that check was no more than {SPIKE_MAX_GAP_DAYS} days earlier. Severity follows the size of the jump: <b>Elevated</b> 5–10%, <b>High</b> 10–20%, <b>Critical</b> 20% and up.</p>
-<p><a href="feed.xml">Follow new spikes by RSS</a> · <a href="data/spikes.csv">CSV</a> · <a href="data/spikes.json">JSON</a></p>
+<p><a class="cta" href="feed.xml">Follow new spikes by RSS</a> · <a class="cta" href="data/spikes.csv">CSV</a> · <a class="cta" href="data/spikes.json">JSON</a></p>
 <section class="section" aria-labelledby="t-h"><div class="section-head"><h2 id="t-h">Spikes per week</h2>
 <p>Weeks without data look the same as quiet weeks. Check the trust bar above for gaps.</p></div>
 <div class="weeks">{"".join(bars)}</div></section>
@@ -1335,7 +1473,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 </div>
 <div class="prose summary"><p>{summary}</p>{context}</div>
 <div class="chart" style="margin-top:20px">{history_chart(ordered, by_date)}</div>
-<p class="count" style="margin-top:8px">Dashed lines mark gaps longer than {SPIKE_MAX_GAP_DAYS} days with no checks. <a href="../data/tld/{esc(tld)}.csv">Download .{esc(u)} history (CSV)</a></p>
+<p class="count" style="margin-top:8px">Dashed lines mark gaps longer than {SPIKE_MAX_GAP_DAYS} days with no checks. <a class="cta" href="../data/tld/{esc(tld)}.csv">Download .{esc(u)} history (CSV)</a></p>
 <section class="section"><h2>Every check</h2>
 <div class="tablebox" style="margin-top:12px"><table><thead><tr><th>Date</th><th class="n">Domains</th><th class="n">Change</th><th class="n">Growth</th><th class="n">Window</th><th>Severity</th></tr></thead>
 <tbody>{"".join(hist_rows)}</tbody></table></div></section>
@@ -1402,12 +1540,12 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <h1>Download everything</h1>
 <p class="lede">All data on this site is free to download and reuse. Files are rebuilt every day.</p>
 <section class="section"><div class="dl">
-<a href="data/history.csv"><code>history.csv</code><small>Every check for every TLD: date, tld, count.</small></a>
-<a href="data/latest.json"><code>latest.json</code><small>Latest count per TLD, change since the previous check, severity and abuse-list flag.</small></a>
-<a href="data/spikes.csv"><code>spikes.csv</code><small>Every flagged spike with severity.</small></a>
-<a href="data/spikes.json"><code>spikes.json</code><small>Spikes plus the exact rule used to flag them.</small></a>
-<a href="feed.xml"><code>feed.xml</code><small>RSS feed of new spikes.</small></a>
-<a href="status.json"><code>status.json</code><small>Date of the newest data, for monitoring.</small></a>
+<a class="cta" href="data/history.csv"><code>history.csv</code><small>Every check for every TLD: date, tld, count.</small></a>
+<a class="cta" href="data/latest.json"><code>latest.json</code><small>Latest count per TLD, change since the previous check, severity and abuse-list flag.</small></a>
+<a class="cta" href="data/spikes.csv"><code>spikes.csv</code><small>Every flagged spike with severity.</small></a>
+<a class="cta" href="data/spikes.json"><code>spikes.json</code><small>Spikes plus the exact rule used to flag them.</small></a>
+<a class="cta" href="feed.xml"><code>feed.xml</code><small>RSS feed of new spikes.</small></a>
+<a class="cta" href="status.json"><code>status.json</code><small>Date of the newest data, for monitoring.</small></a>
 </div></section>
 <section class="section prose"><h2>How the numbers are made</h2>
 <p>A count is the number of distinct second-level names with NS records in a TLD's zone file. About {checked_latest} TLDs are checked per run on a rolling schedule, so each is re-checked roughly every two weeks; .xyz, .app and .dev are checked daily. Only TLDs RootFetch has CZDS access to are included, which is why .com isn't here yet.</p>
@@ -1535,7 +1673,24 @@ def main() -> None:
     parser.add_argument("--counts-dir", type=Path, default=COUNTS_DIR)
     args = parser.parse_args()
     summary = build(args.out, args.counts_dir, datetime.now(timezone.utc).date())
+    check_inline_scripts(args.out)
     print(json.dumps(summary))
+
+
+def check_inline_scripts(out: Path) -> None:
+    """Fail the build if any inline script (analytics included) would not parse in a browser."""
+    import subprocess
+
+    guard = Path(__file__).resolve().parent / "check_inline_js.mjs"
+    if not shutil.which("node"):
+        if os.environ.get("CI"):
+            raise SystemExit("node is required for the inline script check")
+        print("node not found: skipping inline script check", file=sys.stderr)
+        return
+    result = subprocess.run(["node", str(guard), str(out)], capture_output=True, text=True)
+    sys.stderr.write(result.stdout + result.stderr)
+    if result.returncode:
+        raise SystemExit("build stopped: inline script check failed")
 
 
 if __name__ == "__main__":
