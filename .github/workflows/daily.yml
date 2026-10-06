@@ -91,6 +91,7 @@ jobs:
       - name: Build site
         run: |
           pip install pillow
+          python scripts/fetch_tld_meta.py
           python scripts/build_site.py --out _site
 
       - uses: actions/upload-pages-artifact@v3
