@@ -26,8 +26,12 @@ SITE_URL = "https://rootfetch.com"
 REPO_URL = "https://github.com/khalidsaidi/rootfetch"
 DATA_LICENSE = "https://creativecommons.org/licenses/by/4.0/"
 INDEXNOW_KEY = "dd02934e864e3daa533425b5d6e4ad28"
-# Pages for TLDs smaller than this are kept out of search indexes (mostly single-company TLDs).
-NOINDEX_BELOW = 20
+# A TLD page is offered to search engines only once it has real data behind it: enough domains,
+# enough checks to show a trend, and a recent check. Thinner pages stay up for visitors (noindex,follow)
+# and graduate automatically as data accrues. Keeps the site clear of Google's scaled-content rules.
+INDEX_MIN_DOMAINS = 1000
+INDEX_MIN_CHECKS = 4
+INDEX_MAX_AGE_DAYS = 90
 ORG = {"@type": "Organization", "@id": f"{SITE_URL}/#org", "name": "RootFetch", "url": f"{SITE_URL}/",
        "logo": f"{SITE_URL}/og/logo.png", "sameAs": [REPO_URL]}
 WEBSITE = {"@type": "WebSite", "@id": f"{SITE_URL}/#website", "name": "RootFetch", "url": f"{SITE_URL}/",
@@ -1617,7 +1621,8 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         overall_pct = overall / first_v if first_v else 0
         u = unicode_name(tld)
         latest = cs[-1] if cs else None
-        noindex = last_v < NOINDEX_BELOW
+        noindex = (last_v < INDEX_MIN_DOMAINS or len(ordered) < INDEX_MIN_CHECKS
+                   or (last_day - date.fromisoformat(last_d)).days > INDEX_MAX_AGE_DAYS)
         rank = size_rank[tld]
         sub = f'<p class="count">{esc(tld)}</p>' if u != tld else ""
 
