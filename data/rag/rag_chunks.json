@@ -676,15 +676,6 @@
       "resource_uri": "rootfetch://docs/work_plan"
     },
     {
-      "id": "17e6266086eb32ea21f5eee00e05891a6caf8cd4",
-      "source_path": "data/digests/2026-02-24.md",
-      "source_type": "digest",
-      "date_utc": "2026-02-24",
-      "title": "RootFetch Daily Digest \u2014 2026-02-24",
-      "text": "# RootFetch Daily Digest \u2014 2026-02-24\n\n- Run ID: f1a0dbdd-7886-4e8e-babf-6b90014560d5\n- Mode: hybrid\n- Approved TLDs observed: 838\n- Counted today: 838 (core=3, rolling=45)\n\n## Core Daily Movers (Absolute)\n_No data._\n\n## Core Daily Movers (Percentage)\n_No data._\n\n## Core Daily Decliners\n_No data._\n\n## Rolling Updates (Since Last Seen)\n_No data._\n\n## Notable Anomalies\n_No data._\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2907992 |  |  | 6 |\n| commerce | 2124928 |  |  | 4 |\n| finance | 60936 |  |  | 3 |\n| geo_local | 96542 |  |  | 3 |\n| media_social | 1009377 |  |  | 4 |\n| other | 47318217 |  |  | 818 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
-      "resource_uri": "rootfetch://digest/2026-02-24"
-    },
-    {
       "id": "5d0b8ebc3afa29f2c4f9509f437889ef42b82740",
       "source_path": "data/digests/2026-02-25.md",
       "source_type": "digest",
@@ -3032,6 +3023,51 @@
       "title": "Sector Snapshot",
       "text": "ctor | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 3134025 | 599466.0 | 0.2365168851859436 | 3 |\n| other | 19842702 | 7511435.0 | 0.6091373254670425 | 82 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
       "resource_uri": "rootfetch://digest/2026-10-16"
+    },
+    {
+      "id": "79db58c04e36f907c3ccc2444172fa66ff7efddb",
+      "source_path": "data/digests/2026-10-17.md",
+      "source_type": "digest",
+      "date_utc": "2026-10-17",
+      "title": "RootFetch Daily Digest \u2014 2026-10-17",
+      "text": "# RootFetch Daily Digest \u2014 2026-10-17\n\n- Run ID: 741fc622-9527-4c03-84df-c1ec2744ef8b\n- Mode: hybrid\n- Approved TLDs observed: 1065\n- Observed today: 78 (core=3, rolling=75)\n- Snapshot rows today: 78\n\n## Cross-sectional highlights\n- Total delegated counted today: 18,104,428\n- Distribution (p50 / p90 / p99 / max): 2,610 / 109,679 / 4,074,592 / 11,149,142\n- Concentration (Top1 / Top10 share): 61.58% / 97.20% (HHI=0.4066)\n- New approvals vs 2026-10-16: +0 / -0\n- Added approvals (first 10): none\n\n## Daily Insights\n- [market/info] Top 10 TLDs hold 97.20% of delegations; median TLD has 2,610 names; 32 TLDs have <100.\n- [movers/positive] Core movers: .xyz +166,939, .app +4,729, .dev +1,215 (day-over-day).\n- [approvals/info] New approvals today: +0.\n- [coverage/neutral] Observed today: 78 (core+rolling) out of 1,065 approved TLDs; snapshot rows today: 78. Missing ever: 1.\n\n## Security Status\n- Safe aggregates checks date: 2026-10-17\n- no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_read_only: True\n- runtime_platform: gcp-cloud-run\n\n## Top TLDs by Count (",
+      "resource_uri": "rootfetch://digest/2026-10-17"
+    },
+    {
+      "id": "7b3b1365ca090cda925bdc940ffd6e55e926b336",
+      "source_path": "data/digests/2026-10-17.md",
+      "source_type": "digest",
+      "date_utc": "2026-10-17",
+      "title": "Security Status",
+      "text": "no_raw_zones_tracked: True\n- no_ai_dir_tracked: True\n- no_env_tracked: True\n- runtime_read_only: True\n- runtime_platform: gcp-cloud-run\n\n## Top TLDs by Count (Today)\n| tld | count | share_pct | sector | cadence |\n| --- | --- | --- | --- | --- |\n| xyz | 11149142 | 61.58240403949796 | other | core |\n| vip | 1961415 | 10.83389654729771 | other | rolling |\n| app | 1752238 | 9.678505170116392 | ai_tech | core |\n| lol | 1107659 | 6.118166229830624 | other | rolling |\n| dev | 794009 | 4.385717129533172 | ai_tech | core |\n| work | 346456 | 1.913653389104588 | other | rolling |\n| win | 174706 | 0.9649904432219564 | other | rolling |\n| run | 127013 | 0.7015576520837886 | other | rolling |\n| media | 102250 | 0.5647789590480295 | other | rolling |\n| games | 82677 | 0.4566672860363222 | other | rolling |\n\n## Core Daily Movers (Absolute)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 11149142 | 166939.0 | 0.0152008663471254 | ok |\n| app | 1752238 | 4729.0 | 0.0027061377080175 | ok |\n| dev | 794009 | 1215.0 | 0.0015325544845193 | ok |\n\n## Core Daily",
+      "resource_uri": "rootfetch://digest/2026-10-17"
+    },
+    {
+      "id": "07dd557a6638f44d43cb75ff9c7b4aa96ccb61a3",
+      "source_path": "data/digests/2026-10-17.md",
+      "source_type": "digest",
+      "date_utc": "2026-10-17",
+      "title": "Core Daily Movers (Absolute)",
+      "text": "| 166939.0 | 0.0152008663471254 | ok |\n| app | 1752238 | 4729.0 | 0.0027061377080175 | ok |\n| dev | 794009 | 1215.0 | 0.0015325544845193 | ok |\n\n## Core Daily Movers (Percentage)\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| xyz | 11149142 | 166939.0 | 0.0152008663471254 | ok |\n| app | 1752238 | 4729.0 | 0.0027061377080175 | ok |\n| dev | 794009 | 1215.0 | 0.0015325544845193 | ok |\n\n## Core Daily Decliners\n| tld | count | delta_abs | delta_pct | data_quality |\n| --- | --- | --- | --- | --- |\n| dev | 794009 | 1215.0 | 0.0015325544845193 | ok |\n| app | 1752238 | 4729.0 | 0.0027061377080175 | ok |\n| xyz | 11149142 | 166939.0 | 0.0152008663471254 | ok |\n\n## Rolling Updates (Since Last Seen)\n| tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |\n| --- | --- | --- | --- | --- | --- |\n| vip | 1961415 | 2026-08-08 | 70 | 86721.0 | 0.0462587494279066 |\n| lol | 1107659 | 2026-08-08 | 70 | 51464.0 | 0.0487258508135334 |\n| win | 174706 | 2026-08-08 | 70 | 23855.0 | 0.1581361741055743 |\n| games | 82677 | 2026-08-08 | 70 | 11658.0 | 0.1",
+      "resource_uri": "rootfetch://digest/2026-10-17"
+    },
+    {
+      "id": "da6847256029f149c8eb0b1925591cda99aa274a",
+      "source_path": "data/digests/2026-10-17.md",
+      "source_type": "digest",
+      "date_utc": "2026-10-17",
+      "title": "Rolling Updates (Since Last Seen)",
+      "text": "-08-08 | 70 | 51464.0 | 0.0487258508135334 |\n| win | 174706 | 2026-08-08 | 70 | 23855.0 | 0.1581361741055743 |\n| games | 82677 | 2026-08-08 | 70 | 11658.0 | 0.1641532547628099 |\n| courses | 28727 | 2026-08-08 | 70 | 10051.0 | 0.5381773399014779 |\n| zone | 30679 | 2026-08-08 | 70 | -9456.0 | -0.2356048336863087 |\n| work | 346456 | 2026-08-08 | 70 | 7353.0 | 0.0216836772308118 |\n| run | 127013 | 2026-08-08 | 70 | -7261.0 | -0.0540759938632944 |\n| business | 40275 | 2026-08-08 | 70 | 3023.0 | 0.0811500053688392 |\n| ovh | 77204 | 2026-08-08 | 70 | -2867.0 | -0.035805722421351 |\n\n## Notable Anomalies\n| tld | reason | delta_pct | z | robust_z | data_quality |\n| --- | --- | --- | --- | --- | --- |\n| courses | suspicious_jump | 0.5381773399014779 |  |  | suspicious |\n| xyz | robust_z | 0.0152008663471254 | 0.4457142196289216 | 5.194532425991676 | ok |\n| zone | suspicious_jump | -0.2356048336863087 |  |  | suspicious |\n\n## Sector Snapshot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2546247 | -587778.0 | -0.187",
+      "resource_uri": "rootfetch://digest/2026-10-17"
+    },
+    {
+      "id": "a8de56eb473b6e41827050f68cf56d2d54dd935e",
+      "source_path": "data/digests/2026-10-17.md",
+      "source_type": "digest",
+      "date_utc": "2026-10-17",
+      "title": "Sector Snapshot",
+      "text": "hot\n| sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |\n| --- | --- | --- | --- | --- |\n| ai_tech | 2546247 | -587778.0 | -0.1875473233302223 | 2 |\n| other | 15558181 | -4284521.0 | -0.2159242728132489 | 76 |\n\n## Data Quality Notes\n- Failed TLD jobs: 0\n- Estimated counts (HLL): 0",
+      "resource_uri": "rootfetch://digest/2026-10-17"
     }
   ]
 }
