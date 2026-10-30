@@ -171,3 +171,7 @@ RootFetch is a read-only intelligence layer. If it is not in the artifacts, it d
 - `.github/workflows/rootfetch_daily.yml` runs scheduled ingestion and publish.
 - `.github/workflows/release.yml` runs CI tests/build checks.
 - `.github/workflows/gcp_deploy.yml` deploys web + telemetry services to GCP on safe artifact/code changes.
+
+## License
+
+Code: [MIT](LICENSE). Published data (counts, history, jumps) on rootfetch.com: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
