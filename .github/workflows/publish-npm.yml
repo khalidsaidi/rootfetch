@@ -9,15 +9,21 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           registry-url: https://registry.npmjs.org
+
+      - name: Ensure npm supports trusted publishing (>= 11.5.1)
+        run: |
+          npm install -g npm@latest
+          npm --version
 
       - name: Install package deps
         run: npm --prefix packages/rootfetch-mcp-local install
@@ -25,12 +31,7 @@ jobs:
       - name: Build package
         run: npm --prefix packages/rootfetch-mcp-local run build
 
-      - name: Publish MCP local package
-        if: ${{ env.NODE_AUTH_TOKEN != '' }}
+      - name: Publish MCP local package (npm trusted publishing / OIDC)
         run: |
           cd packages/rootfetch-mcp-local
           npm publish --access public
-
-      - name: NPM token missing
-        if: ${{ env.NODE_AUTH_TOKEN == '' }}
-        run: echo "NPM_TOKEN is not set; skipping npm publish."
