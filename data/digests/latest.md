@@ -1,26 +1,26 @@
-# RootFetch Daily Digest — 2026-11-07
+# RootFetch Daily Digest — 2026-11-08
 
-- Run ID: 2682b8d6-3153-43fe-a1e5-f2a224ab791a
+- Run ID: 54852e70-21dc-405a-abed-e14cb187175c
 - Mode: hybrid
 - Approved TLDs observed: 1067
-- Observed today: 86 (core=3, rolling=83)
-- Snapshot rows today: 86
+- Observed today: 70 (core=3, rolling=67)
+- Snapshot rows today: 70
 
 ## Cross-sectional highlights
-- Total delegated counted today: 20,674,508
-- Distribution (p50 / p90 / p99 / max): 1,080 / 79,729 / 5,991,665 / 11,409,089
-- Concentration (Top1 / Top10 share): 55.18% / 97.86% (HHI=0.3742)
-- New approvals vs 2026-11-06: +0 / -0
+- Total delegated counted today: 17,443,667
+- Distribution (p50 / p90 / p99 / max): 612 / 89,393 / 4,967,891 / 11,409,845
+- Concentration (Top1 / Top10 share): 65.41% / 98.71% (HHI=0.4563)
+- New approvals vs 2026-11-07: +0 / -0
 - Added approvals (first 10): none
 
 ## Daily Insights
-- [market/info] Top 10 TLDs hold 97.86% of delegations; median TLD has 1,080 names; 31 TLDs have <100.
-- [movers/positive] Core movers: .app +3,492, .dev +1,085, .xyz -14,738 (day-over-day).
+- [market/info] Top 10 TLDs hold 98.71% of delegations; median TLD has 612 names; 32 TLDs have <100.
+- [movers/positive] Core movers: .app +3,755, .xyz +756, .dev 0 (day-over-day).
 - [approvals/info] New approvals today: +0.
-- [coverage/neutral] Observed today: 86 (core+rolling) out of 1,067 approved TLDs; snapshot rows today: 86. Missing ever: 1.
+- [coverage/neutral] Observed today: 70 (core+rolling) out of 1,067 approved TLDs; snapshot rows today: 70. Missing ever: 1.
 
 ## Security Status
-- Safe aggregates checks date: 2026-11-07
+- Safe aggregates checks date: 2026-11-08
 - no_raw_zones_tracked: True
 - no_ai_dir_tracked: True
 - no_env_tracked: True
@@ -30,51 +30,51 @@
 ## Top TLDs by Count (Today)
 | tld | count | share_pct | sector | cadence |
 | --- | --- | --- | --- | --- |
-| xyz | 11409089 | 55.18433135144014 | other | core |
-| info | 5035649 | 24.35680210624601 | other | rolling |
-| app | 1834229 | 8.871935428886626 | ai_tech | core |
-| dev | 818901 | 3.960921343327735 | ai_tech | core |
-| cyou | 546695 | 2.644295090359587 | other | rolling |
-| cam | 170937 | 0.8268008118984016 | other | rolling |
-| ink | 147405 | 0.7129794817850078 | other | rolling |
-| casino | 110680 | 0.5353452667410514 | other | rolling |
-| services | 84406 | 0.40826122682097205 | other | rolling |
-| team | 75052 | 0.3630171029946638 | other | rolling |
+| xyz | 11409845 | 65.40966988191187 | other | core |
+| store | 2073680 | 11.887867384764911 | commerce | rolling |
+| app | 1837984 | 10.536683599841707 | ai_tech | core |
+| dev | 818901 | 4.694546163945918 | ai_tech | core |
+| digital | 462476 | 2.6512544638693227 | ai_tech | rolling |
+| link | 236706 | 1.3569738518856156 | other | rolling |
+| bet | 194462 | 1.114800001628098 | other | rolling |
+| beauty | 77719 | 0.44554278638774747 | other | rolling |
+| onl | 71714 | 0.41111768528945203 | other | rolling |
+| xn--3ds443g | 34869 | 0.1998948959527833 | other | rolling |
 
 ## Core Daily Movers (Absolute)
 | tld | count | delta_abs | delta_pct | data_quality |
 | --- | --- | --- | --- | --- |
-| app | 1834229 | 3492.0 | 0.0019074285383427548 | ok |
-| dev | 818901 | 1085.0 | 0.0013267042953427177 | ok |
-| xyz | 11409089 | -14738.0 | -0.0012901105732781143 | ok |
+| app | 1837984 | 3755.0 | 0.0020471816768789504 | ok |
+| xyz | 11409845 | 756.0 | 6.626295929499717e-05 | ok |
+| dev | 818901 | 0.0 | 0.0 | ok |
 
 ## Core Daily Movers (Percentage)
 | tld | count | delta_abs | delta_pct | data_quality |
 | --- | --- | --- | --- | --- |
-| app | 1834229 | 3492.0 | 0.0019074285383427548 | ok |
-| dev | 818901 | 1085.0 | 0.0013267042953427177 | ok |
-| xyz | 11409089 | -14738.0 | -0.0012901105732781143 | ok |
+| app | 1837984 | 3755.0 | 0.0020471816768789504 | ok |
+| xyz | 11409845 | 756.0 | 6.626295929499717e-05 | ok |
+| dev | 818901 | 0.0 | 0.0 | ok |
 
 ## Core Daily Decliners
 | tld | count | delta_abs | delta_pct | data_quality |
 | --- | --- | --- | --- | --- |
-| xyz | 11409089 | -14738.0 | -0.0012901105732781143 | ok |
-| dev | 818901 | 1085.0 | 0.0013267042953427177 | ok |
-| app | 1834229 | 3492.0 | 0.0019074285383427548 | ok |
+| dev | 818901 | 0.0 | 0.0 | ok |
+| xyz | 11409845 | 756.0 | 6.626295929499717e-05 | ok |
+| app | 1837984 | 3755.0 | 0.0020471816768789504 | ok |
 
 ## Rolling Updates (Since Last Seen)
 | tld | count | prev_date_utc | days_since_prev | delta_abs | delta_pct |
 | --- | --- | --- | --- | --- | --- |
-| info | 5035649 | 2026-10-24 | 14 | -76585.0 | -0.0149807305377649 |
-| cam | 170937 | 2026-10-24 | 14 | 12485.0 | 0.07879357786585212 |
-| cyou | 546695 | 2026-10-24 | 14 | 8677.0 | 0.016127713199186645 |
-| quest | 71273 | 2026-10-24 | 14 | 3426.0 | 0.050495968871136526 |
-| ink | 147405 | 2026-10-24 | 14 | 1925.0 | 0.013232059389606818 |
-| yachts | 19424 | 2026-10-24 | 14 | -1762.0 | -0.08316812989710186 |
-| casino | 110680 | 2026-10-24 | 14 | 1142.0 | 0.010425605725866822 |
-| page | 41993 | 2026-10-24 | 14 | 1036.0 | 0.025294821398051615 |
-| team | 75052 | 2026-10-24 | 14 | 893.0 | 0.012041694197602449 |
-| services | 84406 | 2026-10-24 | 14 | -476.0 | -0.005607784924954643 |
+| link | 236706 | 2026-10-25 | 14 | -7835.0 | -0.03203961707852671 |
+| store | 2073680 | 2026-10-25 | 14 | -5575.0 | -0.002681248812675694 |
+| bet | 194462 | 2026-10-25 | 14 | 2465.0 | 0.012838742272014666 |
+| digital | 462476 | 2026-10-25 | 14 | 2132.0 | 0.0046313191873902995 |
+| onl | 71714 | 2026-10-25 | 14 | 1972.0 | 0.0282756445183677 |
+| lifestyle | 15310 | 2026-10-25 | 14 | 557.0 | 0.03775503287466956 |
+| loan | 17745 | 2026-10-25 | 14 | -545.0 | -0.029797703663203938 |
+| beauty | 77719 | 2026-10-25 | 14 | 233.0 | 0.0030069948119660324 |
+| ooo | 12928 | 2026-10-25 | 14 | -190.0 | -0.014483915230980332 |
+| gripe | 2275 | 2026-10-25 | 14 | 147.0 | 0.06907894736842106 |
 
 ## Notable Anomalies
 _No data._
@@ -82,9 +82,9 @@ _No data._
 ## Sector Snapshot
 | sector | sector_count | sector_delta_abs | sector_delta_pct | member_tlds_count |
 | --- | --- | --- | --- | --- |
-| ai_tech | 2653130 | 4577.0 | 0.001728113426463431 | 2 |
-| commerce | 19448 | 10119.0 | 1.084682173866438 | 1 |
-| other | 18001930 | 5769469.0 | 0.4716523518856917 | 83 |
+| ai_tech | 3119361 | 466231.0 | 0.175728667649154 | 3 |
+| commerce | 2073680 | 2054232.0 | 105.62690250925544 | 1 |
+| other | 12250626 | -5751304.0 | -0.3194826332509903 | 66 |
 
 ## Data Quality Notes
 - Failed TLD jobs: 0
