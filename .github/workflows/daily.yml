@@ -78,7 +78,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url || steps.deploy_first.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -98,7 +98,16 @@ jobs:
         with:
           path: _site
 
+      # GitHub sometimes can't see the artifact it just stored; wait and try once more before failing.
+      - id: deploy_first
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - if: steps.deploy_first.outcome == 'failure'
+        run: sleep 90
+
       - id: deploy
+        if: steps.deploy_first.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
       # Tell Bing, Yandex, Seznam and other IndexNow engines which pages changed.
