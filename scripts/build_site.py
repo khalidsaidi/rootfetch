@@ -542,6 +542,11 @@ td.spark svg{display:block}
 .related a:hover{border-color:var(--ink-2)}
 .prose-p{color:var(--ink-2);max-width:66ch}
 .prose code{font:13px var(--mono)}
+.tldlede{margin-top:4px;max-width:70ch}
+.answers h2{margin-top:28px}
+.verdict{font:600 17px/1.4 var(--sans);padding:12px 16px;border-radius:12px;border-left:4px solid var(--line);background:var(--panel);max-width:70ch}
+.verdict-warn{border-left-color:var(--critical)}.verdict-mixed{border-left-color:var(--elevated)}.verdict-ok{border-left-color:var(--good)}
+.answers p{color:var(--ink-2);max-width:70ch}
 /* prose & data */
 .prose{max-width:66ch}.prose p,.prose li{color:var(--ink-2)}.prose h2{margin-top:36px}
 .dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
@@ -1029,7 +1034,7 @@ def tld_story(tld: str, u: str, ordered: list[tuple[str, int]], cs: list["Change
                 f"It was delegated on {fmt_day(delegated)}.", f"{fmt_day(delegated)}, when it entered the root zone.",
                 f".{u} went live in the DNS root on {fmt_day(delegated)}."])))
         sections.append(f'<section class="section prose"><h2>About the .{esc(u)} extension</h2><p>{" ".join(lines)}</p>'
-                        f'<p class="count">Registry details from <a href="https://www.icann.org/resources/registries/gtlds/v2/gtlds.json">ICANN\'s gTLD list</a>.</p></section>')
+                        f'<p class="count">Source: <a href="https://www.icann.org/resources/registries/gtlds/v2/gtlds.json">ICANN</a></p></section>')
 
         # --- family: other TLDs from the same operator ---
         fam = [t for t in by_size if t != tld and (series_meta := _META.get(t)) and series_meta.get("operator") == op]
@@ -1123,12 +1128,17 @@ def tld_story(tld: str, u: str, ordered: list[tuple[str, int]], cs: list["Change
             lo = min(changes, key=lambda x: x[1])
             month_name = lambda m: date.fromisoformat(m + "-01").strftime("%B %Y")
             if hi[1] != lo[1]:
-                trend.append(f"Its strongest month on record was {month_name(hi[0])} ({fmt_signed(hi[1])}); "
-                             f"its weakest was {month_name(lo[0])} ({fmt_signed(lo[1])}).")
+                trend.append(_pick(tld + "hm", [
+                    f"Its strongest month on record was {month_name(hi[0])} ({fmt_signed(hi[1])}); its weakest was {month_name(lo[0])} ({fmt_signed(lo[1])}).",
+                    f"{month_name(hi[0])} was its best month ({fmt_signed(hi[1])}), {month_name(lo[0])} its worst ({fmt_signed(lo[1])}).",
+                    f"The biggest monthly gain came in {month_name(hi[0])} ({fmt_signed(hi[1])}) and the weakest month was {month_name(lo[0])} ({fmt_signed(lo[1])}).",
+                ]))
         if latest and latest.gap_days <= 60 and latest.prev_count:
             proj = last_v * (1 + latest.weekly) ** (30 / 7)
-            trend.append(f"If the latest rate held for 30 days, {name} would reach about {fmt_int(round(proj))} domains "
-                         "(a straight-line projection, not a forecast).")
+            trend.append(_pick(tld + "pj", [
+                f"If the latest rate held for 30 days, {name} would reach about {fmt_int(round(proj))} domains (a straight-line projection, not a forecast).",
+                f"At this pace it would be near {fmt_int(round(proj))} domains in a month, assuming nothing changes.",
+            ]))
     if trend:
         sections.append(f'<section class="section prose"><h2>.{esc(u)} growth trend</h2><p>{" ".join(trend)}</p></section>')
 
@@ -1157,6 +1167,112 @@ def load_meta() -> dict[str, dict]:
     return json.loads(path.read_text()).get("tlds", {})
 
 
+_WIKI: dict[str, dict] = {}
+
+
+def load_wiki() -> dict[str, dict]:
+    path = REPO_ROOT / "data" / "tld_wiki.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text()).get("tlds", {})
+
+
+def tld_answers(tld: str, u: str, last_v: int, rank: int, total: int, meta: dict | None, wiki: dict | None,
+                tspikes: list["Change"], latest: "Change | None", median_weekly: float) -> tuple[str, str, list[tuple[str, str]], str]:
+    """Direct answers to what people search about a TLD: what it is, is it safe, is it a country domain.
+
+    Returns (lede html, answers html, faq entries, short kind label). Only states what ICANN, Wikipedia
+    or RootFetch's own counts support.
+    """
+    name = f".{u}"
+    op = (meta or {}).get("operator") or ""
+    brand = bool((meta or {}).get("brand"))
+    delegated = (meta or {}).get("delegated")
+    wiki = wiki or {}
+    geo = wiki.get("geo")
+    if brand:
+        kind = "brand extension"
+    elif geo:
+        kind = "geographic extension"
+    elif delegated and delegated <= "1990-12-31":
+        kind = "original generic extension"
+    else:
+        kind = "generic extension"
+
+    # --- meaning, only when a source states it ---
+    meaning = ""
+    if wiki.get("translation"):
+        meaning = f"The name means &ldquo;{esc(wiki['translation'])}&rdquo;."
+    elif geo:
+        meaning = f"It is meant for {esc(geo)}."
+    elif wiki.get("use"):
+        meaning = f"Its intended use is {esc(wiki['use'].lower())}."
+    elif brand and wiki.get("entity"):
+        meaning = f"It belongs to {esc(wiki['entity'])}."
+
+    # --- reputation, from RootFetch's own data plus published abuse reports ---
+    listed = tld in KNOWN_ABUSE
+    jumps = len(tspikes)
+    fast = bool(latest and latest.gap_days <= 60 and latest.prev_count >= 1000
+                and latest.weekly > max(0.01, 3 * median_weekly))
+    signals = []
+    if listed:
+        signals.append(f'it is named in <a href="{KNOWN_ABUSE[tld]}">Interisle Consulting Group\'s abuse reports</a>')
+    if jumps:
+        signals.append(f'RootFetch recorded {jumps} unusual registration jump{"s" if jumps != 1 else ""} '
+                       f'(bursts of {fmt_int(SPIKE_MIN_ADDED)}+ new domains), a pattern that often comes with cheap promotions and bulk sign-ups')
+    if fast:
+        signals.append(f"it is growing about {fmt_pct(latest.weekly)} a week, far faster than a typical large extension")
+    if brand:
+        verdict, vclass = f"Low risk as an extension: only {esc(op) or 'its owner'} can register {name} names.", "ok"
+    elif listed or jumps >= 2:
+        verdict, vclass = _pick(tld + "w", [f"Use caution: {name} shows abuse signals.",
+                                            f"Be careful with {name}: it shows signs of abuse.",
+                                            f"{name} carries real abuse signals, so treat unknown links with care."]), "warn"
+    elif signals:
+        verdict, vclass = _pick(tld + "m", [f"Mixed: {name} shows some unusual activity.",
+                                            f"Mostly fine, but {name} has had some unusual activity."]), "mixed"
+    else:
+        verdict, vclass = _pick(tld + "o", [f"No warning signs in RootFetch's data for {name}.",
+                                            f"{name} looks clean in RootFetch's data: no bursts, no abuse-report mentions.",
+                                            f"Nothing suspicious stands out for {name} in our counts."]), "ok"
+    plain_signals = re.sub(r"<[^>]+>", "", "; ".join(signals))
+    safety_body = (
+        (f"<p>Signals: {'; '.join(signals)}.</p>" if signals else "")
+        + "<p>" + _pick(tld + "v", [
+            f"This describes {name} as a whole. Most domains in any extension are legitimate, so judge a specific "
+            "website on its own: how old it is, who is behind it, and where the link came from.",
+            f"That is a judgement about the extension, not any one site. A {name} address can be perfectly genuine; "
+            "check the site's age, owner and how you found it.",
+            f"None of this says a particular {name} website is good or bad. Look at the site itself: "
+            "when it was registered, who runs it, and whether you trust where the link came from.",
+        ]) + "</p>"
+    )
+
+    country = _pick(tld + "c2", [
+        f"No. {name} is a {kind}, not a country-code domain; those are two letters, like .uk or .de.",
+        f"No country is behind {name}. It is a {kind}" + (f" operated by {op}." if op else "."),
+        f"{name} isn't tied to any country. Country-code extensions have two letters (.fr, .jp); {name} is a {kind}.",
+    ])
+    if geo:
+        country = f"Not a country code, but it is a geographic extension for {geo}" + (f", run by {op}." if op else ".")
+
+    lede = (f"<b>{name} is a {kind}</b>" + (f" run by <b>{esc(op)}</b>" if op else "")
+            + (f", in the internet's root zone since {date.fromisoformat(delegated).year}" if delegated else "")
+            + "." + (f" {meaning}" if meaning else "") + f" It has <b>{fmt_int(last_v)}</b> registered domains, <b>#{rank:,}</b> of {total:,} extensions RootFetch tracks.")
+    answers = (
+        f'<section class="section answers"><h2>Is {name} safe?</h2>'
+        f'<p class="verdict verdict-{vclass}">{verdict}</p>{safety_body}'
+        f'<h2>Is {name} a country domain?</h2><p>{esc(country)}</p></section>'
+    )
+    faq = [(f"Is .{u} safe or spam?", re.sub(r"<[^>]+>", "", verdict) + (f" Signals: {plain_signals}." if plain_signals else "")
+            ),
+           (f"Is .{u} a country domain?", country)]
+    if meaning:
+        faq.append((f"What does .{u} mean?", re.sub(r"<[^>]+>", "", html.unescape(meaning))))
+    return lede, answers, faq, kind
+
+
 def _og_available() -> bool:
     try:
         import PIL  # noqa: F401
@@ -1182,6 +1298,8 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     all_changes = {tld: changes_for(tld, pts) for tld, pts in series.items()}
     _META.clear()
     _META.update(load_meta())
+    _WIKI.clear()
+    _WIKI.update(load_wiki())
     spikes = sorted(
         (c for cs in all_changes.values() for c in cs if c.is_spike()),
         key=lambda c: (c.date, c.added),
@@ -1489,9 +1607,9 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
                         "At their latest checks, the fastest growing large extensions are "
                         + ", ".join(f".{unicode_name(c.tld)} ({fmt_pct(c.weekly)} a week)" for c in fastest[:3]) + "."))
     tlds_body = f"""
-<p class="eyebrow" style="margin-top:40px">TLD list · {fmt_day(last_update)}</p>
-<h1>Domain extensions list: all {len(series):,} TLDs ranked by size</h1>
-<p class="lede">Every domain extension (TLD) RootFetch tracks, with its number of registered domains and how it changed since its previous check. Growth is scaled to one week so extensions checked at different intervals compare fairly.</p>
+<p class="eyebrow" style="margin-top:40px">Updated {fmt_day(last_update)}</p>
+<h1>Most popular domain extensions in {last_update[:4]}</h1>
+<p class="lede">All {len(series):,} domain extensions (TLDs) RootFetch tracks, ranked by how many domains are registered under each, counted from their zone files. The top three right now: {", ".join(f".{unicode_name(t)} ({fmt_compact(series[t][max(series[t])])})" for t in top3)}. Growth is scaled to one week so extensions checked at different intervals compare fairly.</p>
 <section class="section">
 <div class="tools"><input id="q" type="search" placeholder="Find a TLD, e.g. xyz" aria-label="Find a TLD">
 <div class="seg" role="group" aria-label="Show">
@@ -1506,9 +1624,9 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 </section>
 <section class="section faq"><h2>About domain extensions</h2>{"".join(f"<details{' open' if i == 0 else ''}><summary>{esc(q)}</summary><p>{esc(a)}</p></details>" for i, (q, a) in enumerate(ext_faq))}</section>
 """
-    (out_dir / "tlds.html").write_text(page(f"Domain extensions list: {len(series):,} TLDs ranked | RootFetch", tlds_body, active="tlds", trust=trust,
+    (out_dir / "tlds.html").write_text(page(f"Most popular domain extensions {last_update[:4]}: {len(series):,} ranked", tlds_body, active="tlds", trust=trust,
                                                path="tlds.html",
-                                               description=f"Full TLD list: {len(series):,} domain extensions ranked by number of registered domains, with weekly growth, trend lines and unusual-jump flags. Updated {fmt_day(last_update)}.",
+                                               description=f"The most popular domain extensions in {last_update[:4]}, ranked by registered domains: {len(series):,} TLDs with weekly growth and trends. Updated {fmt_day(last_update)}.",
                                                jsonld=[{"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in ext_faq]},
                                                        {"@type": "ItemList", "name": "Largest domain extensions by registered domains", "numberOfItems": 25,
                                                         "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f"{SITE_URL}/tld/{t}.html", "name": f".{unicode_name(t)}"}
@@ -1635,14 +1753,16 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         if len(ordered) > 1:
             direction = "grown" if overall > 0 else "shrunk" if overall < 0 else "held steady"
             facts.append(
-                f"Since its first check on {fmt_day(first_d)} it has {direction}"
+                _pick(tld + "fc", [f"Since its first check on {fmt_day(first_d)} it has {direction}",
+                                    f"It has {direction} since RootFetch first counted it on {fmt_day(first_d)},"])
                 + (f" by <b>{fmt_pct(abs(overall_pct) if overall < 0 else overall_pct, 1).lstrip('+').replace(chr(8722), '')}</b> "
                    f"({fmt_signed(overall)} domains)." if overall else ".")
             )
         if latest and latest.gap_days <= 60:
             facts.append(
-                f"At its latest check it changed by {fmt_signed(latest.added)} domains over {latest.gap_days} days, "
-                f"about <b>{fmt_pct(latest.weekly)}</b> a week"
+                _pick(tld + "lc", [f"At its latest check it changed by {fmt_signed(latest.added)} domains over {latest.gap_days} days, ",
+                                    f"The most recent check showed {fmt_signed(latest.added)} domains across {latest.gap_days} days, "])
+                + f"about <b>{fmt_pct(latest.weekly)}</b> a week"
                 + (f", the #{growth_rank[tld]} fastest growth among {len(big)} large TLDs." if tld in growth_rank and latest.weekly > 0 else ".")
             )
         if tspikes:
@@ -1668,6 +1788,9 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
             for t in near
         )
 
+        lede, answers_html, answer_faq, kind = tld_answers(
+            tld, u, last_v, rank, len(series), _META.get(tld), _WIKI.get(tld), tspikes, latest,
+            sorted(big_weekly)[len(big_weekly) // 2] if big_weekly else 0.0)
         faq = [(f"How many .{u} domains are there?", _pick(tld + "q", [
             f"As of {fmt_day(last_d)}, there are {fmt_int(last_v)} registered .{u} domains.",
             f"{fmt_int(last_v)}, according to the .{u} zone file on {fmt_day(last_d)}.",
@@ -1689,6 +1812,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         story_html, story_faq = tld_story(tld, u, ordered, cs, _META.get(tld), series, by_size, size_rank,
                                           big_weekly, long_term_map, last_day)
         faq[1:1] = story_faq
+        faq = answer_faq + faq
         faq_html = "".join(f"<details{' open' if i == 0 else ''}><summary>{esc(q)}</summary><p>{esc(a)}</p></details>" for i, (q, a) in enumerate(faq))
 
         # per-TLD CSV
@@ -1726,15 +1850,18 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 
         body = f"""
 <nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Trends</a><span>/</span><a href="../tlds.html">Domain extensions</a><span>/</span><span aria-current="page">.{esc(u)}</span></nav>
-<h1 style="margin-top:12px">.{esc(u)} domain statistics</h1>{sub}
+<h1 style="margin-top:12px">The .{esc(u)} domain</h1>{sub}
+<p class="lede tldlede">{lede}</p>
 <div class="chips">{(sev_chip(tspikes[-1]) + f'<span class="count">last jump {fmt_day(tspikes[-1].date)}</span>') if tspikes else ""}{abuse_chip(tld, 1)}</div>
+{answers_html}
+<section class="section"><h2>How popular is .{esc(u)}?</h2>
 <div class="facts">
 <div><b>{fmt_int(last_v)}</b><small>domains on {fmt_day(last_d)}</small></div>
 <div><b>{fmt_signed(overall)}</b><small>since {fmt_day(first_d)} ({fmt_pct(overall_pct)})</small></div>
 <div><b>#{rank:,}</b><small>largest of {len(series):,} TLDs</small></div>
 <div><b>{len(tspikes)}</b><small>unusual jump{"s" if len(tspikes) != 1 else ""}</small></div>
 </div>
-<div class="prose summary"><p>{summary}</p>{context}</div>
+<div class="prose summary"><p>{summary}</p>{context}</div></section>
 <div class="chart" style="margin-top:20px">{history_chart(ordered, by_date)}</div>
 <p class="count" style="margin-top:8px"><a class="cta" href="../data/tld/{esc(tld)}.csv">Download .{esc(u)} history (CSV)</a></p>
 {story_html}
@@ -1744,18 +1871,18 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <section class="section faq"><h2>Questions about .{esc(u)}</h2>{faq_html}</section>
 <section class="section"><h2>Domain extensions of similar size</h2><ul class="related">{related}</ul></section>
 """
-        title = f".{u} domain statistics: {fmt_int(last_v)} domains | RootFetch"
-        if len(title) > 60:
-            title = f".{u} domains: {fmt_int(last_v)} | RootFetch"
-        if len(title) > 60:
-            title = f".{u} domain statistics | RootFetch"
-        desc = (
-            f"How many .{u} domains are there? {fmt_int(last_v)} as of {fmt_day(last_d)}"
-            + (f", {fmt_pct(overall_pct, 0 if abs(overall_pct) >= .1 else 1)} since {fmt_day(first_d, False)}" if len(ordered) > 1 else "")
-            + f". .{u} domain statistics, growth and trends from ICANN zone files."
-        )
+        title = f".{u} domain: is it safe? Who runs it, how popular | RootFetch"
+        for alt in (f".{u} domain: safe? Who runs it? Popularity | RootFetch", f".{u} domain: safety, owner & popularity",
+                    f".{u} domain: is it safe? | RootFetch", f".{u} domain | RootFetch"):
+            if len(title) <= 60:
+                break
+            title = alt
+        op_name = (_META.get(tld) or {}).get("operator") or ""
+        desc = (f"Is .{u} safe or spam? .{u} is a {kind}" + (f" run by {op_name}" if op_name else "")
+                + f" with {fmt_compact(last_v)} domains (#{rank:,}). Abuse signals, growth and history from zone files.")
         if len(desc) > 158:
-            desc = f"How many .{u} domains are there? {fmt_int(last_v)} as of {fmt_day(last_d)}. Domain statistics and trends from ICANN zone files."
+            desc = (f"Is .{u} safe or spam? A {kind} with {fmt_compact(last_v)} domains (#{rank:,}). "
+                    "Abuse signals, who runs it and growth, from zone files.")
         (out_dir / "tld" / f"{tld}.html").write_text(
             page(title, body, depth=1, trust=trust, description=desc, path=path, image=image, jsonld=ld, noindex=noindex)
         )
