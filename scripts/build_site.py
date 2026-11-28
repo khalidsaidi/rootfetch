@@ -520,7 +520,7 @@ td.spark svg{display:block}
 .board h3{font:700 16px/1.2 var(--display);margin:0}
 .board .count{margin:2px 0 10px}
 .board ol{list-style:none;margin:0;padding:0}
-.board li a{display:grid;grid-template-columns:96px 1fr 76px;align-items:center;gap:10px;padding:5px 0;text-decoration:none;color:var(--ink)}
+.board li a{display:grid;grid-template-columns:96px 1fr minmax(76px,auto);align-items:center;gap:10px;padding:5px 0;text-decoration:none;color:var(--ink)}
 .board li a:hover .bn{color:var(--signal)}
 .bn{font:600 13px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bt{height:10px;background:var(--line-2);border-radius:3px;overflow:hidden}
@@ -707,9 +707,11 @@ def radar_chart(entries: list[tuple[Change, str]], recent_cut: str, depth: int =
     xlo = math.floor(math.log10(max(RADAR_MIN_DOMAINS, min(sizes))))
     xhi = math.log10(max(sizes)) + 0.15
     ws = sorted(c.weekly for c, _ in entries)
-    ylo = min(-0.04, ws[max(0, int(len(ws) * 0.01))])
-    yhi = max(0.12, ws[-1] * 1.08)
-    ylo = max(ylo, -0.12)
+    ylo = max(-0.12, min(-0.04, ws[max(0, int(len(ws) * 0.01))]))
+    # Scale to the bulk of TLDs. A handful of brand-new extensions can grow thousands of percent
+    # from a tiny base; those are pinned to the top edge with an arrow instead of squashing everyone else.
+    yhi = min(0.5, max(0.12, ws[min(len(ws) - 1, int(len(ws) * 0.98))] * 1.3))
+    yhi = max(yhi, min(0.5, max((v for v in ws if v <= 0.5), default=0.12) * 1.08))
 
     def x(n: float) -> float:
         return pl + (math.log10(n) - xlo) / (xhi - xlo) * (w - pl - pr)
@@ -727,7 +729,7 @@ def radar_chart(entries: list[tuple[Change, str]], recent_cut: str, depth: int =
         f'<text class="zone-t" x="{w - pr}" y="{pt - 10}" text-anchor="end">UNUSUAL GROWTH ↑</text>'
     )
     # y grid
-    step = 0.05 if yhi - ylo > 0.2 else 0.02
+    step = next(s_ for s_ in (0.01, 0.02, 0.05, 0.1, 0.2, 0.5) if (yhi - ylo) / s_ <= 6)
     v = math.ceil(ylo / step) * step
     while v <= yhi + 1e-9:
         yy = y(v)
@@ -771,6 +773,15 @@ def radar_chart(entries: list[tuple[Change, str]], recent_cut: str, depth: int =
             + (f"\n{sev[1]} spike" if sev else "")
         )
         halo = f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r + 5}" fill="{fill}" opacity=".18"/>' if now else ""
+        if c.weekly > yhi:
+            ay = pt + 4
+            dots.append(
+                f'<a class="pt" href="{root}tld/{esc(c.tld)}.html" aria-label="{esc(tip + chr(10) + "off the chart")}">'
+                f'<circle cx="{cx:.1f}" cy="{ay + 4:.1f}" r="14" fill="transparent"/>'
+                f'<path class="m" d="M{cx:.1f},{ay:.1f} l6,10 h-12 z" fill="var(--ink-2)"/></a>'
+            )
+            labels.append((3, c.weekly, c, cx, ay + 6))
+            continue
         dots.append(
             f'<a class="pt" href="{root}tld/{esc(c.tld)}.html" aria-label="{esc(tip)}">'
             f'{halo}<circle cx="{cx:.1f}" cy="{cy:.1f}" r="14" fill="transparent"/>'
@@ -785,7 +796,7 @@ def radar_chart(entries: list[tuple[Change, str]], recent_cut: str, depth: int =
     for prio, _, c, cx, cy in sorted(labels, key=lambda t: (-t[0], -t[1])):
         if prio == 0 and shown >= 9:
             break
-        text = "." + unicode_name(c.tld)
+        text = "." + unicode_name(c.tld) + (f" {fmt_pct(c.pct, 0)}" if c.weekly > yhi else "")
         tw = 7.4 * len(text) + 4
         for dx, dy, anchor in ((10, 4, "start"), (-10, 4, "end"), (0, -12, "middle"), (0, 18, "middle")):
             x0 = cx + dx if anchor == "start" else cx + dx - tw if anchor == "end" else cx - tw / 2
@@ -1424,6 +1435,28 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     pulse_html = "".join(pulse_panel(t, sorted(series[t].items())) for t in daily)
 
     # ---------- leaderboards ----------
+    # brand-new extensions taking off: too small for the rankings above, but the most dramatic growth there is
+    launches = []
+    for t, cs_ in all_changes.items():
+        if not cs_:
+            continue
+        c = cs_[-1]
+        if ((last_day - date.fromisoformat(c.date)).days <= RECENT_DAYS and c.gap_days <= SPIKE_MAX_GAP_DAYS
+                and c.prev_count >= 10 and c.count >= 500 and c.count >= 2 * c.prev_count):
+            launches.append(c)
+    launches.sort(key=lambda c: -c.count / c.prev_count)
+    launch_html = ""
+    if launches:
+        launch_html = (
+            '<section class="section" aria-labelledby="launch-h"><div class="section-head"><div>'
+            '<h2 id="launch-h">Just launched and taking off</h2>'
+            f'<p>Extensions that at least doubled in size at their latest check, usually because they just opened to the public. '
+            f'Too small for the rankings above, but the fastest growth in the dataset.</p></div></div>'
+            '<div class="boards">'
+            + bar_board("Times larger than at the previous check", f"{len(launches)} extension{'s' if len(launches) != 1 else ''}, last {RECENT_DAYS} days",
+                        [(c.tld, c.count / c.prev_count, f"{fmt_int(c.prev_count)} → {fmt_int(c.count)}") for c in launches[:8]], "var(--signal)")
+            + "</div></section>"
+        )
     boards = "".join([
         bar_board("Fastest growing", "growth per week, TLDs with 10k+ domains",
                   [(c.tld, c.weekly, fmt_pct(c.weekly)) for c in fastest], "var(--signal)"),
@@ -1469,7 +1502,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         pts = sorted(series[s.tld].items())
         cards.append(
             f'<a class="card {sev[0]}" href="tld/{esc(s.tld)}.html">'
-            f'<div class="row"><span class="name">.{esc(unicode_name(s.tld))}</span>{sev_chip(s)}</div>'
+            f'<div class="row"><span class="name"{' style="font-size:19px"' if len(unicode_name(s.tld)) > 9 else ''}>.{esc(unicode_name(s.tld))}</span>{sev_chip(s)}</div>'
             f'<div><span class="big">{fmt_pct(s.pct)}</span> <span class="meta">in {days(s.gap_days)}</span></div>'
             f"{sparkline(pts, 240, 44, 'var(--ink-2)', f'var(--{sev[0]})')}"
             f'<div class="meta">{fmt_signed(s.added)} domains → {fmt_int(s.count)} · {fmt_day(s.date)}</div>'
@@ -1510,13 +1543,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 <div class="smgrid">{sm_html}</div>
 </section>
 
-<section class="section" aria-labelledby="radar-h">
-<div class="section-head"><div><h2 id="radar-h">Size vs. growth</h2>
-<p>Every TLD with at least {fmt_int(RADAR_MIN_DOMAINS)} domains, placed by size and by growth per week at its latest check. Hover for numbers, click to open.</p></div>
-<span class="count">{len(radar_entries)} TLDs checked in the last {RADAR_MAX_AGE_DAYS} days</span></div>
-<div class="radar">{radar_chart(radar_entries, recent_cut)}{legend}</div>
-</section>
-
+{launch_html}
 <section class="section" aria-labelledby="watch-h">
 <div class="section-head"><div><h2 id="watch-h">Unusual jumps</h2>
 <p>At least {fmt_int(SPIKE_MIN_ADDED)} new domains and {SPIKE_MIN_PCT:.0%}+ growth within {SPIKE_MAX_GAP_DAYS} days. Sometimes a price promotion, sometimes bulk registrations for spam or phishing.</p></div>
