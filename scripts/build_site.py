@@ -2275,6 +2275,9 @@ df[df.tld == "lol"].plot(x="date", y="count")</code></pre>
         f"{''.join(items)}</channel></rss>\n"
     )
 
+    # Demo recording for OpenAI's plugin review: RootFetch answering inside ChatGPT.
+    (out_dir / "demo").mkdir(exist_ok=True)
+    shutil.copyfile(Path(__file__).parent / "site" / "demo" / "chatgpt.mp4", out_dir / "demo" / "chatgpt.mp4")
     (out_dir / "CNAME").write_text("rootfetch.com\n")
     (out_dir / ".nojekyll").write_text("")
     (out_dir / f"{INDEXNOW_KEY}.txt").write_text(INDEXNOW_KEY)

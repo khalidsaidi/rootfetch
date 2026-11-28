@@ -1,0 +1,111 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "rootfetch",
+  "version": "1.0.2",
+  "description": "Size, growth, owner and abuse signals for ~1,080 domain extensions (TLDs), from ICANN zone files counted daily.",
+  "author": {
+    "name": "RootFetch",
+    "url": "https://rootfetch.com"
+  },
+  "homepage": "https://rootfetch.com/",
+  "repository": "https://github.com/khalidsaidi/rootfetch",
+  "license": "MIT",
+  "keywords": [
+    "domains",
+    "domain extensions",
+    "tld",
+    "dns",
+    "icann",
+    "zone files",
+    "phishing",
+    "domain abuse",
+    "domain statistics",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "RootFetch",
+        "shortDescription": "Facts on any domain extension",
+        "longDescription": "RootFetch counts the registered domains under about 1,080 generic domain extensions (TLDs) such as .xyz, .shop, .app and .bond, from ICANN's zone files, and publishes the numbers every day.\n\nAsk how big an extension is, who runs it, whether it is growing or shrinking, and what public abuse signals it shows. Compare extensions side by side, rank them by size or growth, see every recorded count for one extension, and find sudden registration bursts, which are often price promotions and sometimes waves of spam or phishing domains.\n\nFor people checking an unfamiliar link, domain buyers, security teams and journalists. Limits: .com and country codes such as .uk or .de are not covered; most extensions are re-counted about every two weeks (.xyz, .app and .dev daily); counts can lag or contain errors; abuse signals describe an extension as a whole and say nothing about any single website. Read-only; no account is needed.",
+        "developerName": "RootFetch",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Look up a domain extension",
+          "Rank and compare extensions",
+          "Find sudden registration jumps"
+        ],
+        "websiteURL": "https://rootfetch.com/",
+        "supportURL": "https://rootfetch.com/support",
+        "privacyPolicyURL": "https://rootfetch.com/privacy",
+        "termsOfServiceURL": "https://rootfetch.com/terms",
+        "defaultPrompt": [
+          "I got a link ending in .bond. What abuse signals does that extension show?",
+          "Which domain extensions are growing fastest right now?",
+          "Compare .xyz, .top and .shop."
+        ],
+        "brandColor": "#1F5FCC",
+        "brandColorDark": "#4F8AE0",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png"
+      },
+      "onboardingSkill": "./skills/get-started/SKILL.md",
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Safety and owner of one extension",
+              "prompt": "Is the .bond domain extension safe, and who runs it?",
+              "tools_triggered": "lookup_tld",
+              "expected_behavior": "Calls lookup_tld with .bond and reports its registered domains and rank (1,183,710, #13 when last tested), that ShortDot SA runs it, and a 'be careful' verdict because it is named in Interisle Consulting Group's abuse reports, with the link to its RootFetch page."
+            },
+            {
+              "description": "Fastest growing extensions",
+              "prompt": "Which domain extensions with at least 10,000 domains are growing fastest?",
+              "tools_triggered": "rank_tlds",
+              "expected_behavior": "Calls rank_tlds with by=fastest_growing and lists extensions with their weekly growth (.yachts, .express and .motorcycles at 11-13% a week when last tested), with the data date."
+            },
+            {
+              "description": "Recent registration bursts",
+              "prompt": "Were there any unusual domain registration jumps in the last two weeks?",
+              "tools_triggered": "recent_jumps",
+              "expected_behavior": "Calls recent_jumps with days=14 and lists each jump with its date, percentage, domains added and severity (for example .express +24.2%, critical, when last tested)."
+            },
+            {
+              "description": "Side-by-side comparison",
+              "prompt": "Compare .xyz, .top and .shop.",
+              "tools_triggered": "compare_tlds",
+              "expected_behavior": "Calls compare_tlds and gives each extension's size, rank, weekly growth, operator and safety verdict (.xyz and .top named in abuse reports, .shop clean when last tested)."
+            },
+            {
+              "description": "History of one extension",
+              "prompt": "Show me how the number of .dev domains changed this year.",
+              "tools_triggered": "tld_history",
+              "expected_behavior": "Calls tld_history with .dev and summarises the recorded counts from February 2026 to the latest check (about 597,000 at the start)."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Country code that is not covered",
+              "prompt": "How many .uk domains are there?"
+            },
+            {
+              "description": "Verdict about a single website",
+              "prompt": "Is paypal-login-secure.top a scam site? Tell me for sure."
+            },
+            {
+              "description": "Request to register or buy a domain",
+              "prompt": "Register mybrand.shop for me."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "RootFetch does not sell anything or process payments."
+      },
+      "publication": {
+        "countries": [],
+        "release_notes": "First release: look up, rank and compare domain extensions, their history and recent registration jumps."
+      }
+    }
+  }
+}
