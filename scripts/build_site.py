@@ -1865,6 +1865,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     og_ok = _og_available()
     (out_dir / "og").mkdir(exist_ok=True)
     sitemap: list[tuple[str, str]] = []
+    profiles: list[dict] = []
     big_weekly = [c.weekly for c in big]
     long_term_map = {t: g for g, t, _, _ in long_term}
     for tld, pts in series.items():
@@ -2040,6 +2041,29 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         )
         if not noindex:
             sitemap.append((path, last_d))
+        m = _META.get(tld) or {}
+        recent_change = latest if latest and latest.gap_days <= 60 else None
+        profiles.append({
+            "tld": tld, "name": u, "domains": last_v, "last_checked": last_d, "rank": rank,
+            "first_checked": first_d, "first_domains": first_v,
+            "change_since_first_pct": round(overall_pct, 6) if len(ordered) > 1 else None,
+            "latest_change": ({"added": recent_change.added, "pct": round(recent_change.pct, 6),
+                               "days": recent_change.gap_days, "weekly_pct": round(recent_change.weekly, 6)}
+                              if recent_change else None),
+            "kind": kind, "operator": m.get("operator") or None, "delegated": m.get("delegated"),
+            "brand_only": bool(m.get("brand")), "meaning": ((_WIKI.get(tld) or {}).get("translation")
+                                                            or (_WIKI.get(tld) or {}).get("geo") or None),
+            "unusual_jumps": len(tspikes), "last_jump": tspikes[-1].date if tspikes else None,
+            "named_in_abuse_reports": tld in KNOWN_ABUSE,
+            "safety": answer_faq[0][1], "country_code": False,
+            "url": f"{SITE_URL}/tld/{tld}.html",
+        })
+
+    (out_dir / "data" / "tlds.json").write_text(json.dumps({
+        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "last_update": last_update, "source": SITE_URL, "license": DATA_LICENSE,
+        "tlds": sorted(profiles, key=lambda p_: p_["rank"]),
+    }, ensure_ascii=False, separators=(",", ":")))
 
     # ---------- data files ----------
     with (out_dir / "data" / "history.csv").open("w", newline="") as handle:
