@@ -202,6 +202,18 @@ def days(n: int) -> str:
     return f"{n} day{'s' if n != 1 else ''}"
 
 
+def tick_label(v: float, span: float) -> str:
+    """Axis label with just enough precision that neighbouring ticks never read the same."""
+    if v < 1000:
+        return fmt_int(round(v))
+    for unit, suf in ((1e6, "M"), (1e3, "k")):
+        if v >= unit:
+            step = span / 4 / unit
+            digits = 0 if step >= 1 else 1 if step >= 0.1 else 2 if step >= 0.01 else 3
+            return f"{v / unit:,.{digits}f}{suf}"
+    return fmt_int(round(v))
+
+
 def trend_class(n: float) -> str:
     return "up" if n > 0 else "down" if n < 0 else "flat"
 
@@ -362,207 +374,202 @@ GA_EVENTS = r"""<script>
 FONTS = (
     '<link rel="preconnect" href="https://fonts.googleapis.com">'
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-    '<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800'
-    '&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">'
+    '<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,300..800;1,400&display=swap" rel="stylesheet">'
 )
 
 CSS = """
 :root{
---bg:#eef2f6;--panel:#ffffff;--ink:#0f1a2a;--ink-2:#465263;--muted:#6b7686;--line:#d9e0e8;--line-2:#e8edf2;
---signal:#2a78d6;--signal-soft:#dbe8f8;--dot:#9aa6b5;
---critical:#d03b3b;--fall:#4a3aa7;--high:#ec835a;--elevated:#fab219;--good:#0ca30c;
---crit-bg:#fbe6e6;--high-bg:#fdece5;--elev-bg:#fef4dc;
---display:"Archivo",system-ui,sans-serif;--sans:"Public Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;
+--bg:#ffffff;--ink:#14243f;--ink-2:#46536b;--muted:#6b778c;--rule:#dce2ea;--wash:#f3f6fa;
+--signal:#1f5fcc;--fall:#6a4bb0;--dot:#a7b1bf;
+--critical:#c2362f;--high:#cf6224;--elevated:#b07e00;--good:#2e7d43;
+--sans:"Atkinson Hyperlegible Next",system-ui,-apple-system,"Segoe UI",sans-serif;
+--code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
---bg:#0d1218;--panel:#151c25;--ink:#e7ecf2;--ink-2:#b4beca;--muted:#8792a1;--line:#273241;--line-2:#1d2631;
---signal:#3987e5;--signal-soft:#16263b;--fall:#9085e9;--dot:#5b6878;
---crit-bg:#3a1a1c;--high-bg:#3a2419;--elev-bg:#382b10;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0d1218;--panel:#151c25;--ink:#e7ecf2;--ink-2:#b4beca;--muted:#8792a1;--line:#273241;--line-2:#1d2631;
---signal:#3987e5;--signal-soft:#16263b;--fall:#9085e9;--dot:#5b6878;--crit-bg:#3a1a1c;--high-bg:#3a2419;--elev-bg:#382b10;color-scheme:dark}
+--bg:#0f1624;--ink:#e6ecf5;--ink-2:#b3bdcc;--muted:#8d98aa;--rule:#2a3446;--wash:#162033;
+--signal:#6fa2ff;--fall:#a993ec;--dot:#55617a;--critical:#ff7a6e;--high:#ff9a5a;--elevated:#e6b53a;--good:#5cc07a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1624;--ink:#e6ecf5;--ink-2:#b3bdcc;--muted:#8d98aa;--rule:#2a3446;--wash:#162033;
+--signal:#6fa2ff;--fall:#a993ec;--dot:#55617a;--critical:#ff7a6e;--high:#ff9a5a;--elevated:#e6b53a;--good:#5cc07a;color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans)}
-a{color:var(--signal);text-underline-offset:3px}
-a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--signal);outline-offset:2px;border-radius:4px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
-.skip{position:absolute;left:-999px}.skip:focus{left:16px;top:8px;background:var(--panel);padding:8px 12px;z-index:9}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--sans);font-variant-numeric:tabular-nums lining-nums}
+a{color:var(--signal);text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visible,summary:focus-visible{outline:2px solid var(--signal);outline-offset:3px;border-radius:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.skip{position:absolute;left:-999px}.skip:focus{left:16px;top:8px;background:var(--bg);padding:8px 12px;z-index:9}
+code{font:0.9em var(--code)}
 
-/* header */
-.top{border-bottom:1px solid var(--line);background:var(--panel)}
-.top .wrap{display:flex;align-items:center;gap:20px;min-height:60px;flex-wrap:wrap}
-.brand{font:800 19px/1 var(--display);font-stretch:125%;letter-spacing:-.01em;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:10px}
-.brand svg{flex:none}
-nav{display:flex;gap:4px;margin-left:auto;font-size:14px;font-weight:500}
-nav a{color:var(--ink-2);text-decoration:none;padding:6px 10px;border-radius:6px}
-nav a:hover{background:var(--line-2);color:var(--ink)}
-nav a.on{color:var(--ink);background:var(--line-2)}
+/* masthead */
+.top .wrap{display:flex;align-items:baseline;gap:28px;padding-top:22px;padding-bottom:18px;flex-wrap:wrap;border-bottom:2px solid var(--ink)}
+.brand{font-weight:800;font-size:22px;letter-spacing:-.01em;text-decoration:none;color:var(--ink)}
+.brand span{font-weight:400;color:var(--muted);font-size:15px;margin-left:10px;letter-spacing:0}
+nav{display:flex;gap:22px;margin-left:auto;font-size:16px}
+nav a{color:var(--ink);text-decoration:none;padding:2px 0;border-bottom:2px solid transparent;white-space:nowrap}
+nav a:hover{border-bottom-color:var(--rule)}
+nav a.on{border-bottom-color:var(--ink);font-weight:700}
+.trust{font-size:15px;color:var(--muted);margin:14px 0 0}
+.trust.stale{color:var(--critical);font-weight:700}
 
-/* trust bar */
-.trust{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;font:13px/1.4 var(--mono);color:var(--ink-2);padding:14px 0;border-bottom:1px solid var(--line)}
-.trust .state{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
-.trust .state i{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 25%,transparent)}
-.trust.stale .state i{background:var(--elevated);box-shadow:0 0 0 3px color-mix(in srgb,var(--elevated) 30%,transparent)}
-.trust.stale{color:var(--ink)}
+/* type */
+h1{font-weight:800;font-size:clamp(32px,4.6vw,50px);line-height:1.08;letter-spacing:-.02em;margin:44px 0 18px;max-width:22ch}
+h2{font-weight:800;font-size:27px;line-height:1.2;letter-spacing:-.01em;margin:0 0 10px}
+h3{font-weight:700;font-size:18px;line-height:1.3;margin:0 0 4px}
+.section{margin:72px 0 0}
+.section-head{margin-bottom:22px;max-width:68ch}
+.section-head p{margin:0;color:var(--ink-2)}
+.section-head .more{display:inline-block;margin-top:8px}
+.lede{font-size:20px;line-height:1.5;color:var(--ink-2);max-width:62ch;margin:0}
+.lede b{color:var(--ink)}
+.muted,.count{color:var(--muted)}
+.count{font-size:15px}
+.eyebrow{display:none}
+.up{color:var(--ink)}.down{color:var(--fall)}.flat{color:var(--muted)}
 
-/* headings */
-.eyebrow{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-h1{font:800 clamp(30px,5.2vw,54px)/1.02 var(--display);font-stretch:118%;letter-spacing:-.025em;margin:40px 0 16px;max-width:24ch}
-h1 .hl{color:var(--signal)}h1 .hl.alarm{color:var(--critical)}
-h2{font:700 22px/1.2 var(--display);font-stretch:112%;letter-spacing:-.01em;margin:0 0 6px}
-.section{margin:56px 0 0}
-.section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
-.section-head p{margin:0;color:var(--ink-2);max-width:62ch;font-size:15px}
-.lede{font-size:18px;line-height:1.5;color:var(--ink-2);max-width:60ch;margin:0}
-.lede b{color:var(--ink);font-weight:600}
+/* the root wall: every extension, typeset by size */
+.wall{margin:34px 0 0;line-height:1.08;word-spacing:.18em;max-width:none}
+.wall{--wallscale:1}.wall a{font-size:calc(var(--s) * var(--wallscale) * 1px);color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
+.wall a.g{color:var(--signal)}
+.wall a.s{color:var(--fall)}
+.wall a.j{color:var(--critical);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.wall a:hover{color:var(--ink);text-decoration:underline}
+.wallkey{margin:18px 0 0;font-size:15px;color:var(--ink-2);max-width:72ch}
+.wallkey .g{color:var(--signal);font-weight:700}.wallkey .s{color:var(--fall);font-weight:700}.wallkey .j{color:var(--critical);font-weight:700;text-decoration:underline}
 
-/* radar */
-.radar{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 10px;position:relative}
-.radar svg{display:block;width:100%;height:auto;overflow:visible}
-.radar .axis-t{font:11px var(--mono);fill:var(--muted)}
-.radar .lab{font:600 12px var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round}
-.radar .zone-t{font:600 11px var(--mono);fill:var(--critical);letter-spacing:.06em}
-.pt{cursor:pointer}
-.pt circle{transition:r .12s}
-.pt:hover circle.m,.pt:focus circle.m{r:7}
-.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink-2);padding:10px 2px 4px}
-.legend span{display:inline-flex;align-items:center;gap:7px}
-.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+/* findings under the hero */
+.takeaways{list-style:none;padding:0;margin:30px 0 0;max-width:68ch;border-top:1px solid var(--rule)}
+.takeaways li{padding:12px 0;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+.takeaways b{color:var(--ink)}
+.kpis{display:none}
 
-/* tooltip */
-#tip{position:fixed;pointer-events:none;z-index:20;background:var(--ink);color:var(--panel);font:12px/1.45 var(--mono);padding:8px 10px;border-radius:8px;max-width:300px;opacity:0;transform:translateY(4px);transition:opacity .1s,transform .1s;white-space:pre-line}
-#tip.on{opacity:1;transform:none}
+/* charts on the page, not in boxes */
+.pulses{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:36px}
+.pulse,.sm{text-decoration:none;color:var(--ink);display:block}
+.pulse .row,.sm .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pn{font-weight:800;font-size:26px;letter-spacing:-.02em}
+.pv{font-weight:700;font-size:18px}
+.pulse p{margin:2px 0 10px;font-size:15px;color:var(--muted)}
+.pulse:hover .pn,.sm:hover .smn{color:var(--signal)}
+.pl svg{width:100%;height:96px;display:block;border-bottom:1px solid var(--rule)}
+.pb svg{width:100%;height:40px;display:block}
+.pulse .row.count{font-size:13px}
+.smgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:28px 24px}
+.sm svg{width:100%;height:64px;display:block;margin:6px 0 2px}
+.smn{font-weight:800;font-size:19px}
+.smv{font-weight:700;font-size:15px}.smv.down{color:var(--fall)}
+.sm .count{font-size:13px}
 
-/* severity */
-.sev{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--mono);padding:5px 9px 5px 8px;border-radius:99px;color:var(--ink);white-space:nowrap}
-.sev i{width:8px;height:8px;display:inline-block}
-.sev-critical{background:var(--crit-bg)}.sev-critical i{background:var(--critical);transform:rotate(45deg)}
-.sev-high{background:var(--high-bg)}.sev-high i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--high)}
-.sev-elevated{background:var(--elev-bg)}.sev-elevated i{background:var(--elevated);border-radius:50%}
-.abuse{font:600 11px/1 var(--mono);color:var(--ink-2);border:1px solid var(--line);padding:4px 8px;border-radius:99px;text-decoration:none;white-space:nowrap}
-.abuse:hover{border-color:var(--ink-2)}
+/* ranked lists */
+.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px 44px}
+.board h3{margin-bottom:2px}
+.board .count{margin:0 0 10px;font-size:14px}
+.board ol{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.board li a{display:grid;grid-template-columns:104px 1fr minmax(70px,auto);align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+.board li a:hover .bn{color:var(--signal);text-decoration:underline}
+.bn{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bt{height:8px;background:transparent}
+.bb{display:block;height:100%}
+.bv{font-size:15px;text-align:right;color:var(--ink-2)}
 
-/* watch list */
-.watch{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:var(--ink);position:relative;transition:border-color .15s,transform .15s}
-.card:hover{border-color:var(--ink-2);transform:translateY(-1px)}
-.card.critical{border-top:3px solid var(--critical)}.card.high{border-top:3px solid var(--high)}.card.elevated{border-top:3px solid var(--elevated)}
-.card .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.card .name{font:800 25px/1 var(--display);font-stretch:100%;letter-spacing:-.02em;overflow-wrap:anywhere}
-.card .big{font:600 22px/1 var(--mono);letter-spacing:-.02em}
-.card .meta{font-size:13px;color:var(--ink-2)}
-.card svg{width:100%;height:44px;display:block}
-.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.empty{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:20px;color:var(--ink-2)}
+/* severity: a shape and a word, no badges */
+.sev{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:15px;white-space:nowrap}
+.sev i{width:9px;height:9px;display:inline-block}
+.sev-critical{color:var(--critical)}.sev-critical i{background:var(--critical);transform:rotate(45deg)}
+.sev-high{color:var(--high)}.sev-high i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--high)}
+.sev-elevated{color:var(--elevated)}.sev-elevated i{background:var(--elevated);border-radius:50%}
+.abuse{font-size:15px;color:var(--critical)}
+.chips{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+
+/* jumps as a list */
+.jumps{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.jumps li a{display:grid;grid-template-columns:minmax(120px,1.2fr) 110px minmax(90px,.8fr) 2fr;gap:16px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+.jumps .name{font-weight:800;font-size:21px}
+.jumps .big{font-weight:800;font-size:19px}
+.jumps .meta{color:var(--ink-2);font-size:15px}
+.jumps li a:hover .name{color:var(--signal);text-decoration:underline}
+.empty{color:var(--ink-2)}
 
 /* tables */
-.tools{display:flex;gap:12px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
-input[type=search]{font:inherit;font-size:15px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);width:min(340px,100%)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
-.seg button{font:500 13px var(--sans);border:0;background:none;color:var(--ink-2);padding:9px 12px;cursor:pointer}
-.seg button[aria-pressed=true]{background:var(--ink);color:var(--panel)}
-.tablebox{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:auto;max-height:720px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--line-2);white-space:nowrap}
-tbody tr:hover{background:var(--line-2)}
-th{font:600 11px/1 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--panel);position:sticky;top:0;z-index:1;border-bottom:1px solid var(--line)}
+.tools{display:flex;gap:14px;align-items:center;margin:0 0 14px;flex-wrap:wrap}
+input[type=search]{font:inherit;font-size:17px;padding:9px 12px;border:1px solid var(--ink-2);border-radius:2px;background:var(--bg);color:var(--ink);width:min(340px,100%)}
+.seg{display:inline-flex;gap:18px}
+.seg button{font:inherit;font-size:16px;border:0;border-bottom:2px solid transparent;background:none;color:var(--ink-2);padding:4px 0;cursor:pointer}
+.seg button[aria-pressed=true]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+.tablebox{overflow:auto;max-height:760px;border-top:2px solid var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{padding:9px 12px 9px 0;text-align:left;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{font-weight:700;font-size:14px;color:var(--ink-2);background:var(--bg);position:sticky;top:0;z-index:1;border-bottom:1px solid var(--ink-2)}
 th[data-sort]{cursor:pointer;user-select:none}
 th[data-sort]:hover{color:var(--ink)}
 th[data-dir=desc]::after{content:" ↓"}th[data-dir=asc]::after{content:" ↑"}
-td.n,th.n{text-align:right;font-family:var(--mono)}
+tbody tr:hover{background:var(--wash)}
+td.n,th.n{text-align:right}
 td.spark{width:96px;padding-top:4px;padding-bottom:4px}
 td.spark svg{display:block}
-.up{color:var(--ink)}.down{color:var(--muted)}.flat{color:var(--muted)}
-.tld{font:600 14px var(--mono);text-decoration:none;color:var(--ink)}
-.tld:hover{color:var(--signal)}
-.idn{font:400 11px var(--mono);color:var(--muted);margin-left:4px}
-.muted{color:var(--muted)}
-.count{font:13px var(--mono);color:var(--muted)}
+.tld{font-weight:700;text-decoration:none;color:var(--ink)}
+.tld:hover{color:var(--signal);text-decoration:underline}
+.idn{font-weight:400;font-size:13px;color:var(--muted);margin-left:6px}
 
-/* detail */
-.back{display:inline-block;margin-top:28px;font-size:14px}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:20px 0}
-.facts div{background:var(--panel);padding:14px 16px}
-.facts b{display:block;font:600 22px/1.2 var(--mono);letter-spacing:-.02em}
-.facts small{color:var(--muted);font-size:13px}
-.chart{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+/* extension pages */
+.crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px;font-size:15px;color:var(--muted)}
+.crumbs a{color:var(--ink-2)}
+h1.tldname small{font-size:.2em;letter-spacing:0;font-weight:600;color:var(--muted);margin-left:.4em}
+h1.tldname{font-size:clamp(64px,13vw,168px);line-height:.92;letter-spacing:-.045em;margin:18px 0 22px;max-width:none;overflow-wrap:anywhere}
+.tldlede{max-width:62ch}
+.facts{display:flex;flex-wrap:wrap;gap:12px 44px;margin:22px 0 24px;padding:18px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.facts b{display:block;font-weight:800;font-size:26px;letter-spacing:-.01em}
+.facts small{color:var(--muted);font-size:14px}
 .chart svg{width:100%;height:auto;display:block;overflow:visible}
-.chart .axis-t{font:11px var(--mono);fill:var(--muted)}
+.chart .axis-t{font:12px var(--sans);fill:var(--muted)}
+.summary p{font-size:18px;line-height:1.6;color:var(--ink-2);max-width:68ch}.summary b{color:var(--ink)}
+.answers h2{margin-top:40px}
+.verdict{font-weight:800;font-size:21px;line-height:1.35;padding:2px 0 2px 16px;border-left:5px solid var(--rule);max-width:60ch;margin:12px 0}
+.answers .verdict{color:var(--ink)}
+.answers .verdict.verdict-warn{border-left-color:var(--critical)}.answers .verdict.verdict-mixed{border-left-color:var(--elevated)}.answers .verdict.verdict-ok{border-left-color:var(--good)}
+.answers p{color:var(--ink-2);max-width:68ch}
+.faq details{border-bottom:1px solid var(--rule);padding:14px 0}
+.faq details:first-of-type{border-top:1px solid var(--rule)}
+.faq summary{cursor:pointer;font-weight:700;font-size:18px}
+.faq p{margin:8px 0 0;color:var(--ink-2);max-width:68ch}
+.related{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-wrap:wrap;gap:10px 28px}
+.related a{text-decoration:none;color:var(--ink);font-weight:700}
+.related a:hover{color:var(--signal);text-decoration:underline}
+.related .count{font-weight:400;margin-left:6px;font-size:14px}
+.prose-p{color:var(--ink-2);max-width:68ch}
 
-/* timeline */
-.weeks{display:flex;gap:3px;align-items:flex-end;height:90px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 14px 30px;position:relative;overflow-x:auto}
-.weeks .w{flex:1 0 10px;min-width:10px;background:var(--line-2);border-radius:3px 3px 0 0;position:relative}
+/* tooltip */
+#tip{position:fixed;pointer-events:none;z-index:20;background:var(--ink);color:var(--bg);font:14px/1.45 var(--sans);padding:8px 11px;border-radius:3px;max-width:300px;opacity:0;white-space:pre-line}
+#tip.on{opacity:1}
+.pt{cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:14px;color:var(--ink-2);padding:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+/* jumps-per-week strip */
+.weeks{display:flex;gap:3px;align-items:flex-end;height:84px;padding:0 0 26px;position:relative;overflow-x:auto;border-bottom:1px solid var(--rule)}
+.weeks .w{flex:1 0 10px;min-width:10px;background:var(--rule);position:relative}
 .weeks .w.has{background:var(--critical)}
-.weeks .w span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font:10px var(--mono);color:var(--muted);white-space:nowrap}
+.weeks .w span{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted);white-space:nowrap}
 
-
-/* trends home */
-.takeaways{list-style:none;padding:0;margin:0;display:grid;gap:8px;max-width:70ch}
-.takeaways li{font-size:17px;color:var(--ink-2);padding-left:22px;position:relative}
-.takeaways li::before{content:"";position:absolute;left:4px;top:.6em;width:8px;height:8px;border-radius:2px;background:var(--signal)}
-.takeaways b{color:var(--ink);font-weight:600}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:28px 0 0}
-.kpi{background:var(--panel);padding:16px 18px;display:flex;flex-direction:column;gap:2px}
-.kpi b{font:600 30px/1.1 var(--mono);letter-spacing:-.03em}
-.kpi span{font-size:14px;color:var(--ink)}
-.kpi small{font-size:12px;color:var(--muted);font-family:var(--mono)}
-.pulses{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
-.pulse,.sm{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:6px;transition:border-color .15s}
-.pulse:hover,.sm:hover{border-color:var(--ink-2)}
-.pulse .row,.sm .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.pn,.smn{font:800 22px/1 var(--display);letter-spacing:-.02em}
-.pv{font:600 18px var(--mono)}
-.pulse p{margin:0}
-.pl svg{width:100%;height:90px;display:block}
-.pb svg{width:100%;height:46px;display:block}
-.boards{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px}
-.board{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 16px 10px}
-.board h3{font:700 16px/1.2 var(--display);margin:0}
-.board .count{margin:2px 0 10px}
-.board ol{list-style:none;margin:0;padding:0}
-.board li a{display:grid;grid-template-columns:96px 1fr minmax(76px,auto);align-items:center;gap:10px;padding:5px 0;text-decoration:none;color:var(--ink)}
-.board li a:hover .bn{color:var(--signal)}
-.bn{font:600 13px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bt{height:10px;background:var(--line-2);border-radius:3px;overflow:hidden}
-.bb{display:block;height:100%;border-radius:3px}
-.bv{font:600 13px var(--mono);text-align:right}
-.smgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
-.sm svg{width:100%;height:80px;display:block}
-.smn{font-size:18px}
-.smv{font:600 14px var(--mono)}.smv.down{color:var(--fall)}
-
-/* tld page seo blocks */
-.crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px;font-size:14px;color:var(--muted)}
-.summary{margin-top:8px}.summary p{font-size:17px;line-height:1.6;color:var(--ink-2)}.summary b{color:var(--ink)}
-.faq details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:10px}
-.faq summary{cursor:pointer;font-weight:600}
-.faq p{margin:10px 0 0;color:var(--ink-2)}
-.related{list-style:none;padding:0;margin:12px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.related a{display:flex;justify-content:space-between;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-decoration:none;color:var(--ink)}
-.related a:hover{border-color:var(--ink-2)}
-.prose-p{color:var(--ink-2);max-width:66ch}
-.prose code{font:13px var(--mono)}
-.tldlede{margin-top:4px;max-width:70ch}
-.answers h2{margin-top:28px}
-.verdict{font:600 17px/1.4 var(--sans);padding:12px 16px;border-radius:12px;border-left:4px solid var(--line);background:var(--panel);max-width:70ch}
-.verdict-warn{border-left-color:var(--critical)}.verdict-mixed{border-left-color:var(--elevated)}.verdict-ok{border-left-color:var(--good)}
-.answers p{color:var(--ink-2);max-width:70ch}
-/* prose & data */
-.prose{max-width:66ch}.prose p,.prose li{color:var(--ink-2)}.prose h2{margin-top:36px}
-.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
-.dl a{display:block;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-decoration:none;color:var(--ink)}
-.dl a:hover{border-color:var(--ink-2)}
-.dl small{display:block;color:var(--ink-2);margin-top:4px;font-size:13px}
-.dl code{font:600 14px var(--mono);color:var(--signal)}
-footer{border-top:1px solid var(--line);margin-top:72px;padding:24px 0 48px;color:var(--muted);font-size:13px}
-footer .wrap{display:flex;gap:8px 24px;flex-wrap:wrap}
+/* prose and data pages */
+.prose{max-width:68ch}.prose p,.prose li{color:var(--ink-2)}.prose h2{margin-top:44px}
+.prose pre{background:var(--wash);padding:14px 16px;overflow:auto;font-size:14px;border-left:3px solid var(--rule)}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 40px;border-top:1px solid var(--rule)}
+.dl a{display:block;padding:14px 0;border-bottom:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+.dl code{font-weight:700;font-size:16px;color:var(--signal)}
+.dl a:hover code{text-decoration:underline}
+.dl small{display:block;color:var(--ink-2);margin-top:2px;font-size:15px}
+footer{margin-top:96px;border-top:2px solid var(--ink)}
+footer .wrap{padding-top:20px;padding-bottom:56px;display:flex;gap:10px 28px;flex-wrap:wrap;color:var(--ink-2);font-size:15px}
+footer a{color:var(--ink)}
 @media (max-width:640px){
- nav{margin-left:0;width:100%;overflow-x:auto;padding-bottom:8px}
- .top .wrap{padding-top:12px}
- th,td{padding:9px 10px}
- .radar{padding:10px 6px 6px;overflow-x:auto}
- .radar svg{min-width:760px}
- .chart{overflow-x:auto}.chart svg{min-width:640px}
+ body{font-size:16px}
+ nav{margin-left:0;width:100%;gap:6px 20px;flex-wrap:wrap}
+ .wall{--wallscale:.78}
+ .jumps li a{grid-template-columns:1fr auto;}
+ .jumps li a .meta{grid-column:1/-1}
+ th,td{padding:8px 10px 8px 0}
+ .chart{overflow-x:auto}.chart svg{min-width:620px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 """
@@ -648,7 +655,7 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 <meta name="twitter:title" content="{esc(title)}">
 <meta name="twitter:description" content="{esc(desc)}">
 <meta name="twitter:image" content="{SITE_URL}/{image}">
-<meta name="theme-color" content="#0f1a2a">
+<meta name="theme-color" content="#14243f">
 <script type="application/ld+json">{ld}</script>
 {GA_HEAD}
 <link rel="alternate" type="application/rss+xml" title="RootFetch spikes" href="{SITE_URL}/feed.xml">
@@ -661,15 +668,15 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="top"><div class="wrap">
-<a class="brand" href="{root}index.html">{LOGO}RootFetch</a>
-<nav aria-label="Main">{link("index.html", "Trends", "home")}{link("tlds.html", "Extensions list", "tlds")}{link("spikes.html", "Unusual jumps", "spikes")}{link("data.html", "Data", "data")}{link("about.html", "About", "about")}</nav>
+<a class="brand" href="{root}index.html">RootFetch<span>domain extensions, counted daily</span></a>
+<nav aria-label="Main">{link("index.html", "Trends", "home")}{link("tlds.html", "All extensions", "tlds")}{link("spikes.html", "Unusual jumps", "spikes")}{link("data.html", "Data", "data")}{link("about.html", "About", "about")}</nav>
 </div></header>
 <div class="wrap">{trust}</div>
 <main id="main" class="wrap">
 {body}
 </main>
-<footer><div class="wrap"><span>Counts from ICANN CZDS zone files, refreshed daily. Raw zone files are never published.</span>
-<a href="{root}feed.xml">RSS feed</a><a href="{REPO_URL}">Source on GitHub</a></div></footer>
+<footer><div class="wrap"><span>RootFetch counts the domains in ICANN zone files every day. Raw zone files are never published.</span>
+<a href="{root}data.html">Download the data</a><a href="{root}feed.xml">RSS feed</a><a href="{REPO_URL}">Source code</a></div></footer>
 <div id="tip" role="tooltip"></div>
 <script>{JS}</script>
 {GA_EVENTS}
@@ -843,7 +850,7 @@ def history_chart(points: list[tuple[str, int]], changes: dict[str, Change]) -> 
         yy = y(v)
         parts.append(
             f'<line x1="{pl}" x2="{w - pr}" y1="{yy:.1f}" y2="{yy:.1f}" stroke="var(--line-2)"/>'
-            f'<text class="axis-t" x="{pl - 10}" y="{yy + 4:.1f}" text-anchor="end">{fmt_compact(v) if v >= 1000 else fmt_int(round(v))}</text>'
+            f'<text class="axis-t" x="{pl - 10}" y="{yy + 4:.1f}" text-anchor="end">{tick_label(v, hi - lo)}</text>'
         )
     # month ticks
     cur = date.fromordinal(d0).replace(day=1)
@@ -951,10 +958,10 @@ def pulse_panel(tld: str, pts: list[tuple[str, int]]) -> str:
     return (
         f'<a class="pulse" href="tld/{esc(tld)}.html"><div class="row"><span class="pn">.{esc(tld)}</span>'
         f'<span class="pv">{fmt_int(last_v)}</span></div>'
-        f'<p class="count">{fmt_pct((last_v - first_v) / first_v if first_v else 0)} since {fmt_day(pts[0][0], False)} · '
-        f'avg {fmt_signed(round(avg))}/day over its last {len(recent)} daily checks</p>'
+        f'<p class="count">{fmt_pct((last_v - first_v) / first_v if first_v else 0)} since {fmt_day(pts[0][0], False)}, '
+        f'averaging {fmt_signed(round(avg))} domains a day over the last week of checks.</p>'
         f'<div class="pl">{line}</div><div class="pb">{bars}</div>'
-        f'<div class="row count"><span>{fmt_day(pts[0][0], False)}</span><span>daily net change</span><span>{fmt_day(pts[-1][0], False)}</span></div></a>'
+        f'<div class="row count"><span>{fmt_day(pts[0][0], False)}</span><span>net change per day</span><span>{fmt_day(pts[-1][0], False)}</span></div></a>'
     )
 
 
@@ -1331,17 +1338,12 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     (out_dir / "tld").mkdir(parents=True)
     (out_dir / "data").mkdir()
 
-    state = (
-        f'<span class="state"><i></i>Data is {age_days} days old</span>'
-        if stale
-        else '<span class="state"><i></i>Up to date</span>'
-    )
-    trust = (
-        f'<div class="trust{" stale" if stale else ""}" role="status">{state}'
-        f"<span>Last update {fmt_day(last_update)}</span>"
-        f"<span>{checked_latest} TLDs checked in that run</span>"
-        f"<span>{len(series):,} TLDs tracked</span></div>"
-    )
+    if stale:
+        trust = (f'<p class="trust stale" role="status">The newest data is {age_days} days old (last update {fmt_day(last_update)}). '
+                 "Daily updates are behind.</p>")
+    else:
+        trust = (f'<p class="trust" role="status">Updated {fmt_day(last_update)}, when {checked_latest} of the '
+                 f"{len(series):,} tracked zone files were counted.</p>")
 
     # ---------- radar ----------
     radar_entries = []
@@ -1390,7 +1392,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     if big and lead_gain:
         share = len(growing) / len(big)
         headline = (
-            f'<span class="hl">{len(growing)} of {len(big)}</span> large domain extensions are growing. '
+            f"{len(growing)} of {len(big)} large domain extensions are growing. "
             f".{esc(unicode_name(lead_gain.tld))} leads, adding {fmt_compact(per_week[lead_gain.tld])} domains a week."
         )
     else:
@@ -1448,13 +1450,13 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     launch_html = ""
     if launches:
         launch_html = (
-            '<section class="section" aria-labelledby="launch-h"><div class="section-head"><div>'
+            '<section class="section" aria-labelledby="launch-h"><div class="section-head">'
             '<h2 id="launch-h">Just launched and taking off</h2>'
             f'<p>Extensions that at least doubled in size at their latest check, usually because they just opened to the public. '
-            f'Too small for the rankings above, but the fastest growth in the dataset.</p></div></div>'
+            f'Too small for the rankings above, but the fastest growth in the dataset.</p></div>'
             '<div class="boards">'
             + bar_board("Times larger than at the previous check", f"{len(launches)} extension{'s' if len(launches) != 1 else ''}, last {RECENT_DAYS} days",
-                        [(c.tld, c.count / c.prev_count, f"{fmt_int(c.prev_count)} → {fmt_int(c.count)}") for c in launches[:8]], "var(--signal)")
+                        [(c.tld, c.count / c.prev_count, f"{fmt_int(c.prev_count)} to {fmt_int(c.count)}") for c in launches[:8]], "var(--signal)")
             + "</div></section>"
         )
     boards = "".join([
@@ -1495,20 +1497,34 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         sm_html = "".join(cells)
 
     # ---------- unusual jumps ----------
-    watch_src = recent if recent else spikes[:4]
-    cards = []
-    for s in sorted(watch_src, key=lambda s: (-s.pct))[:4]:
-        sev = s.severity
-        pts = sorted(series[s.tld].items())
-        cards.append(
-            f'<a class="card {sev[0]}" href="tld/{esc(s.tld)}.html">'
-            f'<div class="row"><span class="name"{' style="font-size:19px"' if len(unicode_name(s.tld)) > 9 else ''}>.{esc(unicode_name(s.tld))}</span>{sev_chip(s)}</div>'
-            f'<div><span class="big">{fmt_pct(s.pct)}</span> <span class="meta">in {days(s.gap_days)}</span></div>'
-            f"{sparkline(pts, 240, 44, 'var(--ink-2)', f'var(--{sev[0]})')}"
-            f'<div class="meta">{fmt_signed(s.added)} domains → {fmt_int(s.count)} · {fmt_day(s.date)}</div>'
-            f'<div class="chips">{abuse_chip(s.tld)}</div></a>'
+    watch_src = recent if recent else spikes[:6]
+    rows_j = []
+    for s_ in sorted(watch_src, key=lambda x: -x.pct)[:6]:
+        rows_j.append(
+            f'<li><a href="tld/{esc(s_.tld)}.html"><span class="name">.{esc(unicode_name(s_.tld))}</span>'
+            f'{sev_chip(s_)}<span class="big">{fmt_pct(s_.pct)} <span class="meta">in {days(s_.gap_days)}</span></span>'
+            f'<span class="meta">{fmt_signed(s_.added)} domains, to {fmt_int(s_.count)}, on {fmt_day(s_.date)}'
+            + (" (named in abuse reports)" if s_.tld in KNOWN_ABUSE else "") + "</span></a></li>"
         )
-    watch_block = f'<div class="watch">{"".join(cards)}</div>' if cards else '<div class="empty">No unusual jumps yet.</div>'
+    watch_block = f'<ul class="jumps">{"".join(rows_j)}</ul>' if rows_j else '<p class="empty">No unusual jumps yet.</p>'
+
+    # ---------- the root wall: every sizable extension, typeset by size, coloured by direction ----------
+    wall_words = []
+    lo_l, hi_l = 3.0, max(math.log10(max(c.count for c, _ in radar_entries)), 4.0)
+    for c, _ in sorted(radar_entries, key=lambda e: unicode_name(e[1])):
+        size = 13 + (math.log10(c.count) - lo_l) / (hi_l - lo_l) * 47
+        cls = ("j" if c.severity and c.date > recent_cut else
+               "g" if c.weekly > 0.01 else "s" if c.weekly < -0.005 else "")
+        tip = f".{unicode_name(c.tld)}: {fmt_int(c.count)} domains, {fmt_pct(c.weekly)} a week"
+        wall_words.append(f'<a class="{cls}" href="tld/{esc(c.tld)}.html" style="--s:{size:.0f}" title="{esc(tip)}">.{esc(unicode_name(c.tld))}</a>')
+    n_g = sum(1 for c, _ in radar_entries if c.weekly > 0.01)
+    n_s = sum(1 for c, _ in radar_entries if c.weekly < -0.005)
+    wall_html = (
+        f'<div class="wall" aria-label="All {len(radar_entries)} extensions with at least {fmt_int(RADAR_MIN_DOMAINS)} domains">{" ".join(wall_words)}</div>'
+        f'<p class="wallkey">Every extension with at least {fmt_int(RADAR_MIN_DOMAINS)} domains, in alphabetical order, set in proportion to its size. '
+        f'<span class="g">Blue</span> ones are growing more than 1% a week ({n_g}), <span class="s">violet</span> ones are shrinking more than 0.5% ({n_s}), '
+        f'and <span class="j">red</span> ones had an unusual jump in the last {RECENT_DAYS} days. Each name opens its page.</p>'
+    )
 
     legend = (
         '<div class="legend">'
@@ -1519,35 +1535,35 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         '<span><i style="background:var(--dot)"></i>Normal</span></div>'
     )
     index_body = f"""
-<p class="eyebrow" style="margin-top:36px">Domain statistics · {fmt_day(last_update)}</p>
 <h1>{headline}</h1>
+<p class="lede">RootFetch counts the registered domains under {len(series):,} domain extensions every day, straight from their zone files.</p>
+{wall_html}
 <ul class="takeaways">{"".join(f"<li>{t}</li>" for t in takeaways)}</ul>
-<div class="kpis">{kpi_html}</div>
 
 <section class="section" aria-labelledby="pulse-h">
-<div class="section-head"><div><h2 id="pulse-h">Daily pulse</h2>
-<p>The TLDs checked every day. The line is the total; the bars underneath are each day's net change in domains.</p></div></div>
+<div class="section-head"><h2 id="pulse-h">The three extensions counted every day</h2>
+<p>The line is each extension's total. The bars underneath are each day's net change.</p></div>
 <div class="pulses">{pulse_html}</div>
 </section>
 
 <section class="section" aria-labelledby="boards-h">
-<div class="section-head"><div><h2 id="boards-h">Who's growing, who's shrinking</h2>
-<p>Rankings from each TLD's latest check. Growth per week is scaled so TLDs checked days or weeks apart compare fairly.</p></div>
-<span class="count"><a class="cta" href="tlds.html">All extensions →</a></span></div>
+<div class="section-head"><h2 id="boards-h">Growing and shrinking</h2>
+<p>Rankings from each extension's latest check. Growth per week is scaled so extensions checked days or weeks apart compare fairly.
+<a class="cta more" href="tlds.html">See all {len(series):,} extensions</a></p></div>
 <div class="boards">{boards}</div>
 </section>
 
 <section class="section" aria-labelledby="sm-h">
-<div class="section-head"><div><h2 id="sm-h">The biggest TLDs since they were first checked</h2>
-<p>Each panel starts at 100 on its first check, and all share one scale, so the lines can be compared. Dashed stretches are gaps with no checks.</p></div></div>
+<div class="section-head"><h2 id="sm-h">The biggest extensions since February</h2>
+<p>Every chart starts at 100 on the extension's first check and shares one scale, so the lines compare directly. Dashed stretches are gaps between checks.</p></div>
 <div class="smgrid">{sm_html}</div>
 </section>
 
 {launch_html}
 <section class="section" aria-labelledby="watch-h">
-<div class="section-head"><div><h2 id="watch-h">Unusual jumps</h2>
-<p>At least {fmt_int(SPIKE_MIN_ADDED)} new domains and {SPIKE_MIN_PCT:.0%}+ growth within {SPIKE_MAX_GAP_DAYS} days. Sometimes a price promotion, sometimes bulk registrations for spam or phishing.</p></div>
-<span class="count"><a class="cta" href="spikes.html">All {len(spikes)} jumps →</a> · <a class="cta" href="feed.xml">RSS</a></span></div>
+<div class="section-head"><h2 id="watch-h">Unusual jumps</h2>
+<p>An extension gaining at least {fmt_int(SPIKE_MIN_ADDED)} domains and {SPIKE_MIN_PCT:.0%} within {SPIKE_MAX_GAP_DAYS} days. Sometimes a price promotion, sometimes bulk registrations for spam or phishing.
+<a class="cta more" href="spikes.html">See all {len(spikes)} jumps</a> or <a class="cta" href="feed.xml">follow them by RSS</a>.</p></div>
 {watch_block}
 </section>
 """
@@ -1618,7 +1634,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
             f'<td class="spark" data-v="{ch.weekly if ch else 0:.6f}">{sparkline(ordered)}</td>'
             f'<td data-v="{last}">{fmt_day(last, False)}</td><td data-v="{(2 if sev else 0) + (1 if tld in KNOWN_ABUSE else 0)}"><span class="chips">{flags}</span></td></tr>'
         )
-    top3 = sorted(series, key=lambda t: -series[t][max(series[t])])[:3]
+    top3 = largest[:3]  # only extensions checked recently
     ext_faq = [
         ("What is a domain extension (TLD)?",
          "A domain extension, or top-level domain (TLD), is the last part of a domain name, like .com, .xyz or .app. "
@@ -1634,7 +1650,6 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
                         "At their latest checks, the fastest growing large extensions are "
                         + ", ".join(f".{unicode_name(c.tld)} ({fmt_pct(c.weekly)} a week)" for c in fastest[:3]) + "."))
     tlds_body = f"""
-<p class="eyebrow" style="margin-top:40px">Updated {fmt_day(last_update)}</p>
 <h1>Most popular domain extensions in {last_update[:4]}</h1>
 <p class="lede">All {len(series):,} domain extensions (TLDs) RootFetch tracks, ranked by how many domains are registered under each, counted from their zone files. The top three right now: {", ".join(f".{unicode_name(t)} ({fmt_compact(series[t][max(series[t])])})" for t in top3)}. Growth is scaled to one week so extensions checked at different intervals compare fairly.</p>
 <section class="section">
@@ -1710,7 +1725,6 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
                               + ", ".join(f"{esc(o)} ({n})" for o, n in ops)
                               + ". Operators that run many low-cost extensions tend to show up here, because one promotion can move several of them at once.")
     spikes_body = f"""
-<p class="eyebrow" style="margin-top:40px">Alerts</p>
 <h1>Unusual domain registration jumps: {len(spikes)} so far</h1>
 <p class="lede">A spike is when a TLD gains at least {fmt_int(SPIKE_MIN_ADDED)} domains and grows {SPIKE_MIN_PCT:.0%} or more since its previous check, and that check was no more than {SPIKE_MAX_GAP_DAYS} days earlier. Severity follows the size of the jump: <b>Elevated</b> 5–10%, <b>High</b> 10–20%, <b>Critical</b> 20% and up.</p>
 <p><a class="cta" href="feed.xml">Follow new spikes by RSS</a> · <a class="cta" href="data/spikes.csv">CSV</a> · <a class="cta" href="data/spikes.json">JSON</a></p>
@@ -1877,7 +1891,7 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
 
         body = f"""
 <nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Trends</a><span>/</span><a href="../tlds.html">Domain extensions</a><span>/</span><span aria-current="page">.{esc(u)}</span></nav>
-<h1 style="margin-top:12px">The .{esc(u)} domain</h1>{sub}
+<h1 class="tldname">.{esc(u)}<small> domain</small></h1>{sub}
 <p class="lede tldlede">{lede}</p>
 <div class="chips">{(sev_chip(tspikes[-1]) + f'<span class="count">last jump {fmt_day(tspikes[-1].date)}</span>') if tspikes else ""}{abuse_chip(tld, 1)}</div>
 {answers_html}
@@ -1954,7 +1968,6 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
     )
 
     data_body = f"""
-<p class="eyebrow" style="margin-top:40px">Open data</p>
 <h1>Download everything</h1>
 <p class="lede">All data on this site is free to download and reuse. Files are rebuilt every day.</p>
 <section class="section"><div class="dl">
@@ -1994,7 +2007,6 @@ df[df.tld == "lol"].plot(x="date", y="count")</code></pre>
         for t, src in sorted(KNOWN_ABUSE.items())
     )
     about_body = f"""
-<p class="eyebrow" style="margin-top:40px">About</p>
 <h1>Free daily trends for every top-level domain</h1>
 <div class="prose">
 <p class="lede">RootFetch counts how many domains are registered under each top-level domain, tracks which are growing or shrinking, and flags sudden jumps.</p>
