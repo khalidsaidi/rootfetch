@@ -380,16 +380,19 @@ FONTS = (
 CSS = """
 :root{
 --bg:#ffffff;--ink:#14243f;--ink-2:#46536b;--muted:#6b778c;--rule:#dce2ea;--wash:#f3f6fa;
---signal:#1f5fcc;--fall:#6a4bb0;--dot:#a7b1bf;
+--signal:#1f5fcc;--fall:#b0307a;--dot:#a7b1bf;
+--d3:#b0307a;--d2:#d77aaa;--d1:#efc6db;--n0:#e3e7ed;--g1:#c8dbf5;--g2:#7fa7e4;--g3:#256abf;
 --critical:#c2362f;--high:#cf6224;--elevated:#b07e00;--good:#2e7d43;
 --sans:"Atkinson Hyperlegible Next",system-ui,-apple-system,"Segoe UI",sans-serif;
 --code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
 --bg:#0f1624;--ink:#e6ecf5;--ink-2:#b3bdcc;--muted:#8d98aa;--rule:#2a3446;--wash:#162033;
---signal:#6fa2ff;--fall:#a993ec;--dot:#55617a;--critical:#ff7a6e;--high:#ff9a5a;--elevated:#e6b53a;--good:#5cc07a;color-scheme:dark}}
+--signal:#6fa2ff;--fall:#d45a93;--dot:#55617a;--critical:#ff7a6e;--high:#ff9a5a;--elevated:#e6b53a;--good:#5cc07a;
+--d3:#d45a93;--d2:#8e3d65;--d1:#4a2b3e;--n0:#283246;--g1:#243a5e;--g2:#3a65a6;--g3:#4f8ae0;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#0f1624;--ink:#e6ecf5;--ink-2:#b3bdcc;--muted:#8d98aa;--rule:#2a3446;--wash:#162033;
---signal:#6fa2ff;--fall:#a993ec;--dot:#55617a;--critical:#ff7a6e;--high:#ff9a5a;--elevated:#e6b53a;--good:#5cc07a;color-scheme:dark}
+--signal:#6fa2ff;--fall:#d45a93;--dot:#55617a;--critical:#ff7a6e;--high:#ff9a5a;--elevated:#e6b53a;--good:#5cc07a;
+--d3:#d45a93;--d2:#8e3d65;--d1:#4a2b3e;--n0:#283246;--g1:#243a5e;--g2:#3a65a6;--g3:#4f8ae0;color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--sans);font-variant-numeric:tabular-nums lining-nums}
@@ -424,17 +427,29 @@ h3{font-weight:700;font-size:18px;line-height:1.3;margin:0 0 4px}
 .muted,.count{color:var(--muted)}
 .count{font-size:15px}
 .eyebrow{display:none}
-.up{color:var(--ink)}.down{color:var(--fall)}.flat{color:var(--muted)}
+.up{color:var(--ink)}.down{color:var(--ink-2)}.flat{color:var(--muted)}
 
-/* the root wall: every extension, typeset by size */
-.wall{margin:34px 0 0;line-height:1.08;word-spacing:.18em;max-width:none}
-.wall{--wallscale:1}.wall a{font-size:calc(var(--s) * var(--wallscale) * 1px);color:var(--ink);text-decoration:none;font-weight:600;letter-spacing:-.01em;white-space:nowrap}
-.wall a.g{color:var(--signal)}
-.wall a.s{color:var(--fall)}
-.wall a.j{color:var(--critical);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
-.wall a:hover{color:var(--ink);text-decoration:underline}
-.wallkey{margin:18px 0 0;font-size:15px;color:var(--ink-2);max-width:72ch}
-.wallkey .g{color:var(--signal);font-weight:700}.wallkey .s{color:var(--fall);font-weight:700}.wallkey .j{color:var(--critical);font-weight:700;text-decoration:underline}
+
+/* market map */
+.mapfig{margin:34px 0 0}
+.mmap{width:100%;height:auto;display:block}
+.mmap .t{fill:var(--n0)}
+.mmap .t.d3{fill:var(--d3)}.mmap .t.d2{fill:var(--d2)}.mmap .t.d1{fill:var(--d1)}
+.mmap .t.g1{fill:var(--g1)}.mmap .t.g2{fill:var(--g2)}.mmap .t.g3{fill:var(--g3)}
+.mmap .pt:hover .t,.mmap .pt:focus .t{stroke:var(--ink);stroke-width:2}
+.mmap .gl{font:700 12px var(--sans);fill:var(--ink-2)}
+.mmap .tl{font-family:var(--sans);font-weight:800;fill:var(--ink);letter-spacing:-.01em}
+.mmap .tv{font:600 11px var(--sans);fill:var(--ink-2)}
+.mmap .tl.g3,.mmap .tl.d3,.mmap .tv.g3,.mmap .tv.d3{fill:#fff}
+.mmap.tall{display:none}
+.mkey{margin:14px 0 0;font-size:14px;color:var(--ink-2);width:min(100%,280px)}
+.mk-scale{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mk-scale i{height:12px;display:block;border-radius:2px}
+.mk-note{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.mk-scale .d3{background:var(--d3)}.mk-scale .d2{background:var(--d2)}.mk-scale .d1{background:var(--d1)}.mk-scale .n0{background:var(--n0)}
+.mk-scale .g1{background:var(--g1)}.mk-scale .g2{background:var(--g2)}.mk-scale .g3{background:var(--g3)}
+.mk-labels{display:flex;justify-content:space-between;margin-top:4px}
+.mapfig figcaption{margin:10px 0 0;font-size:15px;color:var(--ink-2);max-width:72ch}
 
 /* findings under the hero */
 .takeaways{list-style:none;padding:0;margin:30px 0 0;max-width:68ch;border-top:1px solid var(--rule)}
@@ -456,7 +471,7 @@ h3{font-weight:700;font-size:18px;line-height:1.3;margin:0 0 4px}
 .smgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:28px 24px}
 .sm svg{width:100%;height:64px;display:block;margin:6px 0 2px}
 .smn{font-weight:800;font-size:19px}
-.smv{font-weight:700;font-size:15px}.smv.down{color:var(--fall)}
+.smv{font-weight:700;font-size:15px}.smv.down{color:var(--ink-2)}
 .sm .count{font-size:13px}
 
 /* ranked lists */
@@ -474,9 +489,9 @@ h3{font-weight:700;font-size:18px;line-height:1.3;margin:0 0 4px}
 /* severity: a shape and a word, no badges */
 .sev{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:15px;white-space:nowrap}
 .sev i{width:9px;height:9px;display:inline-block}
-.sev-critical{color:var(--critical)}.sev-critical i{background:var(--critical);transform:rotate(45deg)}
-.sev-high{color:var(--high)}.sev-high i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--high)}
-.sev-elevated{color:var(--elevated)}.sev-elevated i{background:var(--elevated);border-radius:50%}
+.sev{color:var(--ink)}.sev-critical{}.sev-critical i{background:var(--critical);transform:rotate(45deg)}
+.sev-high{}.sev-high i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--high)}
+.sev-elevated{}.sev-elevated i{background:var(--elevated);border-radius:50%}
 .abuse{font-size:15px;color:var(--critical)}
 .chips{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
 
@@ -565,7 +580,7 @@ footer a{color:var(--ink)}
 @media (max-width:640px){
  body{font-size:16px}
  nav{margin-left:0;width:100%;gap:6px 20px;flex-wrap:wrap}
- .wall{--wallscale:.78}
+ .mmap.wide{display:none}.mmap.tall{display:block}
  .jumps li a{grid-template-columns:1fr auto;}
  .jumps li a .meta{grid-column:1/-1}
  th,td{padding:8px 10px 8px 0}
@@ -1291,6 +1306,117 @@ def tld_answers(tld: str, u: str, last_v: int, rank: int, total: int, meta: dict
     return lede, answers, faq, kind
 
 
+# ---------- market map (squarified treemap) ----------
+
+def _squarify(values: list[float], x: float, y: float, w: float, h: float) -> list[tuple[float, float, float, float]]:
+    """Squarified treemap layout (Bruls et al.): values sorted descending, returns rects in input order."""
+    rects: list[tuple[float, float, float, float]] = []
+    vals = list(values)
+    total = sum(vals) or 1.0
+    scale = w * h / total
+    areas = [v * scale for v in vals]
+
+    def worst(row: list[float], side: float) -> float:
+        s = sum(row)
+        return max(max(side * side * r / (s * s), (s * s) / (side * side * r)) for r in row)
+
+    i = 0
+    while i < len(areas):
+        side = min(w, h)
+        row = [areas[i]]
+        j = i + 1
+        while j < len(areas) and worst(row + [areas[j]], side) <= worst(row, side):
+            row.append(areas[j])
+            j += 1
+        s = sum(row)
+        if w >= h:  # lay the row down the left edge
+            cw = s / h if h else 0
+            cy = y
+            for a in row:
+                ch = a / cw if cw else 0
+                rects.append((x, cy, cw, ch))
+                cy += ch
+            x += cw
+            w -= cw
+        else:  # lay the row along the top edge
+            ch = s / w if w else 0
+            cx = x
+            for a in row:
+                cw2 = a / ch if ch else 0
+                rects.append((cx, y, cw2, ch))
+                cx += cw2
+            y += ch
+            h -= ch
+        i = j
+    return rects
+
+
+def _growth_bin(weekly: float | None) -> str:
+    if weekly is None:
+        return "n0"
+    for limit, name in ((-0.02, "d3"), (-0.005, "d2"), (-0.001, "d1")):
+        if weekly <= limit:
+            return name
+    for limit, name in ((0.02, "g3"), (0.005, "g2"), (0.001, "g1")):
+        if weekly >= limit:
+            return name
+    return "n0"
+
+
+def market_map(entries: list["Change"], meta: dict[str, dict], depth: int = 0, groups_shown: int = 12,
+               size: tuple[int, int] = (1040, 600), min_font: float = 10.0, cls: str = "") -> str:
+    """Every sizable TLD as a tile: area = domains, colour = growth per week, grouped by registry operator."""
+    (W, H), BAND, GAP = size, 18 * min_font / 10, 2
+    root = "../" * depth
+    by_op: dict[str, list["Change"]] = {}
+    for c in entries:
+        op = ((meta.get(c.tld) or {}).get("operator") or "Unknown registry").strip()
+        by_op.setdefault(op, []).append(c)
+    ops = sorted(by_op, key=lambda o: -sum(c.count for c in by_op[o]))
+    groups = [(o, by_op[o]) for o in ops[:groups_shown]]
+    rest = [c for o in ops[groups_shown:] for c in by_op[o]]
+    if rest:
+        groups.append((f"{len(ops) - groups_shown} other registries", rest))
+    grects = _squarify([sum(c.count for c in g) for _, g in groups], 0, 0, W, H)
+    out = []
+    for (name, members), (gx, gy, gw, gh) in zip(groups, grects):
+        members = sorted(members, key=lambda c: -c.count)
+        band = BAND if gw >= 90 and gh >= 60 else 0
+        out.append(f'<g class="grp">')
+        if band:
+            cw = 6.4 * min_font / 10
+            label = name if len(name) * cw < gw - 8 else name[: max(3, int((gw - 14) / cw))] + "…"
+            out.append(f'<text class="gl" x="{gx + 4:.1f}" y="{gy + band * 0.72:.1f}" font-size="{12 * min_font / 10:.0f}">{esc(label)}</text>')
+        tiles = _squarify([c.count for c in members], gx, gy + band, gw, gh - band)
+        for c, (x, y, w, h) in zip(members, tiles):
+            weekly = c.weekly if c.gap_days <= 60 else None
+            b = _growth_bin(weekly)
+            x1, y1, w1, h1 = x + GAP / 2, y + GAP / 2, max(0.0, w - GAP), max(0.0, h - GAP)
+            tip = (f".{unicode_name(c.tld)}: {fmt_int(c.count)} domains\n"
+                   + (f"{fmt_pct(weekly)} a week at its latest check" if weekly is not None else "no recent growth figure")
+                   + f"\nRun by {name if not name.endswith('registries') else ((meta.get(c.tld) or {}).get('operator') or 'unknown')}")
+            lab = ""
+            fs = max(min_font, min(30.0 * min_font / 10, (w1 * h1) ** 0.5 / 4.2, w1 / (len(unicode_name(c.tld)) + 1) * 1.6))
+            if w1 >= fs * (len(unicode_name(c.tld)) + 1) * 0.62 and h1 >= fs * 1.5:
+                lab = f'<text class="tl {b}" x="{x1 + 5:.1f}" y="{y1 + fs + 2:.1f}" font-size="{fs:.0f}">.{esc(unicode_name(c.tld))}</text>'
+                if h1 >= fs + 18 * min_font / 10 and w1 >= 58 * min_font / 10 and weekly is not None:
+                    lab += (f'<text class="tv {b}" x="{x1 + 5:.1f}" y="{y1 + fs + 17 * min_font / 10:.1f}" '
+                            f'font-size="{11 * min_font / 10:.0f}">{fmt_pct(weekly)}/wk</text>')
+            out.append(f'<a class="pt" href="{root}tld/{esc(c.tld)}.html" aria-label="{esc(tip)}">'
+                       f'<rect class="t {b}" x="{x1:.1f}" y="{y1:.1f}" width="{w1:.1f}" height="{h1:.1f}" rx="2"/>{lab}</a>')
+        out.append("</g>")
+    return (f'<svg class="mmap {cls}" viewBox="0 0 {W} {H}" role="img" aria-label="Market map of {len(entries)} domain extensions: '
+            f'size is registered domains, colour is growth per week, grouped by registry">{"".join(out)}</svg>')
+
+
+MAP_LEGEND = (
+    '<div class="mkey"><div class="mk-scale">'
+    '<i class="d3"></i><i class="d2"></i><i class="d1"></i><i class="n0"></i><i class="g1"></i><i class="g2"></i><i class="g3"></i></div>'
+    '<div class="mk-labels"><span>Shrinking</span><span>Steady</span><span>Growing</span></div>'
+    '<p class="mk-note">The darkest shades mean 2% a week or more.</p></div>'
+)
+
+
 def _og_available() -> bool:
     try:
         import PIL  # noqa: F401
@@ -1508,32 +1634,17 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         )
     watch_block = f'<ul class="jumps">{"".join(rows_j)}</ul>' if rows_j else '<p class="empty">No unusual jumps yet.</p>'
 
-    # ---------- the root wall: every sizable extension, typeset by size, coloured by direction ----------
-    wall_words = []
-    lo_l, hi_l = 3.0, max(math.log10(max(c.count for c, _ in radar_entries)), 4.0)
-    for c, _ in sorted(radar_entries, key=lambda e: unicode_name(e[1])):
-        size = 13 + (math.log10(c.count) - lo_l) / (hi_l - lo_l) * 47
-        cls = ("j" if c.severity and c.date > recent_cut else
-               "g" if c.weekly > 0.01 else "s" if c.weekly < -0.005 else "")
-        tip = f".{unicode_name(c.tld)}: {fmt_int(c.count)} domains, {fmt_pct(c.weekly)} a week"
-        wall_words.append(f'<a class="{cls}" href="tld/{esc(c.tld)}.html" style="--s:{size:.0f}" title="{esc(tip)}">.{esc(unicode_name(c.tld))}</a>')
-    n_g = sum(1 for c, _ in radar_entries if c.weekly > 0.01)
-    n_s = sum(1 for c, _ in radar_entries if c.weekly < -0.005)
+    # ---------- market map: every sizable extension, grouped by the registry that runs it ----------
+    map_entries = [c for c, _ in radar_entries]
+    n_ops = len({((_META.get(c.tld) or {}).get("operator") or "") for c in map_entries})
     wall_html = (
-        f'<div class="wall" aria-label="All {len(radar_entries)} extensions with at least {fmt_int(RADAR_MIN_DOMAINS)} domains">{" ".join(wall_words)}</div>'
-        f'<p class="wallkey">Every extension with at least {fmt_int(RADAR_MIN_DOMAINS)} domains, in alphabetical order, set in proportion to its size. '
-        f'<span class="g">Blue</span> ones are growing more than 1% a week ({n_g}), <span class="s">violet</span> ones are shrinking more than 0.5% ({n_s}), '
-        f'and <span class="j">red</span> ones had an unusual jump in the last {RECENT_DAYS} days. Each name opens its page.</p>'
+        f'<figure class="mapfig">{market_map(map_entries, _META, cls="wide")}'
+        f'{market_map(map_entries, _META, groups_shown=7, size=(600, 900), min_font=17, cls="tall")}{MAP_LEGEND}'
+        f'<figcaption>The domain market: {len(map_entries)} extensions with at least {fmt_int(RADAR_MIN_DOMAINS)} domains, '
+        f'each sized by its registered domains and grouped by the {n_ops} registries that run them. '
+        f'Colour shows growth per week at the latest check. Hover a tile for the numbers; click it to open the extension.</figcaption></figure>'
     )
 
-    legend = (
-        '<div class="legend">'
-        '<span><i style="background:var(--critical)"></i>Critical jump: 20%+</span>'
-        '<span><i style="background:var(--high)"></i>High: 10–20%</span>'
-        '<span><i style="background:var(--elevated)"></i>Elevated: 5–10%</span>'
-        f'<span><i style="background:var(--panel);box-shadow:inset 0 0 0 2px var(--high)"></i>Jumped more than {RECENT_DAYS} days ago</span>'
-        '<span><i style="background:var(--dot)"></i>Normal</span></div>'
-    )
     index_body = f"""
 <h1>{headline}</h1>
 <p class="lede">RootFetch counts the registered domains under {len(series):,} domain extensions every day, straight from their zone files.</p>
