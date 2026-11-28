@@ -34,7 +34,12 @@ jobs:
       - name: Publish MCP local package (npm trusted publishing / OIDC)
         run: |
           cd packages/rootfetch-mcp-local
-          npm publish --access public --loglevel verbose 2>&1 | grep -iE "oidc|trusted|provenance|404|error|\+ @" ; exit ${PIPESTATUS[0]}
+          version=$(node -p "require('./package.json').version")
+          if npm view "@khalidsaidi/rootfetch-mcp@$version" version >/dev/null 2>&1; then
+            echo "$version is already on npm"
+          else
+            npm publish --access public
+          fi
 
       # List the new version in the official MCP Registry (registry.modelcontextprotocol.io), which
       # Claude, VS Code and the MCP directories read. GitHub OIDC proves ownership of io.github.khalidsaidi/*.
