@@ -1687,6 +1687,10 @@ def build(out_dir: Path, counts_dir: Path, today: date) -> dict:
         og.site_image(out_dir / "og" / "site.png", "Domain statistics & trends for every domain extension",
                       f"{len(series):,} top-level domains · updated daily from ICANN zone files")
         og.logo_image(out_dir / "og" / "logo.png")
+        # A real favicon.ico at the root: directories and search engines fetch /favicon.ico, not the inline SVG.
+        from PIL import Image as _Image
+        _Image.open(out_dir / "og" / "logo.png").convert("RGBA").save(
+            out_dir / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
     (out_dir / "index.html").write_text(
         page("Domain statistics & trends by extension (TLD) | RootFetch", index_body, active="home", trust=trust,
              path="", image="og/home.png",
