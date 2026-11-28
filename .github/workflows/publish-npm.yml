@@ -35,3 +35,12 @@ jobs:
         run: |
           cd packages/rootfetch-mcp-local
           npm publish --access public
+
+      # List the new version in the official MCP Registry (registry.modelcontextprotocol.io), which
+      # Claude, VS Code and the MCP directories read. GitHub OIDC proves ownership of io.github.khalidsaidi/*.
+      - name: Publish to the MCP Registry
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          cd packages/rootfetch-mcp-local
+          ../../mcp-publisher publish

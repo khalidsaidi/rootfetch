@@ -1,70 +1,44 @@
-# RootFetch MCP (Local)
+# RootFetch MCP server
 
-Local stdio MCP bridge for RootFetch immutable artifact tools.
+Ask Claude, ChatGPT, Cursor or any MCP client about domain extensions (TLDs): how big .xyz is, who runs .bond, which extensions grew fastest this month, whether .top shows abuse signals. Data comes from [RootFetch](https://rootfetch.com), which counts registered domains in ~1,080 generic TLD zone files from ICANN every day.
 
-This package is for MCP hosts that prefer a local stdio process while still using the canonical hosted RootFetch MCP endpoint.
+Free, read-only, no account or API key.
 
-## Quick start
+## Hosted (recommended)
 
-```bash
-npx -y @khalidsaidi/rootfetch-mcp@latest rootfetch-mcp
+```
+https://mcp.rootfetch.com/mcp
 ```
 
-Default remote endpoint:
+- **Claude (claude.ai / Desktop):** Settings, Connectors, Add custom connector, paste the URL.
+- **Claude Code:** `claude mcp add --transport http rootfetch https://mcp.rootfetch.com/mcp`
+- **ChatGPT:** enable developer mode, then add an app/connector with the URL.
+- **Cursor / VS Code / Windsurf:**
 
-- `https://rootfetch.com/mcp`
-
-Override:
-
-```bash
-ROOTFETCH_MCP_URL=https://rootfetch.com/mcp npx -y @khalidsaidi/rootfetch-mcp@latest rootfetch-mcp
+```json
+{ "mcpServers": { "rootfetch": { "url": "https://mcp.rootfetch.com/mcp" } } }
 ```
 
-## Claude Desktop config
+## Local (stdio)
 
 ```json
 {
   "mcpServers": {
-    "rootfetch": {
-      "command": "npx",
-      "args": ["-y", "@khalidsaidi/rootfetch-mcp@latest", "rootfetch-mcp"],
-      "env": {
-        "ROOTFETCH_MCP_URL": "https://rootfetch.com/mcp"
-      }
-    }
+    "rootfetch": { "command": "npx", "args": ["-y", "@khalidsaidi/rootfetch-mcp"] }
   }
 }
 ```
 
-## Remote MCP (no install)
-
-```bash
-claude mcp add --transport http rootfetch https://rootfetch.com/mcp
-```
-
 ## Tools
 
-- `rootfetch.outcome.current_state`
-- `rootfetch.outcome.run_delta`
-- `rootfetch.outcome.tld_spotlight`
-- `rootfetch.outcome.alert_candidates`
-- `rootfetch.latest`
-- `rootfetch.replay_index`
-- `rootfetch.run_manifest`
-- `rootfetch.run_bundle`
-- `rootfetch.compare_link`
+| Tool | What it answers |
+|---|---|
+| `lookup_tld` | Size, rank, operator, launch date, growth, unusual jumps and a safety verdict for one extension. Accepts `.xyz`, `xyz` or `shop.example.xyz`. |
+| `rank_tlds` | Largest, fastest growing, fastest shrinking or biggest gaining extensions. |
+| `recent_jumps` | Sudden registration bursts (1,000+ domains and 5%+ within 21 days). |
+| `compare_tlds` | 2 to 10 extensions side by side. |
+| `tld_history` | Every recorded count for one extension. |
 
-## Environment variables
+Not covered: `.com` and country codes such as `.uk` or `.de` (they don't publish zone files through ICANN CZDS).
 
-| Variable | Required | Description |
-|---|---|---|
-| `ROOTFETCH_MCP_URL` | No | Remote MCP endpoint (default: `https://rootfetch.com/mcp`) |
-| `ROOTFETCH_MCP_TIMEOUT_MS` | No | HTTP timeout for forwarded calls (default: `30000`) |
-
-## Links
-
-- Agent guide: `https://rootfetch.com/agents`
-- MCP docs: `https://rootfetch.com/docs/mcp`
-- First-call validator: `https://rootfetch.com/api/mcp/first-call`
-- Public endpoints: `https://rootfetch.com/mcp`, `/mcp/health`, `/mcp/readyz`
-- AIR: `https://rootfetch.com/.well-known/air.json`
+Data license: CC BY 4.0. Code: MIT.

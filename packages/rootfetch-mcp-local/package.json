@@ -1,18 +1,25 @@
 {
   "name": "@khalidsaidi/rootfetch-mcp",
-  "version": "0.1.0",
-  "description": "Local stdio MCP bridge for RootFetch immutable artifact tools.",
+  "version": "0.2.0",
+  "description": "MCP server for RootFetch: size, growth, operator, abuse signals and history for ~1,080 domain extensions (TLDs), from ICANN zone files.",
   "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "mcp-server",
     "agents",
+    "dns",
+    "domain-extensions",
+    "domain-statistics",
+    "domains",
+    "icann",
     "json-rpc",
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "rootfetch",
     "stdio",
-    "rootfetch"
+    "tld",
+    "zone-files"
   ],
   "license": "MIT",
-  "homepage": "https://rootfetch.com/docs/mcp",
+  "homepage": "https://rootfetch.com/mcp.html",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/khalidsaidi/rootfetch.git",
@@ -40,7 +47,7 @@
   ],
   "scripts": {
     "dev": "tsx src/cli.ts",
-    "quick-test": "tsx scripts/quick-test.ts",
+    "quick-test": "node scripts/quick-test.mjs",
     "build": "tsc -p tsconfig.json",
     "postbuild": "node -e \"const fs=require('fs');const p='dist/cli.js';const c=fs.readFileSync(p,'utf8');if(!c.startsWith('#!')){fs.writeFileSync(p,'#!/usr/bin/env node\\n'+c);}\"",
     "prepublishOnly": "npm run build",
@@ -50,7 +57,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
-    "dotenv": "^17.2.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {

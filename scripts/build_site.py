@@ -43,8 +43,8 @@ LEGACY = {
     "approved": "tlds.html", "compare": "tlds.html", "compare/tlds": "tlds.html", "sectors": "index.html",
     "security": "spikes.html", "runs": "data.html", "ask": "index.html", "agents": "data.html",
     "agents/playground": "data.html", "agents/recipes": "data.html", "recipes": "data.html", "for-teams": "about.html",
-    "for-teams/workflows": "about.html", "docs/mcp": "data.html", "docs/integrations": "data.html",
-    "docs/public-endpoints": "data.html", "mcp/live": "data.html", "mcp/usage": "data.html", "ops": "data.html",
+    "for-teams/workflows": "about.html", "docs/mcp": "mcp.html", "docs/integrations": "data.html",
+    "docs/public-endpoints": "data.html", "mcp/live": "mcp.html", "mcp/usage": "mcp.html", "ops": "data.html",
 }
 
 # A spike is a jump of at least SPIKE_MIN_ADDED domains and SPIKE_MIN_PCT growth
@@ -691,7 +691,7 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 {body}
 </main>
 <footer><div class="wrap"><span>RootFetch counts the domains in ICANN zone files every day. Raw zone files are never published.</span>
-<a href="{root}data.html">Download the data</a><a href="{root}feed.xml">RSS feed</a><a href="{REPO_URL}">Source code</a></div></footer>
+<a href="{root}data.html">Download the data</a><a href="{root}mcp.html">Use it in Claude or ChatGPT</a><a href="{root}feed.xml">RSS feed</a><a href="{REPO_URL}">Source code</a></div></footer>
 <div id="tip" role="tooltip"></div>
 <script>{JS}</script>
 {GA_EVENTS}
@@ -2164,6 +2164,42 @@ df[df.tld == "lol"].plot(x="date", y="count")</code></pre>
     (out_dir / "about.html").write_text(page("About RootFetch: how domain counts are made", about_body, active="about", trust=trust, path="about.html",
                                                 description="How RootFetch counts registered domains from ICANN CZDS zone files, how growth and unusual jumps are calculated, and where the data comes from."))
 
+    mcp_body = """
+<h1>Ask Claude, ChatGPT or Cursor about domain extensions</h1>
+<div class="prose">
+<p class="lede">RootFetch has an MCP server, so AI assistants can read its numbers directly. Ask things like "Is .bond safe?", "Which extensions grew fastest this month?" or "Compare .xyz, .top and .shop" and the answer comes from today's data, with links back here.</p>
+<p>It is free, needs no account or key, and only reads public data.</p>
+<h2>The address</h2>
+<pre><code>https://mcp.rootfetch.com/mcp</code></pre>
+<h2>Claude</h2>
+<p>On claude.ai or Claude Desktop: Settings, Connectors, Add custom connector, then paste the address above.</p>
+<p>In Claude Code, run:</p>
+<pre><code>claude mcp add --transport http rootfetch https://mcp.rootfetch.com/mcp</code></pre>
+<h2>ChatGPT</h2>
+<p>Turn on developer mode in Settings, then add a new app or connector with the address above. Custom connectors need a paid ChatGPT plan.</p>
+<h2>Cursor, VS Code, Windsurf and others</h2>
+<p>Add this to the editor's MCP settings file:</p>
+<pre><code>{
+  "mcpServers": {
+    "rootfetch": { "url": "https://mcp.rootfetch.com/mcp" }
+  }
+}</code></pre>
+<p>Tools that only run local servers can use the npm package instead:</p>
+<pre><code>npx -y @khalidsaidi/rootfetch-mcp</code></pre>
+<h2>What it can answer</h2>
+<ul>
+<li><b>lookup_tld</b>: size, rank, who runs an extension, when it launched, its growth and a safety verdict. Works with ".xyz", "xyz" or a full domain such as "shop.example.top".</li>
+<li><b>rank_tlds</b>: the largest, fastest growing, fastest shrinking or biggest gaining extensions.</li>
+<li><b>recent_jumps</b>: sudden registration bursts in the last days or weeks.</li>
+<li><b>compare_tlds</b>: up to 10 extensions side by side.</li>
+<li><b>tld_history</b>: every recorded count for one extension.</li>
+</ul>
+<p>It covers the same ~1,080 generic extensions as this site. Country codes such as .uk and .de, and .com, aren't included. The source code is <a href="https://github.com/khalidsaidi/rootfetch/tree/main/packages/rootfetch-mcp-local">on GitHub</a>; it is also listed in the official <a href="https://registry.modelcontextprotocol.io/v0/servers?search=rootfetch">MCP Registry</a>.</p>
+</div>
+"""
+    (out_dir / "mcp.html").write_text(page("RootFetch MCP server: domain data in Claude and ChatGPT", mcp_body, trust=trust, path="mcp.html",
+                                           description="Connect Claude, ChatGPT, Cursor or VS Code to RootFetch's free MCP server and ask about any domain extension's size, growth, owner and safety."))
+
     (out_dir / "404.html").write_text(
         page("Not found · RootFetch", '<h1>No page here</h1><p class="lede"><a href="/">Go to trends</a> or <a href="/tlds.html">find a TLD</a>.</p>', path="404.html", noindex=True)
     )
@@ -2199,7 +2235,7 @@ df[df.tld == "lol"].plot(x="date", y="count")</code></pre>
                   ("GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "PerplexityBot", "Google-Extended", "Applebot-Extended", "CCBot"))
         + f"Sitemap: {SITE_URL}/sitemap.xml\n"
     )
-    pages = [("", last_update), ("tlds.html", last_update), ("spikes.html", last_update), ("data.html", last_update), ("about.html", last_update)]
+    pages = [("", last_update), ("tlds.html", last_update), ("spikes.html", last_update), ("data.html", last_update), ("about.html", last_update), ("mcp.html", last_update)]
     (out_dir / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
         + "".join(f"<url><loc>{SITE_URL}/{u}</loc><lastmod>{d}</lastmod></url>" for u, d in pages + sorted(sitemap))
@@ -2223,12 +2259,14 @@ Counts are distinct second-level names with NS records in each TLD's zone file. 
 - [Unusual jumps]({SITE_URL}/spikes.html): sudden registration spikes with severity
 - [Data]({SITE_URL}/data.html): downloads and method
 - [About]({SITE_URL}/about.html)
+- [MCP server]({SITE_URL}/mcp.html): connect AI assistants at https://mcp.rootfetch.com/mcp (streamable HTTP, no auth)
 
 ## Data
 - [latest.json]({SITE_URL}/data/latest.json): latest count, change and flags per TLD
 - [history.csv]({SITE_URL}/data/history.csv): every check for every TLD
 - [spikes.json]({SITE_URL}/data/spikes.json): unusual jumps and the rule used
 - Per-TLD history: {SITE_URL}/data/tld/<tld>.csv
+- [tlds.json]({SITE_URL}/data/tlds.json): one profile per TLD: size, rank, operator, growth, jumps, safety verdict
 
 ## Largest TLDs tracked
 {top_lines}
