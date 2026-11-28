@@ -3,7 +3,7 @@
   "name": "io.github.khalidsaidi/rootfetch",
   "title": "RootFetch",
   "description": "Size, growth, owner and abuse signals for ~1,080 domain extensions (TLDs), from ICANN zone files.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": {
     "source": "github",
     "url": "https://github.com/khalidsaidi/rootfetch",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "@khalidsaidi/rootfetch-mcp",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
@@ -25,6 +25,15 @@
     {
       "type": "streamable-http",
       "url": "https://mcp.rootfetch.com/mcp"
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://rootfetch.com/og/logo.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
     }
   ]
 }

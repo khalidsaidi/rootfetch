@@ -5,7 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
 export const SERVER_NAME = "rootfetch";
-export const SERVER_VERSION = "0.2.0";
+export const SERVER_VERSION = "0.2.1";
 const BASE = (process.env.ROOTFETCH_DATA_URL ?? "https://rootfetch.com").replace(/\/$/, "");
 const CACHE_MS = 10 * 60 * 1000;
 
@@ -91,11 +91,22 @@ function profileText(p: Profile): string {
   return lines.join("\n");
 }
 
-const READ_ONLY = { readOnlyHint: true, openWorldHint: true, idempotentHint: true };
+// Every tool only reads RootFetch's own published files on rootfetch.com: nothing is written,
+// and no outside source is queried live, so the world is closed.
+const readOnly = (title: string) =>
+  ({ title, readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false });
+
+// Appended to every tool description: where the numbers come from, how fresh they are, what's missing.
+const SOURCE = " Source: RootFetch's counts of registered domains in ICANN CZDS zone files. Updated daily; most " +
+  "extensions are re-counted about every two weeks, .xyz, .app and .dev daily. Covers ~1,080 generic extensions, " +
+  "not .com or country codes such as .uk.";
 
 export function createServer(): McpServer {
   const server = new McpServer(
-    { name: SERVER_NAME, version: SERVER_VERSION },
+    {
+      name: SERVER_NAME, title: "RootFetch", version: SERVER_VERSION, websiteUrl: "https://rootfetch.com/mcp.html",
+      icons: [{ src: "https://rootfetch.com/og/logo.png", mimeType: "image/png", sizes: ["512x512"] }],
+    },
     {
       instructions:
         "RootFetch counts the registered domains under ~1,080 generic domain extensions (TLDs) from ICANN zone files, " +
@@ -110,9 +121,9 @@ export function createServer(): McpServer {
       title: "Look up a domain extension",
       description:
         "Profile of one domain extension (TLD): registered domains, size rank, who runs it, when it launched, " +
-        "growth, unusual registration jumps and a data-based safety verdict. Accepts '.xyz', 'xyz' or 'example.xyz'.",
+        "growth, unusual registration jumps and a data-based safety verdict. Accepts '.xyz', 'xyz' or 'example.xyz'." + SOURCE,
       inputSchema: { tld: z.string().min(1).describe("The extension, e.g. '.xyz', 'bond' or 'shop.example.top'") },
-      annotations: READ_ONLY,
+      annotations: readOnly("Look up a domain extension"),
     },
     async ({ tld }) => {
       const p = await findTld(tld);
@@ -126,14 +137,14 @@ export function createServer(): McpServer {
       title: "Rank domain extensions",
       description:
         "Rank domain extensions by size or by growth at their latest check. Growth is per week so extensions checked " +
-        "days or weeks apart compare fairly.",
+        "days or weeks apart compare fairly." + SOURCE,
       inputSchema: {
         by: z.enum(["largest", "fastest_growing", "fastest_shrinking", "biggest_gains"]).default("largest"),
         limit: z.number().int().min(1).max(50).default(10),
         min_domains: z.number().int().min(0).default(10000)
           .describe("Ignore extensions smaller than this (default 10,000) so tiny ones don't dominate growth rankings"),
       },
-      annotations: READ_ONLY,
+      annotations: readOnly("Rank domain extensions"),
     },
     async ({ by, limit, min_domains }) => {
       const { tlds, last_update } = await profiles();
@@ -163,12 +174,12 @@ export function createServer(): McpServer {
       title: "Recent unusual registration jumps",
       description:
         "Extensions that gained at least 1,000 domains and 5% or more within 21 days, newest first. Such bursts are " +
-        "often price promotions and sometimes bulk registrations for spam or phishing.",
+        "often price promotions and sometimes bulk registrations for spam or phishing." + SOURCE,
       inputSchema: {
         days: z.number().int().min(1).max(365).default(30).describe("How far back to look"),
         limit: z.number().int().min(1).max(50).default(20),
       },
-      annotations: READ_ONLY,
+      annotations: readOnly("Recent unusual registration jumps"),
     },
     async ({ days, limit }) => {
       const all = await jumps();
@@ -187,9 +198,9 @@ export function createServer(): McpServer {
     "compare_tlds",
     {
       title: "Compare domain extensions",
-      description: "Side-by-side size, growth, operator and safety for 2 to 10 domain extensions.",
+      description: "Side-by-side size, growth, operator and safety for 2 to 10 domain extensions." + SOURCE,
       inputSchema: { tlds: z.array(z.string().min(1)).min(2).max(10).describe("e.g. ['.xyz', '.top', '.shop']") },
-      annotations: READ_ONLY,
+      annotations: readOnly("Compare domain extensions"),
     },
     async ({ tlds }: { tlds: string[] }) => {
       const found: Profile[] = await Promise.all(tlds.map((t) => findTld(t)));
@@ -204,9 +215,9 @@ export function createServer(): McpServer {
     "tld_history",
     {
       title: "Domain count history",
-      description: "Every recorded domain count for one extension, oldest first, from RootFetch's daily zone-file checks.",
+      description: "Every recorded domain count for one extension, oldest first, from RootFetch's daily zone-file checks." + SOURCE,
       inputSchema: { tld: z.string().min(1) },
-      annotations: READ_ONLY,
+      annotations: readOnly("Domain count history"),
     },
     async ({ tld }: { tld: string }) => {
       const p = await findTld(tld);

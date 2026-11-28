@@ -48,4 +48,7 @@ jobs:
           curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
           cd packages/rootfetch-mcp-local
+          version=$(node -p "require('./package.json').version")
+          # A just-published npm version can take a minute to become visible; the registry checks for it.
+          for i in $(seq 1 20); do npm view "@khalidsaidi/rootfetch-mcp@$version" version >/dev/null 2>&1 && break; sleep 15; done
           ../../mcp-publisher publish

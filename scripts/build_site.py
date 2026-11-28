@@ -691,7 +691,7 @@ def page(title: str, body: str, *, active: str = "", depth: int = 0, description
 {body}
 </main>
 <footer><div class="wrap"><span>RootFetch counts the domains in ICANN zone files every day. Raw zone files are never published.</span>
-<a href="{root}data.html">Download the data</a><a href="{root}mcp.html">Use it in Claude or ChatGPT</a><a href="{root}feed.xml">RSS feed</a><a href="{REPO_URL}">Source code</a></div></footer>
+<a href="{root}data.html">Download the data</a><a href="{root}mcp.html">Use it in Claude or ChatGPT</a><a href="{root}privacy.html">Privacy</a><a href="{root}terms.html">Terms</a><a href="{root}support.html">Support</a><a href="{root}feed.xml">RSS feed</a><a href="{REPO_URL}">Source code</a></div></footer>
 <div id="tip" role="tooltip"></div>
 <script>{JS}</script>
 {GA_EVENTS}
@@ -2200,6 +2200,56 @@ df[df.tld == "lol"].plot(x="date", y="count")</code></pre>
     (out_dir / "mcp.html").write_text(page("RootFetch MCP server: domain data in Claude and ChatGPT", mcp_body, trust=trust, path="mcp.html",
                                            description="Connect Claude, ChatGPT, Cursor or VS Code to RootFetch's free MCP server and ask about any domain extension's size, growth, owner and safety."))
 
+    privacy_body = f"""
+<h1>Privacy</h1>
+<div class="prose">
+<p class="lede">RootFetch has no accounts, no sign-in and no cookies of its own. This page says exactly what each part receives and keeps.</p>
+<h2>The MCP server (mcp.rootfetch.com)</h2>
+<p>When an AI assistant such as Claude or ChatGPT uses RootFetch, it sends the server the name of the tool and that tool's arguments, for example <code>lookup_tld</code> with <code>".bond"</code>, plus the client's name and version when it connects. It does not send your conversation; the server has no way to see it.</p>
+<p>The server answers from RootFetch's public data files and keeps nothing. It has no database, writes no logs of its own, sets no cookies and runs no analytics.</p>
+<p>The server runs on <a href="https://vercel.com/legal/privacy-policy">Vercel</a>. Vercel's standard request logs record the time, path, status code, region and user agent of each request, and on RootFetch's plan they are kept for 1 hour. They don't contain the tool arguments. RootFetch doesn't copy or export them.</p>
+<h2>The npm package</h2>
+<p><code>@khalidsaidi/rootfetch-mcp</code> runs on your own computer. It downloads the same public data files from rootfetch.com and sends nothing else anywhere.</p>
+<h2>This website</h2>
+<p>rootfetch.com is hosted on GitHub Pages; GitHub handles requests under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">its privacy statement</a>. The site uses Google Analytics 4 to count page views and which pages, downloads and links are used. Google Analytics sets its own cookies and receives your IP address, browser and approximate location under <a href="https://policies.google.com/privacy">Google's privacy policy</a>. Blocking it with any content blocker doesn't affect the site.</p>
+<h2>Changes and questions</h2>
+<p>This page changes when the code does; the history is <a href="{REPO_URL}/commits/main/scripts/build_site.py">on GitHub</a>. Questions: <a href="support.html">support</a>.</p>
+</div>
+"""
+    (out_dir / "privacy.html").write_text(page("Privacy · RootFetch", privacy_body, trust=trust, path="privacy.html",
+                                               description="What RootFetch's MCP server, npm package and website receive and keep: tool arguments only, no accounts, no stored logs of its own."))
+    terms_body = f"""
+<h1>Terms of use</h1>
+<div class="prose">
+<p class="lede">RootFetch, including the MCP server at mcp.rootfetch.com, is free to use. No account or key is needed.</p>
+<h2>The data</h2>
+<p>Domain counts are licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>: reuse them for anything, with credit to RootFetch. The code is open source under the MIT license on <a href="{REPO_URL}">GitHub</a>.</p>
+<h2>No warranty</h2>
+<p>Everything is provided as is. Counts come from ICANN zone files and can be late, incomplete or wrong; most extensions are re-counted about every two weeks. Safety verdicts summarise public signals about an extension and say nothing about any single domain. Don't rely on RootFetch alone for security, legal or financial decisions.</p>
+<h2>Fair use</h2>
+<p>Don't overload the service. Automated access is welcome at a reasonable rate; for bulk use, download the files on the <a href="data.html">data page</a>. The service may change, be rate-limited or stop.</p>
+<p>Questions: <a href="support.html">support</a>. Privacy: <a href="privacy.html">privacy</a>.</p>
+</div>
+"""
+    (out_dir / "terms.html").write_text(page("Terms of use · RootFetch", terms_body, trust=trust, path="terms.html",
+                                             description="Terms for using RootFetch and its MCP server: free, CC BY 4.0 data, MIT code, no warranty."))
+    support_body = f"""
+<h1>Support</h1>
+<div class="prose">
+<p class="lede">Found a wrong number, a broken page or a problem with the MCP server? Open an issue on GitHub and it will be answered there.</p>
+<p><a href="{REPO_URL}/issues/new">Open an issue on GitHub</a> (<a href="{REPO_URL}/issues">see existing issues</a>).</p>
+<h2>Before you write</h2>
+<ul>
+<li><b>MCP server not connecting:</b> the address is <code>https://mcp.rootfetch.com/mcp</code> with no authentication. Setup steps for each assistant are on the <a href="mcp.html">MCP page</a>.</li>
+<li><b>An extension is missing:</b> .com and country codes such as .uk or .de aren't covered, because they don't publish zone files through ICANN CZDS.</li>
+<li><b>A count looks old:</b> most extensions are re-counted about every two weeks; each page shows the date of its last check. <a href="status.json">status.json</a> shows when the newest data arrived.</li>
+</ul>
+<p>Please include the extension, the page or tool you used, and what you expected to see.</p>
+</div>
+"""
+    (out_dir / "support.html").write_text(page("Support · RootFetch", support_body, trust=trust, path="support.html",
+                                               description="Get help with RootFetch data or its MCP server: report problems on GitHub, setup steps and known limits."))
+
     (out_dir / "404.html").write_text(
         page("Not found · RootFetch", '<h1>No page here</h1><p class="lede"><a href="/">Go to trends</a> or <a href="/tlds.html">find a TLD</a>.</p>', path="404.html", noindex=True)
     )
@@ -2235,7 +2285,7 @@ df[df.tld == "lol"].plot(x="date", y="count")</code></pre>
                   ("GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "PerplexityBot", "Google-Extended", "Applebot-Extended", "CCBot"))
         + f"Sitemap: {SITE_URL}/sitemap.xml\n"
     )
-    pages = [("", last_update), ("tlds.html", last_update), ("spikes.html", last_update), ("data.html", last_update), ("about.html", last_update), ("mcp.html", last_update)]
+    pages = [("", last_update), ("tlds.html", last_update), ("spikes.html", last_update), ("data.html", last_update), ("about.html", last_update), ("mcp.html", last_update), ("privacy.html", last_update), ("terms.html", last_update), ("support.html", last_update)]
     (out_dir / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
         + "".join(f"<url><loc>{SITE_URL}/{u}</loc><lastmod>{d}</lastmod></url>" for u, d in pages + sorted(sitemap))
